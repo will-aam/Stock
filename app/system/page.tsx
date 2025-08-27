@@ -1,8 +1,8 @@
+// Dashboard dos sistemas
 "use client";
-
-import type React from "react";
-// 1. As importações de 'lazy' e 'Suspense' foram removidas
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,1343 +10,379 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Upload,
-  Scan,
-  Download,
-  History,
-  Plus,
-  Trash2,
-  FileSpreadsheet,
-  Store,
-  AlertCircle,
   Package,
-  Crown,
-  Camera,
+  Scan,
+  Upload,
+  ClipboardList,
+  Factory,
+  ArrowRight,
+  CheckCircle,
+  Sparkles,
+  BarChart3,
+  Search,
+  ShoppingCart,
 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import Papa, { type ParseResult } from "papaparse";
 
-// 2. Modais importados diretamente com importações nomeadas (com chaves)
-import { QuickRegisterModal } from "@/components/modules/inventory-count/quick-register-modal";
-import { ClearDataModal } from "@/components/shared/clear-data-modal";
-import { BarcodeScanner } from "@/components/modules/inventory-count/barcode-scanner";
-import { PremiumUpgradeModal } from "@/components/modules/premium/premium-upgrade-modal";
+export default function SystemsPage() {
+  const [isVisible, setIsVisible] = useState(false);
 
-// Interfaces (inalteradas)
-interface Product {
-  id: number;
-  codigo_produto: string;
-  descricao: string;
-  saldo_estoque: number;
-}
-interface BarCode {
-  codigo_de_barras: string;
-  produto_id: number;
-  produto?: Product;
-}
-interface ProductCount {
-  id: string;
-  codigo_de_barras: string;
-  codigo_produto: string;
-  descricao: string;
-  saldo_estoque: number;
-  quant_loja: number;
-  quant_estoque: number;
-  total: number;
-  local_estoque: string;
-  data_hora: string;
-}
-interface InventoryHistory {
-  id: number;
-  data_contagem: string;
-  usuario_email: string;
-  total_itens: number;
-  local_estoque: string;
-  status: string;
-}
-interface CsvRow {
-  codigo_de_barras: string;
-  codigo_produto: string;
-  descricao: string;
-  saldo_estoque: string;
-}
-interface TempProduct {
-  id: string;
-  codigo_de_barras: string;
-  codigo_produto: string;
-  descricao: string;
-  saldo_estoque: number;
-  isTemporary: true;
-}
-export const dynamic = "force-dynamic";
-// Componentes Memoizados (inalterados)
-const ProductCountItem = ({
-  item,
-  onRemove,
-}: {
-  item: ProductCount;
-  onRemove: (id: string) => void;
-}) => (
-  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-    {" "}
-    <div className="flex-1">
-      {" "}
-      <p className="font-medium text-sm">{item.descricao}</p>{" "}
-      <p className="text-xs text-gray-600 dark:text-gray-400">
-        {" "}
-        Código: {item.codigo_produto} | Sistema: {item.saldo_estoque}{" "}
-      </p>{" "}
-      <div className="flex items-center space-x-2 mt-1">
-        {" "}
-        <Badge variant="outline" className="text-xs">
-          Loja: {item.quant_loja}
-        </Badge>{" "}
-        <Badge variant="outline" className="text-xs">
-          Estoque: {item.quant_estoque}
-        </Badge>{" "}
-        <Badge
-          variant={
-            item.total === 0
-              ? "secondary"
-              : item.total > 0
-              ? "default"
-              : "destructive"
-          }
-          className="text-xs"
-        >
-          {" "}
-          Total: {item.total > 0 ? "+" : ""}
-          {item.total}{" "}
-        </Badge>{" "}
-      </div>{" "}
-    </div>{" "}
-    <Button variant="outline" size="sm" onClick={() => onRemove(item.id)}>
-      {" "}
-      <Trash2 className="h-4 w-4" />{" "}
-    </Button>{" "}
-  </div>
-);
-ProductCountItem.displayName = "ProductCountItem";
-const ProductTableRow = ({
-  product,
-  barCode,
-}: {
-  product: Product;
-  barCode?: BarCode;
-}) => (
-  <TableRow>
-    <TableCell className="font-medium">{product.codigo_produto}</TableCell>
-    <TableCell>{product.descricao}</TableCell>
-    <TableCell>
-      <Badge variant="outline">{product.saldo_estoque}</Badge>
-    </TableCell>
-    <TableCell className="font-mono text-sm">
-      {barCode?.codigo_de_barras || "-"}
-    </TableCell>
-  </TableRow>
-);
-ProductTableRow.displayName = "ProductTableRow";
-
-export default function InventorySystem() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [barCodes, setBarCodes] = useState<BarCode[]>([]);
-  const [tempProducts, setTempProducts] = useState<TempProduct[]>([]);
-  const [scanInput, setScanInput] = useState("");
-  const [quantityInput, setQuantityInput] = useState("");
-  const [currentProduct, setCurrentProduct] = useState<
-    Product | TempProduct | null
-  >(null);
-  const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [csvErrors, setCsvErrors] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("loja-1");
-  const [inventoryHistory, setInventoryHistory] = useState<InventoryHistory[]>(
-    []
-  );
-  const [countingMode, setCountingMode] = useState<"loja" | "estoque">("loja");
-  const [productCounts, setProductCounts] = useState<ProductCount[]>([]);
-  const [showQuickRegister, setShowQuickRegister] = useState(false);
-  const [showClearDataModal, setShowClearDataModal] = useState(false);
-  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
-  const [premiumModalFeature, setPremiumModalFeature] = useState<string>("");
-  const [quickRegisterData, setQuickRegisterData] = useState({
-    codigo_de_barras: "",
-    descricao: "",
-    quantidade: "",
-  });
-
-  // Lógica e callbacks
-  const locations = useMemo(
-    () => [
-      { value: "loja-1", label: "Loja 1" },
-      { value: "loja-2", label: "Loja 2" },
-      { value: "deposito", label: "Depósito" },
-      { value: "estoque-central", label: "Estoque Central" },
-    ],
-    []
-  );
-  const productCountsStats = useMemo(() => {
-    const totalLoja = productCounts.reduce(
-      (sum, item) => sum + item.quant_loja,
-      0
-    );
-    const totalEstoque = productCounts.reduce(
-      (sum, item) => sum + item.quant_estoque,
-      0
-    );
-    const totalSistema = productCounts.reduce(
-      (sum, item) => sum + item.saldo_estoque,
-      0
-    );
-    const consolidado = totalLoja + totalEstoque - totalSistema;
-    return { totalLoja, totalEstoque, totalSistema, consolidado };
-  }, [productCounts]);
   useEffect(() => {
-    const loadData = async () => {
-      const savedData = localStorage.getItem("inventory-system-data");
-      if (savedData) {
-        try {
-          const data = JSON.parse(savedData);
-          setProducts(data.products || []);
-          setBarCodes(data.barCodes || []);
-        } catch (error) {
-          console.error("Erro ao carregar dados do localStorage:", error);
-        }
-      }
-    };
-    loadData();
+    setIsVisible(true);
   }, []);
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const dataToSave = {
-        products,
-        barCodes,
-        timestamp: new Date().toISOString(),
-      };
-      localStorage.setItem("inventory-system-data", JSON.stringify(dataToSave));
-    }, 500);
-    return () => clearTimeout(timeoutId);
-  }, [products, barCodes]);
-  const handleClearAllData = useCallback(() => {
-    localStorage.removeItem("inventory-system-data");
-    setProducts([]);
-    setBarCodes([]);
-    setTempProducts([]);
-    setProductCounts([]);
-    setScanInput("");
-    setQuantityInput("");
-    setCurrentProduct(null);
-    setCsvFile(null);
-    setCsvErrors([]);
-    setShowClearDataModal(false);
-    toast({
-      title: "Dados apagados",
-      description: "Todos os dados foram removidos com sucesso",
-      variant: "destructive",
-    });
-  }, []);
-  const handleCsvUpload = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        setCsvFile(file);
-        processCsvFile(file);
-      }
+
+  const systems = [
+    {
+      id: "inventory-import",
+      title: "Contagem por Importação",
+      description:
+        "Importe planilhas e realize contagens em massa de forma automatizada",
+      icon: Upload,
+      color: "from-blue-500 to-blue-600",
+      bgColor:
+        "from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20",
+      features: [
+        "Importação de arquivos CSV/Excel",
+        "Validação automática de dados",
+        "Processamento em lote",
+        "Relatórios de importação",
+        "Histórico de operações",
+      ],
+      href: "/inventory-import",
+      status: "Disponível",
     },
-    []
-  );
-  const processCsvFile = useCallback(
-    (file: File) => {
-      setIsLoading(true);
-      Papa.parse<CsvRow>(file, {
-        header: true,
-        delimiter: ";",
-        skipEmptyLines: true,
-        worker: true,
-        complete: (results: ParseResult<CsvRow>) => {
-          const errors: string[] = [];
-          const newProducts: Product[] = [];
-          const newBarCodes: BarCode[] = [];
-          const existingBarCodes = new Set(
-            barCodes.map((bc) => bc.codigo_de_barras)
-          );
-          results.data.forEach((row: CsvRow, index: number) => {
-            const {
-              codigo_de_barras,
-              codigo_produto,
-              descricao,
-              saldo_estoque,
-            } = row;
-            if (
-              !codigo_de_barras ||
-              !codigo_produto ||
-              !descricao ||
-              saldo_estoque === undefined
-            ) {
-              errors.push(`Linha ${index + 2}: Dados incompletos`);
-              return;
-            }
-            if (existingBarCodes.has(codigo_de_barras)) {
-              errors.push(
-                `Linha ${
-                  index + 2
-                }: Código de barras ${codigo_de_barras} duplicado`
-              );
-              return;
-            }
-            const saldoNumerico = Number.parseInt(saldo_estoque);
-            if (isNaN(saldoNumerico)) {
-              errors.push(
-                `Linha ${index + 2}: Saldo de estoque deve ser um número`
-              );
-              return;
-            }
-            const product = {
-              id: Date.now() + index,
-              codigo_produto,
-              descricao,
-              saldo_estoque: saldoNumerico,
-            };
-            newProducts.push(product);
-            newBarCodes.push({
-              codigo_de_barras,
-              produto_id: product.id,
-              produto: product,
-            });
-            existingBarCodes.add(codigo_de_barras);
-          });
-          setCsvErrors(errors);
-          if (errors.length === 0 && newProducts.length > 0) {
-            setProducts((prev) => [...prev, ...newProducts]);
-            setBarCodes((prev) => [...prev, ...newBarCodes]);
-            toast({
-              title: `${newProducts.length} produtos importados com sucesso!`,
-            });
-          }
-          setIsLoading(false);
-        },
-        error: (error: Error) => {
-          toast({
-            title: "Erro",
-            description: "Falha ao processar arquivo CSV",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-        },
-      });
+    {
+      id: "inventory-query",
+      title: "Contagem por Consulta",
+      description:
+        "Sistema de bipagem e contagem em tempo real com scanner integrado",
+      icon: Scan,
+      color: "from-green-500 to-green-600",
+      bgColor:
+        "from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20",
+      features: [
+        "Scanner de código de barras",
+        "Contagem em tempo real",
+        "Interface mobile otimizada",
+        "Validação instantânea",
+        "Sincronização automática",
+      ],
+      href: "/inventory-query",
+      status: "Disponível",
     },
-    [barCodes]
-  );
-  const handleScan = useCallback(() => {
-    const barCode = barCodes.find((bc) => bc.codigo_de_barras === scanInput);
-    if (barCode && barCode.produto) {
-      setCurrentProduct(barCode.produto);
-      toast({
-        title: "Produto encontrado!",
-        description: `${barCode.produto.descricao} - Estoque: ${barCode.produto.saldo_estoque}`,
-      });
-      return;
-    }
-    const tempProduct = tempProducts.find(
-      (tp) => tp.codigo_de_barras === scanInput
-    );
-    if (tempProduct) {
-      setCurrentProduct(tempProduct);
-      toast({
-        title: "Produto temporário encontrado!",
-        description: `${tempProduct.descricao} - Cadastro rápido`,
-      });
-      return;
-    }
-    setQuickRegisterData({
-      codigo_de_barras: scanInput,
-      descricao: "",
-      quantidade: "",
-    });
-    setShowQuickRegister(true);
-  }, [scanInput, barCodes, tempProducts]);
-  const handleBarcodeScanned = useCallback(
-    (barcode: string) => {
-      setScanInput(barcode);
-      setShowBarcodeScanner(false);
-      setTimeout(() => {
-        const barCode = barCodes.find((bc) => bc.codigo_de_barras === barcode);
-        if (barCode && barCode.produto) {
-          setCurrentProduct(barCode.produto);
-          toast({
-            title: "Produto encontrado!",
-            description: `${barCode.produto.descricao} - Estoque: ${barCode.produto.saldo_estoque}`,
-          });
-          return;
-        }
-        const tempProduct = tempProducts.find(
-          (tp) => tp.codigo_de_barras === barcode
-        );
-        if (tempProduct) {
-          setCurrentProduct(tempProduct);
-          toast({
-            title: "Produto temporário encontrado!",
-            description: `${tempProduct.descricao} - Cadastro rápido`,
-          });
-          return;
-        }
-        setQuickRegisterData({
-          codigo_de_barras: barcode,
-          descricao: "",
-          quantidade: "",
-        });
-        setShowQuickRegister(true);
-      }, 100);
+    {
+      id: "item-requisition",
+      title: "Requisição de Itens",
+      description: "Gerencie solicitações e aprovações de itens do estoque",
+      icon: ClipboardList,
+      color: "from-purple-500 to-purple-600",
+      bgColor:
+        "from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20",
+      features: [
+        "Solicitações estruturadas",
+        "Fluxo de aprovação",
+        "Controle de permissões",
+        "Histórico de requisições",
+        "Notificações automáticas",
+      ],
+      href: "/item-requisition",
+      status: "Disponível",
     },
-    [barCodes, tempProducts]
-  );
-  const handleQuickRegister = useCallback(
-    (data: {
-      codigo_de_barras: string;
-      descricao: string;
-      quantidade: string;
-    }) => {
-      const newTempProduct: TempProduct = {
-        id: `temp-${Date.now()}`,
-        codigo_de_barras: data.codigo_de_barras,
-        codigo_produto: `TEMP-${Date.now()}`,
-        descricao: data.descricao,
-        saldo_estoque: 0,
-        isTemporary: true,
-      };
-      setTempProducts((prev) => [...prev, newTempProduct]);
-      setCurrentProduct(newTempProduct);
-      setQuantityInput(data.quantidade);
-      setShowQuickRegister(false);
-      toast({
-        title: "Produto temporário cadastrado!",
-        description: "Este produto não será salvo permanentemente",
-      });
+    {
+      id: "production-orders",
+      title: "Pedidos de Produção",
+      description: "Controle completo dos pedidos da linha de produção",
+      icon: Factory,
+      color: "from-orange-500 to-orange-600",
+      bgColor:
+        "from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20",
+      features: [
+        "Gestão de ordens de produção",
+        "Controle de materiais",
+        "Acompanhamento em tempo real",
+        "Relatórios de produtividade",
+        "Integração com estoque",
+      ],
+      href: "/production-orders",
+      status: "Disponível",
     },
-    []
-  );
-  const calculateTotal = useCallback(
-    (quantLoja: number, quantEstoque: number, saldoEstoque: number) => {
-      return quantLoja + quantEstoque - saldoEstoque;
+  ];
+
+  const quickStats = [
+    {
+      title: "Sistemas Ativos",
+      value: "4",
+      icon: Package,
+      color: "text-blue-600",
     },
-    []
-  );
-  const calculateExpression = useCallback(
-    (
-      expression: string
-    ): { result: number; isValid: boolean; error?: string } => {
-      try {
-        const cleanExpression = expression.replace(/\s/g, "");
-        const validPattern = /^[0-9+\-*/().]+$/;
-        if (!validPattern.test(cleanExpression)) {
-          return {
-            result: 0,
-            isValid: false,
-            error: "Caracteres inválidos na expressão",
-          };
-        }
-        const consecutiveOperators = /[+\-*/]{2,}/;
-        if (consecutiveOperators.test(cleanExpression)) {
-          return {
-            result: 0,
-            isValid: false,
-            error: "Operadores consecutivos não permitidos",
-          };
-        }
-        const startsWithOperator = /^[+*/]/;
-        const endsWithOperator = /[+\-*/]$/;
-        if (
-          startsWithOperator.test(cleanExpression) ||
-          endsWithOperator.test(cleanExpression)
-        ) {
-          return {
-            result: 0,
-            isValid: false,
-            error: "Expressão não pode começar ou terminar com operador",
-          };
-        }
-        const result = new Function("return " + cleanExpression)();
-        if (typeof result !== "number" || isNaN(result) || !isFinite(result)) {
-          return { result: 0, isValid: false, error: "Resultado inválido" };
-        }
-        const roundedResult = Math.round(result * 100) / 100;
-        return { result: roundedResult, isValid: true };
-      } catch (error) {
-        return {
-          result: 0,
-          isValid: false,
-          error: "Erro ao calcular expressão",
-        };
-      }
+    {
+      title: "Acesso Liberado",
+      value: "100%",
+      icon: CheckCircle,
+      color: "text-green-600",
     },
-    []
-  );
-  const handleAddCount = useCallback(() => {
-    if (!currentProduct || !quantityInput) {
-      toast({
-        title: "Erro",
-        description: "Selecione um produto e informe a quantidade",
-        variant: "destructive",
-      });
-      return;
-    }
-    let finalQuantity: number;
-    const hasOperators = /[+\-*/]/.test(quantityInput);
-    if (hasOperators) {
-      const calculation = calculateExpression(quantityInput);
-      if (!calculation.isValid) {
-        toast({
-          title: "Erro no cálculo",
-          description: calculation.error || "Expressão matemática inválida",
-          variant: "destructive",
-        });
-        return;
-      }
-      finalQuantity = calculation.result;
-    } else {
-      const parsed = Number.parseFloat(quantityInput);
-      if (isNaN(parsed) || parsed < 0) {
-        toast({
-          title: "Erro",
-          description: "Quantidade deve ser um número válido",
-          variant: "destructive",
-        });
-        return;
-      }
-      finalQuantity = parsed;
-    }
-    const quantidade = Math.round(finalQuantity);
-    const existingIndex = productCounts.findIndex(
-      (item) => item.codigo_de_barras === scanInput
-    );
-    if (existingIndex >= 0) {
-      const updatedCounts = [...productCounts];
-      const existing = updatedCounts[existingIndex];
-      if (countingMode === "loja") {
-        existing.quant_loja += quantidade;
-      } else {
-        existing.quant_estoque += quantidade;
-      }
-      existing.total = calculateTotal(
-        existing.quant_loja,
-        existing.quant_estoque,
-        existing.saldo_estoque
-      );
-      existing.data_hora = new Date().toLocaleString("pt-BR");
-      setProductCounts(updatedCounts);
-      const expressionText = hasOperators
-        ? ` (${quantityInput} = ${quantidade})`
-        : "";
-      toast({
-        title: `Quantidade somada!`,
-        description: `${quantidade} adicionado ao ${countingMode}${expressionText}. Total ${countingMode}: ${
-          countingMode === "loja" ? existing.quant_loja : existing.quant_estoque
-        }`,
-      });
-    } else {
-      const newCount: ProductCount = {
-        id: Date.now().toString(),
-        codigo_de_barras: scanInput,
-        codigo_produto: currentProduct.codigo_produto,
-        descricao: currentProduct.descricao,
-        saldo_estoque: currentProduct.saldo_estoque,
-        quant_loja: countingMode === "loja" ? quantidade : 0,
-        quant_estoque: countingMode === "estoque" ? quantidade : 0,
-        total: calculateTotal(
-          countingMode === "loja" ? quantidade : 0,
-          countingMode === "estoque" ? quantidade : 0,
-          currentProduct.saldo_estoque
-        ),
-        local_estoque: selectedLocation,
-        data_hora: new Date().toLocaleString("pt-BR"),
-      };
-      setProductCounts((prev) => [...prev, newCount]);
-      const expressionText = hasOperators
-        ? ` (${quantityInput} = ${quantidade})`
-        : "";
-      toast({
-        title: `Quantidade de ${countingMode} adicionada!${expressionText}`,
-      });
-    }
-    setScanInput("");
-    setQuantityInput("");
-    setCurrentProduct(null);
-  }, [
-    currentProduct,
-    quantityInput,
-    productCounts,
-    scanInput,
-    countingMode,
-    selectedLocation,
-    calculateTotal,
-    calculateExpression,
-  ]);
-  const handleQuantityKeyPress = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        const expression = quantityInput.trim();
-        if (!expression) return;
-        const hasOperators = /[+\-*/]/.test(expression);
-        if (hasOperators) {
-          const calculation = calculateExpression(expression);
-          if (calculation.isValid) {
-            setQuantityInput(calculation.result.toString());
-            toast({
-              title: "Cálculo realizado!",
-              description: `${expression} = ${calculation.result}`,
-            });
-          } else {
-            toast({
-              title: "Erro no cálculo",
-              description: calculation.error || "Expressão matemática inválida",
-              variant: "destructive",
-            });
-          }
-        } else {
-          if (currentProduct) {
-            handleAddCount();
-          }
-        }
-      }
+    {
+      title: "Relatórios",
+      value: "15+",
+      icon: BarChart3,
+      color: "text-purple-600",
     },
-    [quantityInput, calculateExpression, currentProduct, handleAddCount]
-  );
-  const handleRemoveCount = useCallback((id: string) => {
-    setProductCounts((prev) => prev.filter((item) => item.id !== id));
-    toast({ title: "Item removido da contagem" });
-  }, []);
-  const exportToCsv = useCallback(() => {
-    if (productCounts.length === 0) {
-      toast({ title: "Nenhum item para exportar", variant: "destructive" });
-      return;
-    }
-    const dataToExport = productCounts.map((item) => ({
-      codigo_de_barras: item.codigo_de_barras,
-      codigo_produto: item.codigo_produto,
-      descricao: item.descricao,
-      saldo_estoque: item.saldo_estoque,
-      quant_loja: item.quant_loja,
-      quant_estoque: item.quant_estoque,
-      total: item.total,
-    }));
-    const csv = Papa.unparse(dataToExport, {
-      header: true,
-      delimiter: ";",
-      quotes: true,
-    });
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `contagem_${selectedLocation}_${
-      new Date().toISOString().split("T")[0]
-    }.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-    toast({ title: "CSV exportado com sucesso!" });
-  }, [productCounts, selectedLocation]);
-  const downloadTemplateCSV = useCallback(() => {
-    const templateData = [
-      {
-        codigo_de_barras: "7891234567890",
-        codigo_produto: "PROD001",
-        descricao: "Produto Exemplo 1",
-        saldo_estoque: "100",
-      },
-      {
-        codigo_de_barras: "7891234567891",
-        codigo_produto: "PROD002",
-        descricao: "Produto Exemplo 2",
-        saldo_estoque: "50",
-      },
-      {
-        codigo_de_barras: "7891234567892",
-        codigo_produto: "PROD003",
-        descricao: "Produto Exemplo 3",
-        saldo_estoque: "75",
-      },
-    ];
-    const csv = Papa.unparse(templateData, {
-      header: true,
-      delimiter: ";",
-      quotes: true,
-    });
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "template_produtos.csv";
-    link.click();
-    URL.revokeObjectURL(link.href);
-    toast({ title: "Template CSV baixado com sucesso!" });
-  }, []);
-  const handlePremiumUpgrade = useCallback((feature: string) => {
-    setPremiumModalFeature(feature);
-    setShowPremiumModal(true);
-  }, []);
+    {
+      title: "Integrações",
+      value: "8",
+      icon: ArrowRight,
+      color: "text-orange-600",
+    },
+  ];
 
   return (
-    <div>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs defaultValue="scan" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="scan">Conferência</TabsTrigger>
-            <TabsTrigger value="import">Importar</TabsTrigger>
-            <TabsTrigger value="export">Exportar</TabsTrigger>
-            <TabsTrigger value="history">Histórico</TabsTrigger>
-          </TabsList>
+    <div className="min-h-screen">
+      {/* Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
+      </div>
 
-          <TabsContent value="scan" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Scan className="h-5 w-5 mr-2" /> Scanner de Código de
-                    Barras
-                  </CardTitle>
-                  <CardDescription>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Store className="h-4 w-4" />
-                        <Select
-                          value={selectedLocation}
-                          onValueChange={setSelectedLocation}
-                        >
-                          <SelectTrigger className="w-48">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {locations.map((location) => (
-                              <SelectItem
-                                key={location.value}
-                                value={location.value}
-                              >
-                                {location.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+      <main className="relative">
+        {/* Hero Section */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div
+              className={`text-center mb-12 transition-all duration-1000 ${
+                isVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
+              }`}
+            >
+              <div className="flex justify-center mb-6">
+                <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 px-4 py-2">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Sistemas Stock
+                </Badge>
+              </div>
+
+              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent mb-6">
+                Central de Sistemas
+              </h1>
+
+              <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Acesse todos os módulos do sistema Stock. Cada ferramenta foi
+                desenvolvida para otimizar diferentes aspectos da gestão de
+                estoque e produção.
+              </p>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+              {quickStats.map((stat, index) => {
+                const Icon = stat.icon;
+                return (
+                  <Card key={index} className="text-center">
+                    <CardContent className="p-4">
+                      <Icon className={`h-8 w-8 mx-auto mb-2 ${stat.color}`} />
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {stat.value}
                       </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant={
-                            countingMode === "loja" ? "default" : "outline"
-                          }
-                          size="sm"
-                          onClick={() => setCountingMode("loja")}
-                        >
-                          <Store className="h-3 w-3 mr-1" /> Loja
-                        </Button>
-                        <Button
-                          variant={
-                            countingMode === "estoque" ? "default" : "outline"
-                          }
-                          size="sm"
-                          onClick={() => setCountingMode("estoque")}
-                        >
-                          <Package className="h-3 w-3 mr-1" /> Estoque
-                        </Button>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
+                        {stat.title}
                       </div>
-                    </div>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="barcode">Código de Barras</Label>
-                    <div className="flex space-x-2">
-                      <Input
-                        id="barcode"
-                        value={scanInput}
-                        onChange={(e) => setScanInput(e.target.value)}
-                        placeholder="Digite ou escaneie o código"
-                        className="flex-1 mobile-optimized"
-                        onKeyPress={(e) => e.key === "Enter" && handleScan()}
-                      />
-                      <Button onClick={handleScan}>
-                        <Scan className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        onClick={() => setShowBarcodeScanner(true)}
-                        variant="outline"
-                      >
-                        <Camera className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  {currentProduct && (
-                    <div
-                      className={`p-4 border rounded-lg ${
-                        "isTemporary" in currentProduct &&
-                        currentProduct.isTemporary
-                          ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
-                          : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3
-                            className={`font-semibold ${
-                              "isTemporary" in currentProduct &&
-                              currentProduct.isTemporary
-                                ? "text-amber-800 dark:text-amber-200"
-                                : "text-green-800 dark:text-green-200"
-                            }`}
-                          >
-                            {"isTemporary" in currentProduct &&
-                            currentProduct.isTemporary
-                              ? "Produto Temporário"
-                              : "Produto Encontrado"}
-                          </h3>
-                          <p
-                            className={`text-sm ${
-                              "isTemporary" in currentProduct &&
-                              currentProduct.isTemporary
-                                ? "text-amber-700 dark:text-amber-300"
-                                : "text-green-700 dark:text-green-300"
-                            }`}
-                          >
-                            {currentProduct.descricao}
-                          </p>
-                          <p
-                            className={`text-xs ${
-                              "isTemporary" in currentProduct &&
-                              currentProduct.isTemporary
-                                ? "text-amber-600 dark:text-amber-400"
-                                : "text-green-600 dark:text-green-400"
-                            }`}
-                          >
-                            Código: {currentProduct.codigo_produto}
-                          </p>
-                        </div>
-                        <Badge variant="secondary" className="ml-2">
-                          Estoque: {currentProduct.saldo_estoque}
-                        </Badge>
-                      </div>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">
-                      Quantidade{" "}
-                      {countingMode === "loja" ? "em Loja" : "em Estoque"}
-                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                        (Ex: 24+24 ou 10*3)
-                      </span>
-                    </Label>
-                    <Input
-                      id="quantity"
-                      type="text"
-                      value={quantityInput}
-                      onChange={(e) => setQuantityInput(e.target.value)}
-                      onKeyPress={handleQuantityKeyPress}
-                      placeholder="Digite quantidade ou expressão (24+24)"
-                      min="0"
-                      className="mobile-optimized font-mono"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 bold">
-                      Pressione Enter para calcular expressões matemáticas
-                    </p>
-                  </div>
-                  <Button
-                    onClick={handleAddCount}
-                    className="w-full"
-                    disabled={!currentProduct || !quantityInput}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Systems Grid */}
+        <section className="py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Módulos Disponíveis
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                Escolha o sistema que melhor atende sua necessidade atual. Todos
+                os módulos estão liberados para uso completo.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {systems.map((system, index) => {
+                const Icon = system.icon;
+                return (
+                  <Card
+                    key={system.id}
+                    className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 hover:border-blue-200 dark:hover:border-blue-800"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Contagem de{" "}
-                    {countingMode === "loja" ? "Loja" : "Estoque"}
-                  </Button>
+                    {/* Status Badge */}
+                    <div className="absolute top-4 right-4 z-10">
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        {system.status}
+                      </Badge>
+                    </div>
+
+                    {/* Background Gradient */}
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${system.bgColor} opacity-50 group-hover:opacity-70 transition-opacity`}
+                    />
+
+                    <CardHeader className="relative z-10 pb-4">
+                      <div
+                        className={`w-16 h-16 rounded-xl bg-gradient-to-r ${system.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                      >
+                        <Icon className="h-8 w-8 text-white" />
+                      </div>
+
+                      <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {system.title}
+                      </CardTitle>
+
+                      <CardDescription className="text-gray-600 dark:text-gray-300 text-base">
+                        {system.description}
+                      </CardDescription>
+                    </CardHeader>
+
+                    <CardContent className="relative z-10 space-y-6">
+                      {/* Features List */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                          Principais Recursos:
+                        </h4>
+                        <ul className="space-y-2">
+                          {system.features.map((feature, featureIndex) => (
+                            <li
+                              key={featureIndex}
+                              className="flex items-center text-sm text-gray-600 dark:text-gray-300"
+                            >
+                              <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Action Button */}
+                      <Button
+                        asChild
+                        className={`w-full bg-gradient-to-r ${system.color} hover:opacity-90 text-white py-3 text-lg group-hover:scale-105 transition-transform`}
+                      >
+                        <Link href={system.href}>
+                          Acessar Sistema
+                          <ArrowRight className="h-5 w-5 ml-2" />
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Additional Features Section */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white/50 dark:bg-gray-800/50">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Recursos Integrados
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                Todos os sistemas compartilham recursos avançados para uma
+                experiência unificada
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Relatórios Unificados
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Visualize dados de todos os sistemas em relatórios
+                    consolidados e dashboards interativos
+                  </p>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    Produtos Contados ({productCounts.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {productCounts.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p className="font-medium">
-                          Nenhum produto contado ainda
-                        </p>
-                        <p className="text-sm">
-                          Escaneie um código de barras para começar
-                        </p>
-                      </div>
-                    ) : (
-                      productCounts.map((item) => (
-                        <ProductCountItem
-                          key={item.id}
-                          item={item}
-                          onRemove={handleRemoveCount}
-                        />
-                      ))
-                    )}
+
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-100 to-green-200 dark:from-green-900/20 dark:to-green-800/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <Search className="h-6 w-6 text-green-600 dark:text-green-400" />
                   </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Busca Global
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Encontre informações em qualquer sistema através de uma
+                    busca unificada e inteligente
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-purple-200 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <ShoppingCart className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Integração Total
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Dados sincronizados entre todos os módulos para uma gestão
+                    completa e eficiente
+                  </p>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          </div>
+        </section>
 
-          <TabsContent value="import" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Upload className="h-5 w-5 mr-2" />
-                  Importar Produtos
-                </CardTitle>
-                <CardDescription>
-                  Faça upload de um arquivo CSV com formato:
-                  codigo_de_barras;codigo_produto;descricao;saldo_estoque
-                </CardDescription>
-                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2 flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-2" />
-                    Instruções para o arquivo CSV
-                  </h4>
-                  <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                    <li>
-                      • <strong>Separador:</strong> Use ponto e vírgula (;)
-                      entre as colunas
-                    </li>
-                    <li>
-                      • <strong>Código de barras:</strong> Formate a coluna como
-                      NÚMERO (não texto)
-                    </li>
-                    <li>
-                      • <strong>Saldo estoque:</strong> Use apenas números
-                      inteiros
-                    </li>
-                    <li>
-                      • <strong>Codificação:</strong> Salve o arquivo em UTF-8
-                    </li>
-                    <li>
-                      • <strong>Cabeçalho:</strong> Primeira linha deve conter
-                      os nomes das colunas
-                    </li>
-                  </ul>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="text-xs text-blue-600 dark:text-blue-400">
-                      <strong>Exemplo:</strong>{" "}
-                      codigo_de_barras;codigo_produto;descricao;saldo_estoque
-                      <br />
-                      7891234567890;PROD001;Produto Exemplo;100
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={downloadTemplateCSV}
-                      className="ml-4 border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-600 dark:text-blue-300 dark:hover:bg-blue-900/30 bg-transparent"
-                    >
-                      <Download className="h-3 w-3 mr-1" />
-                      Baixar Template
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="csv-file">Arquivo CSV</Label>
-                  <Input
-                    id="csv-file"
-                    type="file"
-                    accept=".csv"
-                    onChange={handleCsvUpload}
-                    disabled={isLoading}
-                  />
-                  {isLoading && <Skeleton className="h-4 w-full" />}
-                </div>
-                {csvErrors.length > 0 && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      <div className="space-y-1">
-                        <p className="font-semibold">Erros encontrados:</p>
-                        {csvErrors.map((error, index) => (
-                          <p key={index} className="text-sm">
-                            {error}
-                          </p>
-                        ))}
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                )}
-                <div className="grid grid-cols-1 gap-4 text-sm">
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <p className="font-semibold text-blue-800 dark:text-blue-200">
-                      Produtos cadastrados
-                    </p>
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {products.length}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            {products.length > 0 ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Produtos Cadastrados</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="max-h-96 overflow-y-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Código</TableHead>
-                          <TableHead>Descrição</TableHead>
-                          <TableHead>Estoque</TableHead>
-                          <TableHead>Código de Barras</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {products.map((product) => {
-                          const barCode = barCodes.find(
-                            (bc) => bc.produto_id === product.id
-                          );
-                          return (
-                            <ProductTableRow
-                              key={product.id}
-                              product={product}
-                              barCode={barCode}
-                            />
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="py-12">
-                  <div className="text-center text-gray-500 dark:text-gray-400">
-                    <Upload className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="font-medium">Nenhum produto cadastrado</p>
-                    <p className="text-sm">
-                      Importe um arquivo CSV para começar
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="export" className="space-y-6">
-            <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
-              <Crown className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <AlertDescription className="text-amber-800 dark:text-amber-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <strong>Recurso Premium</strong>
-                    <p className="text-sm mt-1">
-                      A exportação de contagens está disponível apenas para
-                      assinantes premium. Faça upgrade para exportar seus dados
-                      em CSV e PDF.
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-4 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/30 bg-transparent"
-                    onClick={() => handlePremiumUpgrade("export")}
-                  >
-                    <Crown className="h-3 w-3 mr-1" />
-                    Upgrade
-                  </Button>
-                </div>
-              </AlertDescription>
-            </Alert>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Package className="h-5 w-5 mr-2" />
-                  Resumo da Contagem
-                </CardTitle>
-                <CardDescription>
-                  Visão geral do progresso da contagem atual
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {products.length + tempProducts.length}
-                    </p>
-                    <p className="text-sm text-blue-800 dark:text-blue-200">
-                      Produtos Importados
-                    </p>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                      {products.length} permanentes + {tempProducts.length}{" "}
-                      temporários
-                    </p>
-                  </div>
-                  <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-center">
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {productCounts.length}
-                    </p>
-                    <p className="text-sm text-green-800 dark:text-green-200">
-                      Produtos Contados
-                    </p>
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                      {productCountsStats.totalLoja +
-                        productCountsStats.totalEstoque}{" "}
-                      unidades totais
-                    </p>
-                  </div>
-                  <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
-                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                      {Math.max(
-                        0,
-                        products.length +
-                          tempProducts.length -
-                          productCounts.length
-                      )}
-                    </p>
-                    <p className="text-sm text-amber-800 dark:text-amber-200">
-                      Itens Faltantes
-                    </p>
-                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                      {productCounts.length === 0
-                        ? "Nenhuma contagem iniciada"
-                        : `${Math.round(
-                            (productCounts.length /
-                              (products.length + tempProducts.length)) *
-                              100
-                          )}% concluído`}
-                    </p>
-                  </div>
-                </div>
-                {products.length + tempProducts.length > 0 && (
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Progresso da Contagem
-                      </span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {productCounts.length} de{" "}
-                        {products.length + tempProducts.length}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-300"
-                        style={{
-                          width: `${Math.min(
-                            100,
-                            (productCounts.length /
-                              (products.length + tempProducts.length)) *
-                              100
-                          )}%`,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Download className="h-5 w-5 mr-2" />
-                  Exportar Contagem
-                </CardTitle>
-                <CardDescription>
-                  Exporte os dados da contagem atual em CSV
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Button
-                    onClick={exportToCsv}
-                    disabled={productCounts.length === 0}
-                    className="h-12"
-                  >
-                    <FileSpreadsheet className="h-4 w-4 mr-2" />
-                    Exportar CSV
-                  </Button>
-                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm font-medium">
-                      Local:{" "}
-                      {
-                        locations.find((l) => l.value === selectedLocation)
-                          ?.label
-                      }
-                    </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {new Date().toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {productCounts.length}
-                    </p>
-                    <p className="text-sm text-blue-800 dark:text-blue-200">
-                      Produtos Contados
-                    </p>
-                  </div>
-                </div>
-                {productCounts.length > 0 ? (
-                  <div className="max-h-96 overflow-y-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Descrição</TableHead>
-                          <TableHead>Sistema</TableHead>
-                          <TableHead>Loja</TableHead>
-                          <TableHead>Estoque</TableHead>
-                          <TableHead>Total</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {productCounts.map((item) => (
-                          <TableRow key={item.id}>
-                            <TableCell className="font-medium">
-                              {item.descricao}
-                            </TableCell>
-                            <TableCell>{item.saldo_estoque}</TableCell>
-                            <TableCell>{item.quant_loja}</TableCell>
-                            <TableCell>{item.quant_estoque}</TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={
-                                  item.total === 0
-                                    ? "secondary"
-                                    : item.total > 0
-                                    ? "default"
-                                    : "destructive"
-                                }
-                              >
-                                {item.total > 0 ? "+" : ""}
-                                {item.total}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <FileSpreadsheet className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="font-medium">
-                      Nenhuma contagem para exportar
-                    </p>
-                    <p className="text-sm">
-                      Realize contagens na aba "Conferência" primeiro
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="history" className="space-y-6">
-            <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
-              <Crown className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <AlertDescription className="text-amber-800 dark:text-amber-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <strong>Recurso Premium</strong>
-                    <p className="text-sm mt-1">
-                      Este recurso está disponível apenas para assinantes
-                      premium. Faça upgrade para acessar o histórico completo de
-                      contagens.
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-4 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/30 bg-transparent"
-                    onClick={() => handlePremiumUpgrade("history")}
-                  >
-                    <Crown className="h-3 w-3 mr-1" />
-                    Upgrade
-                  </Button>
-                </div>
-              </AlertDescription>
-            </Alert>
-            <Card className="opacity-60">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <History className="h-5 w-5 mr-2" />
-                  Histórico de Contagens
-                </CardTitle>
-                <CardDescription>
-                  Visualize o histórico de contagens anteriores
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="font-medium">Histórico não disponível</p>
-                  <p className="text-sm">
-                    Faça upgrade para premium para acessar este recurso
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        {/* Quick Access Section */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Pronto para Começar?
+              </h2>
+              <p className="text-xl mb-8 opacity-90">
+                Todos os sistemas estão liberados e prontos para uso. Escolha o
+                módulo que melhor atende sua necessidade atual.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  asChild
+                  size="lg"
+                  variant="secondary"
+                  className="px-8 py-3 text-lg"
+                >
+                  <Link href="/inventory-query">
+                    <Scan className="h-5 w-5 mr-2" />
+                    Começar com Scanner
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="px-8 py-3 text-lg border-white text-white hover:bg-white hover:text-blue-600 bg-transparent"
+                >
+                  <Link href="/inventory-import">
+                    <Upload className="h-5 w-5 mr-2" />
+                    Importar Planilha
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
-
-      {/* 3. Modais renderizados condicionalmente, sem Suspense */}
-      {showQuickRegister && (
-        <QuickRegisterModal
-          isOpen={showQuickRegister}
-          onClose={() => setShowQuickRegister(false)}
-          onSave={handleQuickRegister}
-          initialData={quickRegisterData}
-        />
-      )}
-      {showClearDataModal && (
-        <ClearDataModal
-          isOpen={showClearDataModal}
-          onClose={() => setShowClearDataModal(false)}
-          onConfirm={handleClearAllData}
-        />
-      )}
-      {showBarcodeScanner && (
-        <BarcodeScanner
-          isActive={showBarcodeScanner}
-          onClose={() => setShowBarcodeScanner(false)}
-          onScan={handleBarcodeScanned}
-        />
-      )}
-      {showPremiumModal && (
-        <PremiumUpgradeModal
-          isOpen={showPremiumModal}
-          onClose={() => setShowPremiumModal(false)}
-          feature={premiumModalFeature}
-        />
-      )}
     </div>
   );
 }
