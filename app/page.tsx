@@ -1,18 +1,12 @@
-"use client";
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Send } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+"use client"
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Label } from "@/components/ui/label"
+import { Send } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
 import {
   Package,
   Scan,
@@ -31,14 +25,14 @@ import {
   Settings,
   Crown,
   Sparkles,
-} from "lucide-react";
+} from "lucide-react"
 
 export default function systemPage() {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    setIsVisible(true);
-  }, []);
+    setIsVisible(true)
+  }, [])
 
   const features = [
     {
@@ -122,7 +116,7 @@ export default function systemPage() {
         },
       ],
     },
-  ];
+  ]
 
   const plans = [
     {
@@ -162,34 +156,31 @@ export default function systemPage() {
       href: "/register",
       popular: true,
     },
-  ];
+  ]
 
   const testimonials = [
     {
       name: "Maria Silva",
       role: "Gerente de Loja",
       company: "Supermercado Central",
-      content:
-        "O Stock revolucionou nossa gestão de inventário. Reduzimos o tempo de contagem em 70%.",
+      content: "O Stock revolucionou nossa gestão de inventário. Reduzimos o tempo de contagem em 70%.",
       rating: 5,
     },
     {
       name: "João Santos",
       role: "Proprietário",
       company: "Farmácia Saúde",
-      content:
-        "Interface intuitiva e funciona perfeitamente no tablet. Recomendo para qualquer negócio.",
+      content: "Interface intuitiva e funciona perfeitamente no tablet. Recomendo para qualquer negócio.",
       rating: 5,
     },
     {
       name: "Ana Costa",
       role: "Coordenadora de Estoque",
       company: "Loja de Roupas Fashion",
-      content:
-        "Os relatórios detalhados nos ajudam a tomar decisões mais assertivas sobre o estoque.",
+      content: "Os relatórios detalhados nos ajudam a tomar decisões mais assertivas sobre o estoque.",
       rating: 5,
     },
-  ];
+  ]
 
   return (
     <div>
@@ -204,9 +195,7 @@ export default function systemPage() {
           <div className="max-w-7xl mx-auto text-center">
             <div
               className={`transition-all duration-1000 ${
-                isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
             >
               <div className="flex justify-center mb-6">
@@ -223,9 +212,8 @@ export default function systemPage() {
               </h1>
 
               <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-                Sistema completo de inventário com scanner de código de barras,
-                relatórios inteligentes e sincronização em tempo real.
-                Simplifique sua gestão de estoque hoje mesmo.
+                Sistema completo de inventário com scanner de código de barras, relatórios inteligentes e sincronização
+                em tempo real. Simplifique sua gestão de estoque hoje mesmo.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -239,12 +227,7 @@ export default function systemPage() {
                     Começar Gratuitamente
                   </Link>
                 </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="px-8 py-3 text-lg border-2 bg-transparent"
-                >
+                <Button asChild variant="outline" size="lg" className="px-8 py-3 text-lg border-2 bg-transparent">
                   <Link href="/about">
                     Saiba Mais
                     <ArrowRight className="h-5 w-5 ml-2" />
@@ -263,8 +246,7 @@ export default function systemPage() {
                 Recursos Completos para sua Empresa
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                Descubra todas as funcionalidades que tornam o Stock a melhor
-                escolha para gestão de inventário
+                Descubra todas as funcionalidades que tornam o Stock a melhor escolha para gestão de inventário
               </p>
             </div>
 
@@ -275,14 +257,12 @@ export default function systemPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {category.items.map((feature, index) => {
-                    const Icon = feature.icon;
+                    const Icon = feature.icon
                     return (
                       <Card
                         key={index}
                         className={`relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
-                          feature.premium
-                            ? "border-amber-200 dark:border-amber-800"
-                            : ""
+                          feature.premium ? "border-amber-200 dark:border-amber-800" : ""
                         }`}
                       >
                         {feature.premium && (
@@ -309,9 +289,7 @@ export default function systemPage() {
                               }`}
                             />
                           </div>
-                          <CardTitle className="text-lg">
-                            {feature.title}
-                          </CardTitle>
+                          <CardTitle className="text-lg">{feature.title}</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <CardDescription className="text-gray-600 dark:text-gray-300">
@@ -319,7 +297,7 @@ export default function systemPage() {
                           </CardDescription>
                         </CardContent>
                       </Card>
-                    );
+                    )
                   })}
                 </div>
               </div>
@@ -335,8 +313,7 @@ export default function systemPage() {
                 Planos que Crescem com seu Negócio
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                Escolha o plano ideal para suas necessidades. Comece
-                gratuitamente e faça upgrade quando precisar.
+                Escolha o plano ideal para suas necessidades. Comece gratuitamente e faça upgrade quando precisar.
               </p>
             </div>
 
@@ -357,20 +334,12 @@ export default function systemPage() {
                   )}
                   <CardHeader className={plan.popular ? "pt-12" : ""}>
                     <div className="text-center">
-                      <CardTitle className="text-2xl font-bold">
-                        {plan.name}
-                      </CardTitle>
+                      <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
                       <div className="mt-4">
-                        <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                          {plan.price}
-                        </span>
-                        <span className="text-gray-600 dark:text-gray-300">
-                          {plan.period}
-                        </span>
+                        <span className="text-4xl font-bold text-gray-900 dark:text-white">{plan.price}</span>
+                        <span className="text-gray-600 dark:text-gray-300">{plan.period}</span>
                       </div>
-                      <CardDescription className="mt-2 text-lg">
-                        {plan.description}
-                      </CardDescription>
+                      <CardDescription className="mt-2 text-lg">{plan.description}</CardDescription>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -378,9 +347,7 @@ export default function systemPage() {
                       {plan.features.map((feature, featureIndex) => (
                         <li key={featureIndex} className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-                          <span className="text-gray-700 dark:text-gray-300">
-                            {feature}
-                          </span>
+                          <span className="text-gray-700 dark:text-gray-300">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -393,13 +360,7 @@ export default function systemPage() {
                       }`}
                       variant={plan.popular ? "default" : "outline"}
                     >
-                      <Link
-                        href={
-                          plan.name === "Gratuito" ? "/register" : plan.href
-                        }
-                      >
-                        {plan.cta}
-                      </Link>
+                      <Link href={plan.name === "Gratuito" ? "/register" : plan.href}>{plan.cta}</Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -424,20 +385,16 @@ export default function systemPage() {
                   Precisa de Algo Específico?
                 </h2>
                 <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                  O Stock atende a maioria das necessidades de inventário, mas
-                  sabemos que cada empresa é única. Se você precisa de
-                  funcionalidades específicas ou integrações personalizadas,
-                  nossa equipe pode desenvolver a solução perfeita para seu
-                  negócio.
+                  O Stock atende a maioria das necessidades de inventário, mas sabemos que cada empresa é única. Se você
+                  precisa de funcionalidades específicas ou integrações personalizadas, nossa equipe pode desenvolver a
+                  solução perfeita para seu negócio.
                 </p>
 
                 <div className="space-y-4 mb-8">
                   <div className="flex items-start space-x-3">
                     <CheckCircle className="h-6 w-6 text-green-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        Integrações Personalizadas
-                      </h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">Integrações Personalizadas</h3>
                       <p className="text-gray-600 dark:text-gray-300">
                         Conecte com seus sistemas ERP, WMS ou outras ferramentas
                       </p>
@@ -446,9 +403,7 @@ export default function systemPage() {
                   <div className="flex items-start space-x-3">
                     <CheckCircle className="h-6 w-6 text-green-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        Relatórios Específicos
-                      </h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">Relatórios Específicos</h3>
                       <p className="text-gray-600 dark:text-gray-300">
                         Relatórios customizados para suas necessidades únicas
                       </p>
@@ -457,9 +412,7 @@ export default function systemPage() {
                   <div className="flex items-start space-x-3">
                     <CheckCircle className="h-6 w-6 text-green-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        Funcionalidades Exclusivas
-                      </h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">Funcionalidades Exclusivas</h3>
                       <p className="text-gray-600 dark:text-gray-300">
                         Desenvolva recursos únicos para seu processo de trabalho
                       </p>
@@ -468,12 +421,8 @@ export default function systemPage() {
                   <div className="flex items-start space-x-3">
                     <CheckCircle className="h-6 w-6 text-green-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        Suporte Dedicado
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-300">
-                        Equipe técnica dedicada ao seu projeto
-                      </p>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">Suporte Dedicado</h3>
+                      <p className="text-gray-600 dark:text-gray-300">Equipe técnica dedicada ao seu projeto</p>
                     </div>
                   </div>
                 </div>
@@ -483,9 +432,7 @@ export default function systemPage() {
               <div>
                 <Card className="shadow-xl border-2 border-purple-100 dark:border-purple-800">
                   <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
-                    <CardTitle className="text-2xl text-center">
-                      Solicite seu Orçamento
-                    </CardTitle>
+                    <CardTitle className="text-2xl text-center">Solicite seu Orçamento</CardTitle>
                     <CardDescription className="text-center">
                       Descreva sua necessidade e nossa equipe entrará em contato
                     </CardDescription>
@@ -494,12 +441,11 @@ export default function systemPage() {
                     <form
                       className="space-y-4"
                       onSubmit={(e) => {
-                        e.preventDefault();
+                        e.preventDefault()
                         toast({
                           title: "Solicitação enviada!",
-                          description:
-                            "Nossa equipe entrará em contato em até 24 horas para discutir seu projeto.",
-                        });
+                          description: "Nossa equipe entrará em contato em até 24 horas para discutir seu projeto.",
+                        })
                       }}
                     >
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -543,9 +489,7 @@ export default function systemPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="custom-requirement">
-                          Descreva sua Necessidade *
-                        </Label>
+                        <Label htmlFor="custom-requirement">Descreva sua Necessidade *</Label>
                         <textarea
                           id="custom-requirement"
                           placeholder="Descreva detalhadamente a funcionalidade ou integração que você precisa..."
@@ -562,14 +506,10 @@ export default function systemPage() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-800 dark:border-gray-600"
                         >
                           <option value="">Selecione um prazo</option>
-                          <option value="urgente">
-                            Urgente (até 2 semanas)
-                          </option>
+                          <option value="urgente">Urgente (até 2 semanas)</option>
                           <option value="rapido">Rápido (até 1 mês)</option>
                           <option value="normal">Normal (até 2 meses)</option>
-                          <option value="flexivel">
-                            Flexível (acima de 2 meses)
-                          </option>
+                          <option value="flexivel">Flexível (acima de 2 meses)</option>
                         </select>
                       </div>
 
@@ -596,33 +536,22 @@ export default function systemPage() {
                 O que nossos clientes dizem
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                Empresas de todos os tamanhos confiam no Stock para gerenciar
-                seus inventários
+                Empresas de todos os tamanhos confiam no Stock para gerenciar seus inventários
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {testimonials.map((testimonial, index) => (
-                <Card
-                  key={index}
-                  className="transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                >
+                <Card key={index} className="transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                   <CardContent className="p-6">
                     <div className="flex items-center mb-4">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className="h-5 w-5 text-yellow-400 fill-current"
-                        />
+                        <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
                       ))}
                     </div>
-                    <p className="text-gray-700 dark:text-gray-300 mb-4 italic">
-                      "{testimonial.content}"
-                    </p>
+                    <p className="text-gray-700 dark:text-gray-300 mb-4 italic">"{testimonial.content}"</p>
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        {testimonial.name}
-                      </p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {testimonial.role} • {testimonial.company}
                       </p>
@@ -638,20 +567,13 @@ export default function systemPage() {
         <section className="py-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Pronto para Revolucionar seu Inventário?
-              </h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Pronto para Revolucionar seu Inventário?</h2>
               <p className="text-xl mb-8 opacity-90">
-                Junte-se a milhares de empresas que já otimizaram sua gestão de
-                estoque com o Stock. Comece gratuitamente hoje mesmo!
+                Junte-se a milhares de empresas que já otimizaram sua gestão de estoque com o Stock. Comece
+                gratuitamente hoje mesmo!
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  asChild
-                  size="lg"
-                  variant="secondary"
-                  className="px-8 py-3 text-lg"
-                >
+                <Button asChild size="lg" variant="secondary" className="px-8 py-3 text-lg">
                   <Link href="/register">
                     <Package className="h-5 w-5 mr-2" />
                     Começar Gratuitamente
@@ -680,9 +602,7 @@ export default function systemPage() {
                 <Package className="h-8 w-8 text-blue-400" />
                 <span className="text-xl font-bold">Stock</span>
               </div>
-              <p className="text-gray-400">
-                Sistema inteligente de inventário para empresas modernas.
-              </p>
+              <p className="text-gray-400">Sistema inteligente de inventário para empresas modernas.</p>
             </div>
             <div>
               <h3 className="font-semibold mb-4">Produto</h3>
@@ -693,18 +613,12 @@ export default function systemPage() {
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    href="/about"
-                    className="hover:text-white transition-colors"
-                  >
+                  <Link href="/about" className="hover:text-white transition-colors">
                     Recursos
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    href="/register"
-                    className="hover:text-white transition-colors"
-                  >
+                  <Link href="/register" className="hover:text-white transition-colors">
                     Preços
                   </Link>
                 </li>
@@ -714,26 +628,17 @@ export default function systemPage() {
               <h3 className="font-semibold mb-4">Empresa</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link
-                    href="/about"
-                    className="hover:text-white transition-colors"
-                  >
+                  <Link href="/about" className="hover:text-white transition-colors">
                     Sobre
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    href="/contact"
-                    className="hover:text-white transition-colors"
-                  >
+                  <Link href="/contact" className="hover:text-white transition-colors">
                     Contato
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    href="/contact"
-                    className="hover:text-white transition-colors"
-                  >
+                  <Link href="/contact" className="hover:text-white transition-colors">
                     Suporte
                   </Link>
                 </li>
@@ -766,5 +671,5 @@ export default function systemPage() {
         </div>
       </footer>
     </div>
-  );
+  )
 }
