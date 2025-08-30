@@ -12,77 +12,6 @@ const inter = Inter({
   preload: true,
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://stock-system.vercel.app"),
-  title: "Stock - Sistema de Conferência de Estoque",
-  description:
-    "Sistema web responsivo para conferência de estoque com leitor de código de barras",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Stock",
-  },
-  generator: "v0.dev",
-  // Open Graph
-  openGraph: {
-    title: "Stock - Sistema de Conferência de Estoque",
-    description:
-      "Sistema web responsivo para conferência de estoque com leitor de código de barras",
-    url: "https://stock-system.vercel.app",
-    siteName: "Stock",
-    images: [
-      {
-        url: "/icon-512x512.png",
-        width: 512,
-        height: 512,
-        alt: "Stock - Sistema de Estoque",
-      },
-    ],
-    locale: "pt_BR",
-    type: "website",
-  },
-  // Twitter Cards
-  twitter: {
-    card: "summary_large_image",
-    title: "Stock - Sistema de Conferência de Estoque",
-    description:
-      "Sistema web responsivo para conferência de estoque com leitor de código de barras",
-    images: ["/icon-512x512.png"],
-    creator: "@stock_system",
-  },
-  // Additional meta tags
-  keywords: [
-    "estoque",
-    "inventário",
-    "código de barras",
-    "conferência",
-    "sistema",
-    "stock",
-    "warehouse",
-  ],
-  authors: [{ name: "Stock System" }],
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-};
-
-export const viewport: Viewport = {
-  themeColor: "#3b82f6",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-};
-
 export default function RootLayout({
   children,
 }: {
@@ -156,9 +85,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-            <header className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm border-b dark:border-gray-700">
-              <Navigation />
-            </header>
             {children}
           </div>
 
