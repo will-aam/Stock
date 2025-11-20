@@ -1,0 +1,301 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* TEMA CLARO (LIGHT MODE) */
+  --background: hsl(210 20% 98%);
+  --foreground: hsl(222.2 84% 4.9%);
+  --card: hsl(210 20% 98%);
+  --card-foreground: hsl(222.2 84% 4.9%);
+  --popover: hsl(210 20% 98%);
+  --popover-foreground: hsl(222.2 84% 4.9%);
+  --primary: hsl(221.2 83.2% 53.3%);
+  --primary-foreground: hsl(210 40% 98%);
+  --secondary: hsl(210 40% 96%);
+  --secondary-foreground: hsl(222.2 84% 4.9%);
+  --muted: hsl(210 40% 96%);
+  --muted-foreground: hsl(215.4 16.3% 46.9%);
+  --accent: hsl(210 40% 96%);
+  --accent-foreground: hsl(222.2 84% 4.9%);
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(210 40% 98%);
+  --border: hsl(214.3 31.8% 85.4%);
+  --input: hsl(214.3 31.8% 85.4%);
+  --ring: hsl(221.2 83.2% 53.3%);
+  --radius: 0.5rem;
+  --chart-1: hsl(12 76% 61%);
+  --chart-2: hsl(173 58% 39%);
+  --chart-3: hsl(197 37% 24%);
+  --chart-4: hsl(43 74% 66%);
+  --chart-5: hsl(27 87% 67%);
+
+  /* Sidebar variables mapped to match theme */
+  --sidebar: hsl(210 20% 98%);
+  --sidebar-foreground: hsl(222.2 84% 4.9%);
+  --sidebar-primary: hsl(221.2 83.2% 53.3%);
+  --sidebar-primary-foreground: hsl(210 40% 98%);
+  --sidebar-accent: hsl(210 40% 96%);
+  --sidebar-accent-foreground: hsl(222.2 84% 4.9%);
+  --sidebar-border: hsl(214.3 31.8% 85.4%);
+  --sidebar-ring: hsl(221.2 83.2% 53.3%);
+}
+
+.dark {
+  /* TEMA ESCURO (DARK MODE) - Azul Escuro */
+  --background: hsl(224 70% 5%);
+  --foreground: hsl(210 40% 98%);
+  --card: hsl(224 70% 3.9%);
+  --card-foreground: hsl(210 40% 98%);
+  --popover: hsl(224 70% 3.9%);
+  --popover-foreground: hsl(210 40% 98%);
+  --primary: hsl(217.2 91.2% 59.8%);
+  --primary-foreground: hsl(222.2 84% 4.9%);
+  --secondary: hsl(220 30% 15%);
+  --secondary-foreground: hsl(210 40% 98%);
+  --muted: hsl(220 30% 15%);
+  --muted-foreground: hsl(215 20.2% 65.1%);
+  --accent: hsl(220 30% 15%);
+  --accent-foreground: hsl(210 40% 98%);
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(210 40% 98%);
+  --border: hsl(217.2 32.6% 20%);
+  --input: hsl(217.2 32.6% 20%);
+  --ring: hsl(224.3 76.3% 94.1%);
+  --chart-1: hsl(220 70% 50%);
+  --chart-2: hsl(160 60% 45%);
+  --chart-3: hsl(30 80% 55%);
+  --chart-4: hsl(280 65% 60%);
+  --chart-5: hsl(340 75% 55%);
+
+  /* Sidebar variables mapped to match theme */
+  --sidebar: hsl(224 70% 5%);
+  --sidebar-foreground: hsl(210 40% 98%);
+  --sidebar-primary: hsl(217.2 91.2% 59.8%);
+  --sidebar-primary-foreground: hsl(222.2 84% 4.9%);
+  --sidebar-accent: hsl(220 30% 15%);
+  --sidebar-accent-foreground: hsl(210 40% 98%);
+  --sidebar-border: hsl(217.2 32.6% 20%);
+  --sidebar-ring: hsl(224.3 76.3% 94.1%);
+}
+
+@theme inline {
+  --font-sans: "Geist", "Geist Fallback";
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* --- Otimizações para Dispositivos Móveis e Leitores de Código de Barras --- */
+@media (max-width: 768px) {
+  /* Classe para otimizar a exibição em dispositivos móveis, evitando o zoom automático */
+  .mobile-optimized {
+    font-size: 16px !important; /* Evita zoom automático no iOS ao focar em inputs */
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+
+  /* Garante que inputs comuns tenham um tamanho de fonte legível em mobile */
+  input[type="number"],
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    font-size: 16px !important;
+    -webkit-appearance: none;
+    border-radius: 0.375rem;
+  }
+
+  /* Estilos para campos de input de código de barras, melhorando a legibilidade e feedback visual */
+  .barcode-input {
+    font-family: "Courier New", monospace;
+    letter-spacing: 1px;
+    background-color: #f8f9fa;
+    border: 2px solid #007bff;
+  }
+
+  .barcode-input:focus {
+    background-color: #e3f2fd;
+    border-color: #0056b3;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  }
+}
+
+/* --- Estilos para Progressive Web App (PWA) --- */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .pwa-header {
+    padding-top: calc(env(safe-area-inset-top) + 1rem);
+  }
+}
+
+/* --- Animações de Feedback Visual --- */
+.scan-success {
+  animation: scanPulse 0.6s ease-in-out;
+}
+
+.scan-error {
+  animation: scanShake 0.5s ease-in-out;
+}
+
+@keyframes scanPulse {
+  0% {
+    transform: scale(1);
+    background-color: transparent;
+  }
+  50% {
+    transform: scale(1.02);
+    background-color: rgba(34, 197, 94, 0.1);
+  }
+  100% {
+    transform: scale(1);
+    background-color: transparent;
+  }
+}
+
+@keyframes scanShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* --- Tabelas Responsivas --- */
+@media (max-width: 640px) {
+  .responsive-table {
+    font-size: 0.875rem;
+    width: 100%;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+/* --- Botões Otimizados para Mobile --- */
+@media (max-width: 768px) {
+  .mobile-button {
+    min-height: 48px;
+    font-size: 16px;
+    padding: 12px 24px;
+  }
+}
+
+/* --- Indicador de Status de Conexão --- */
+.offline-indicator {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+/* --- Indicadores de Variação (Estoque) --- */
+.variance-positive {
+  color: #059669;
+  background-color: #d1fae5;
+}
+
+.variance-negative {
+  color: #dc2626;
+  background-color: #fee2e2;
+}
+
+.variance-neutral {
+  color: #6b7280;
+  background-color: #f3f4f6;
+}
+
+/* Sobrescritas para o tema escuro, usando cores com opacidade para melhor contraste */
+.dark .variance-positive {
+  color: #34d399;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.dark .variance-negative {
+  color: #f87171;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.dark .variance-neutral {
+  color: #9ca3af;
+  background-color: rgba(107, 114, 128, 0.1);
+}
+
+/* --- Abas (Tabs) em Mobile --- */
+@media (max-width: 640px) {
+  .mobile-tabs-list > button {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Bottom Navigation Fixed */
+.bottom-nav-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom);
+}

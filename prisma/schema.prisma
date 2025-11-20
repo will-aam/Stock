@@ -1,0 +1,116 @@
+// Esquema do banco de dados para o sistema Val
+// Sistema de Gestão de Lotes e Validades para Varejo
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // ou "mysql", "sqlite", etc.
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de Usuário
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String   // Hash da senha
+  role      UserRole @default(STOCKER)
+  storeId   String?
+  store     Store?   @relation(fields: [storeId], references: [id])
+  auditLogs AuditLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId])
+  @@index([email])
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  STOCKER
+}
+
+// Modelo de Loja (para suporte multi-loja)
+model Store {
+  id        String    @id @default(cuid())
+  name      String
+  address   String?
+  users     User[]
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Modelo de Produto
+model Product {
+  id          String   @id @default(cuid())
+  ean         String   @unique // Código de barras EAN
+  name        String
+  description String?
+  imageUrl    String?
+  category    String
+  storeId     String?
+  store       Store?   @relation(fields: [storeId], references: [id])
+  batches     Batch[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ean])
+  @@index([category])
+  @@index([storeId])
+}
+
+// Modelo de Lote (Batch)
+model Batch {
+  id              String     @id @default(cuid())
+  productId       String
+  product         Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  expirationDate  DateTime
+  quantityInitial Int        // Quantidade inicial ao registrar
+  quantityCurrent Int        // Quantidade atual (após vendas/auditorias)
+  status          BatchStatus @default(SAFE)
+  auditLogs       AuditLog[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([productId])
+  @@index([expirationDate])
+  @@index([status])
+}
+
+enum BatchStatus {
+  SAFE      // Vence em > 45 dias
+  WARNING   // Vence em 15-45 dias
+  CRITICAL  // Vence em < 15 dias
+  EXPIRED   // Já vencido
+  DEPLETED  // Estoque zerado
+}
+
+// Modelo de Log de Auditoria
+model AuditLog {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id])
+  batchId    String
+  batch      Batch          @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  actionType AuditActionType
+  quantity   Int?           // Quantidade afetada (para vendas/ajustes)
+  notes      String?        // Notas opcionais
+  timestamp  DateTime       @default(now())
+
+  @@index([userId])
+  @@index([batchId])
+  @@index([timestamp])
+}
+
+enum AuditActionType {
+  ENTRY         // Nova entrada de lote
+  CONFIRMED     // Presença confirmada em auditoria
+  DEPLETED      // Marcado como vazio
+  SOLD          // Registrar venda manual
+  ADJUSTED      // Ajuste de estoque
+  EXPIRED       // Marcado como vencido
+}
