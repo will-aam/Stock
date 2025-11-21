@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/auth/login-form";
+import { RegisterForm } from "@/components/auth/register-form";
 import {
   Card,
   CardContent,
@@ -7,18 +7,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-2xl">Val</CardTitle>
-          <CardDescription>
-            Sistema de Gestão de Lotes e Validades
-          </CardDescription>
+          <CardTitle className="text-2xl">Crie sua conta</CardTitle>
+          <CardDescription>Comece a gerenciar seus lotes hoje</CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm />
+          <RegisterForm />
         </CardContent>
       </Card>
     </div>

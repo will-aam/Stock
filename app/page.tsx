@@ -1,6 +1,7 @@
-import { redirect } from "next/navigation"
+import { redirect } from "next/navigation";
 
 export default function HomePage() {
-  // Redireciona para o dashboard se autenticado, ou login se não
-  redirect("/dashboard")
+  // Como ainda não temos verificação de sessão real,
+  // vamos forçar o usuário a ir para o login primeiro.
+  redirect("/login");
 }
