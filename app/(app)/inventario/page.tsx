@@ -1,5 +1,5 @@
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { InventoryList } from "@/components/inventario/inventory-list"
+import { DashboardHeader } from "@/components/home/dashboard-header";
+import { InventoryList } from "@/components/inventario/inventory-list";
 
 export default function InventarioPage() {
   return (
@@ -9,5 +9,5 @@ export default function InventarioPage() {
         <InventoryList />
       </main>
     </div>
-  )
+  );
 }

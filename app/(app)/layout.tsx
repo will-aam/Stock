@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground text-xs">
               V
             </div>
-            Val System
+            Stock System
           </div>
         </header>
 

@@ -1,5 +1,5 @@
-import { ScannerInterface } from "@/components/entrada/scanner-interface"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import { ScannerInterface } from "@/components/entrada/scanner-interface";
+import { DashboardHeader } from "@/components/home/dashboard-header";
 
 export default function EntradaPage() {
   return (
@@ -9,5 +9,5 @@ export default function EntradaPage() {
         <ScannerInterface />
       </main>
     </div>
-  )
+  );
 }

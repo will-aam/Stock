@@ -35,8 +35,8 @@ export function LoginForm() {
           id="email"
           type="email"
           placeholder="seu@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          Stockue={email}
+          onChange={(e) => setEmail(e.target.Stockue)}
           required
           className="mobile-optimized"
         />
@@ -47,8 +47,8 @@ export function LoginForm() {
           id="password"
           type="password"
           placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          Stockue={password}
+          onChange={(e) => setPassword(e.target.Stockue)}
           required
           className="mobile-optimized"
         />

@@ -21,6 +21,7 @@ export function PersonalDataForm() {
   const [name, setName] = useState("Will Desenvolvedor");
   const [cpf, setCpf] = useState("");
   const [phone, setPhone] = useState("");
+  const [role, setRole] = useState("Desenvolvedor"); // Novo estado para a função do usuário
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +55,17 @@ export function PersonalDataForm() {
               onChange={(e) => setName(e.target.value)}
               className="mobile-optimized"
               placeholder="Seu nome completo"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="role">Função/Cargo</Label>
+            <Input
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="mobile-optimized"
+              placeholder="Sua função ou cargo na empresa"
             />
           </div>
 
@@ -195,7 +207,7 @@ export function SecurityForm() {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Deixe em branco para manter"
+                  placeholder="Digite a nova senha"
                   className="mobile-optimized"
                 />
               </div>

@@ -1,4 +1,4 @@
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/home/dashboard-header";
 import {
   PersonalDataForm,
   SecurityForm,

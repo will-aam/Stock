@@ -1,4 +1,4 @@
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardHeader } from "@/components/home/dashboard-header";
 import { CompanyList } from "@/components/empresas/company-list";
 import { Separator } from "@/components/ui/separator";
 

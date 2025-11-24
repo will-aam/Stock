@@ -1,5 +1,5 @@
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { AuditInterface } from "@/components/auditoria/audit-interface"
+import { DashboardHeader } from "@/components/home/dashboard-header";
+import { AuditInterface } from "@/components/auditoria/audit-interface";
 
 export default function AuditoriaPage() {
   return (
@@ -9,5 +9,5 @@ export default function AuditoriaPage() {
         <AuditInterface />
       </main>
     </div>
-  )
+  );
 }

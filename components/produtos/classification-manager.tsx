@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react"; // useMemo é útil para otimizar o filtro
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,8 +27,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, FolderTree, Tag, Trash2, Pencil } from "lucide-react";
+import { Plus, FolderTree, Tag, Trash2, Pencil, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+// Tipo para Produto
+type Product = {
+  id: string;
+  name: string;
+  baseCode: string; // Código de base do produto
+  categoryId: string;
+  subcategoryId: string;
+};
 
 // Tipo para Categoria
 type Category = {
@@ -45,6 +54,67 @@ type Subcategory = {
 
 export function ClassificationManager() {
   const { toast } = useToast();
+
+  // Dados Mockados de Produtos (associados às categorias)
+  const [products] = useState<Product[]>([
+    {
+      id: "p1",
+      name: "Coca-Cola 2L",
+      baseCode: "BEB-001",
+      categoryId: "1",
+      subcategoryId: "1-1",
+    },
+    {
+      id: "p2",
+      name: "Fanta Laranja 1.5L",
+      baseCode: "BEB-002",
+      categoryId: "1",
+      subcategoryId: "1-1",
+    },
+    {
+      id: "p3",
+      name: "Água Mineral Crystal 500ml",
+      baseCode: "BEB-003",
+      categoryId: "1",
+      subcategoryId: "1-3",
+    },
+    {
+      id: "p4",
+      name: "Leite Integral Itambé 1L",
+      baseCode: "LAC-001",
+      categoryId: "2",
+      subcategoryId: "2-1",
+    },
+    {
+      id: "p5",
+      name: "Iogurte Natural Danone 170g",
+      baseCode: "LAC-002",
+      categoryId: "2",
+      subcategoryId: "2-2",
+    },
+    {
+      id: "p6",
+      name: "Queijo Mussarela 500g",
+      baseCode: "LAC-003",
+      categoryId: "2",
+      subcategoryId: "2-3",
+    },
+    {
+      id: "p7",
+      name: "Arroz Tio João 5kg",
+      baseCode: "MER-001",
+      categoryId: "3",
+      subcategoryId: "3-1",
+    },
+    {
+      id: "p8",
+      name: "Macarrão Renata 500g",
+      baseCode: "MER-002",
+      categoryId: "3",
+      subcategoryId: "3-2",
+    },
+  ]);
+
   const [categories, setCategories] = useState<Category[]>([
     {
       id: "1",
@@ -81,6 +151,71 @@ export function ClassificationManager() {
   const [isSubcategoryModalOpen, setIsSubcategoryModalOpen] = useState(false);
   const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
   const [newItemName, setNewItemName] = useState("");
+
+  // Estado para o filtro
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Lógica de Filtro Avançado com useMemo para performance
+  const filteredCategories = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return categories;
+    }
+
+    const term = searchTerm.toLowerCase();
+
+    return categories
+      .map((category) => {
+        // 1. Verifica se o nome da categoria corresponde
+        const categoryMatches = category.name.toLowerCase().includes(term);
+
+        // 2. Filtra as subcategorias com base na busca
+        const filteredSubcategories = category.subcategories.filter(
+          (subcategory) => {
+            // 2a. Verifica se o nome da subcategoria corresponde
+            const subcategoryMatches = subcategory.name
+              .toLowerCase()
+              .includes(term);
+
+            // 2b. Verifica se algum PRODUTO nesta subcategoria corresponde
+            const productMatches = products.some(
+              (product) =>
+                (product.name.toLowerCase().includes(term) ||
+                  product.baseCode.toLowerCase().includes(term)) &&
+                product.categoryId === category.id &&
+                product.subcategoryId === subcategory.id
+            );
+
+            return subcategoryMatches || productMatches;
+          }
+        );
+
+        // 3. Verifica se algum PRODUTO nesta categoria (em qualquer subcategoria) corresponde
+        const categoryHasMatchingProduct = products.some(
+          (product) =>
+            (product.name.toLowerCase().includes(term) ||
+              product.baseCode.toLowerCase().includes(term)) &&
+            product.categoryId === category.id
+        );
+
+        // Se a categoria corresponde, ou tem subcategorias correspondentes, ou tem produtos correspondentes, ela é exibida.
+        if (
+          categoryMatches ||
+          filteredSubcategories.length > 0 ||
+          categoryHasMatchingProduct
+        ) {
+          return {
+            ...category,
+            subcategories:
+              filteredSubcategories.length > 0
+                ? filteredSubcategories
+                : category.subcategories, // Mostra todas se a categoria pai foi a correspondente
+          };
+        }
+
+        return null; // Não exibe esta categoria
+      })
+      .filter(Boolean) as Category[]; // Remove os valores nulos
+  }, [searchTerm, categories, products]);
 
   // Adicionar Categoria Pai
   const handleAddCategory = () => {
@@ -187,6 +322,17 @@ export function ClassificationManager() {
         </Dialog>
       </div>
 
+      {/* Campo de Filtro Avançado */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Filtrar por categoria, subcategoria, nome ou código do produto..."
+          className="pl-9 mobile-optimized"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
       {/* Modal de Subcategoria (Controlado via estado para saber o pai) */}
       <Dialog
         open={isSubcategoryModalOpen}
@@ -232,16 +378,28 @@ export function ClassificationManager() {
           <CardTitle className="text-base flex items-center gap-2">
             <FolderTree className="h-5 w-5 text-muted-foreground" />
             Árvore de Classificação
+            {searchTerm && (
+              <Badge variant="outline" className="ml-2">
+                {filteredCategories.length} resultado
+                {filteredCategories.length !== 1 ? "s" : ""}
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {categories.length === 0 ? (
+          {filteredCategories.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
-              Nenhuma categoria cadastrada.
+              {searchTerm
+                ? "Nenhuma categoria, subcategoria ou produto encontrado para este filtro."
+                : "Nenhuma categoria cadastrada."}
             </div>
           ) : (
-            <Accordion type="multiple" className="w-full">
-              {categories.map((category) => (
+            <Accordion
+              type="multiple"
+              className="w-full"
+              defaultValue={filteredCategories.map((c) => c.id)}
+            >
+              {filteredCategories.map((category) => (
                 <AccordionItem key={category.id} value={category.id}>
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center justify-between w-full pr-4">
@@ -285,7 +443,7 @@ export function ClassificationManager() {
 
                       {category.subcategories.length === 0 && (
                         <p className="text-sm text-muted-foreground italic py-2">
-                          Nenhuma subcategoria.
+                          Nenhuma subcategoria encontrada para este filtro.
                         </p>
                       )}
 

@@ -26,6 +26,7 @@ import {
   Building2,
   Tag,
   ChevronRight,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -40,22 +41,19 @@ import {
 export function AppSidebar() {
   const pathname = usePathname();
 
-  const mainItems = [
-    { title: "Início", url: "/dashboard", icon: Home },
-    { title: "Scanner", url: "/entrada", icon: ScanBarcode },
-    { title: "Auditoria", url: "/auditoria", icon: ClipboardCheck },
-    { title: "Inventário", url: "/inventario", icon: Package },
-  ];
+  const mainItems = [{ title: "Início", url: "/dashboard", icon: Home }];
 
-  // Itens simples de configuração (Meu Perfil e Empresas)
+  // Itens simples de configuração (Meu Perfil, Empresas e Usuários)
   const configItems = [
     { title: "Meu Perfil", url: "/perfil", icon: User },
     { title: "Empresas", url: "/empresas", icon: Building2 },
+    { title: "Usuários", url: "/usuarios", icon: Users }, // Alterado de "Pessoas" para "Usuários"
   ];
 
-  // Subitens do menu Produtos (sem Planejamento)
+  // Subitens do menu Produtos (com Cadastro adicionado)
   const productSubItems = [
     { title: "Listagem", url: "/produtos" },
+    { title: "Cadastro", url: "/produtos/cadastro" },
     { title: "Classificação", url: "/produtos/classificacao" },
   ];
 
@@ -67,7 +65,7 @@ export function AppSidebar() {
             <span className="text-lg font-bold">V</span>
           </div>
           <span className="font-semibold group-data-[collapsible=icon]:hidden">
-            Val System
+            Stock System
           </span>
         </div>
       </SidebarHeader>
@@ -98,7 +96,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Configurações</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {/* 1. ITENS SIMPLES (Meu Perfil, Empresas) - Agora vêm primeiro */}
+              {/* 1. ITENS SIMPLES (Meu Perfil, Empresas, Usuários) */}
               {configItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
@@ -114,7 +112,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
 
-              {/* 2. ITEM COLAPSÁVEL (Produtos) - Agora vem por último */}
+              {/* 2. ITEM COLAPSÁVEL (Produtos) */}
               <Collapsible
                 asChild
                 defaultOpen={pathname.startsWith("/produtos")}
