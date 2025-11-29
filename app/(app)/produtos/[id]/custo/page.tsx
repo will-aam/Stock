@@ -1,15 +1,27 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DashboardHeader } from "@/components/home/dashboard-header";
-import { ProdutoFiscal, HistoricoCompra } from "@/types/produto-fiscal";
-import { ArrowLeft, Save } from "lucide-react";
+import {
+  ProdutoFiscal,
+  HistoricoCompra,
+  PrecificacaoProduto,
+} from "@/types/produto-fiscal";
+import {
+  ArrowLeft,
+  Calculator,
+  Save,
+  TrendingUp,
+  AlertCircle,
+  History,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 type SectionType = "historico" | "custoMedio" | "precificacao";
 
@@ -17,110 +29,208 @@ export default function CustoPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  // Casting para string para evitar problemas de tipagem com params
   const productId = params?.id as string;
 
   // Estados
   const [activeSection, setActiveSection] = useState<SectionType>("historico");
+  const [product, setProduct] = useState<ProdutoFiscal | null>(null);
+  const [historico, setHistorico] = useState<HistoricoCompra[]>([]);
+  const [precificacao, setPrecificacao] = useState<PrecificacaoProduto | null>(
+    null
+  );
+
+  // Estado do formulário de Precificação
   const [baseCusto, setBaseCusto] = useState<
     "custo_medio" | "custo_ultima_compra"
   >("custo_medio");
-  const [margemLucro, setMargemLucro] = useState(30);
+  const [margemLucro, setMargemLucro] = useState(0);
 
-  // --- DADOS MOCKADOS (SIMULAÇÃO) ---
-  const productMock: ProdutoFiscal = {
-    id: productId,
-    nome:
-      productId === "1"
-        ? "Refrigerante Coca-Cola 2L"
-        : "Arroz Branco Tipo 1 - 5kg",
-    ncm: productId === "1" ? "22021000" : "10063021",
-    codigoBarras: productId === "1" ? "7894900011517" : "7896036095904",
-  } as ProdutoFiscal;
+  // --- MOCKS INICIAIS (Para visualização sem banco de dados) ---
+  useEffect(() => {
+    // 1. Carregar Produto
+    const mockProduct: ProdutoFiscal = {
+      id: productId,
+      nome:
+        productId === "1"
+          ? "Refrigerante Coca-Cola 2L"
+          : "Arroz Branco Tipo 1 - 5kg",
+      ncm: productId === "1" ? "22021000" : "10063021",
+      codigoBarras: productId === "1" ? "7894900011517" : "7896036095904",
+      grupo: productId === "1" ? "Bebidas" : "Alimentos",
+    } as ProdutoFiscal;
 
-  const historyMock: HistoricoCompra[] = [
-    {
-      id: "1",
-      produtoId: productId,
-      fornecedorId: "1",
-      nomeFornecedor: "Distribuidora Alpha",
-      data: "2024-02-10",
-      quantidadeTotal: 100,
-      quantidadeConvertidaUnd: 100,
-      valorTotalNF: 450,
-      precoBrutoUnd: 4.5,
-      custoLiquidoUnd: 4.25,
-    },
-    {
-      id: "2",
-      produtoId: productId,
-      fornecedorId: "2",
-      nomeFornecedor: "Atacado Beta",
-      data: "2024-03-15",
-      quantidadeTotal: 50,
-      quantidadeConvertidaUnd: 50,
-      valorTotalNF: 240,
-      precoBrutoUnd: 4.8,
-      custoLiquidoUnd: 4.6,
-    },
-    {
-      id: "3",
-      produtoId: productId,
-      fornecedorId: "1",
-      nomeFornecedor: "Distribuidora Alpha",
-      data: "2024-04-20",
-      quantidadeTotal: 200,
-      quantidadeConvertidaUnd: 200,
-      valorTotalNF: 920,
-      precoBrutoUnd: 4.6,
-      custoLiquidoUnd: 4.45,
-    },
-  ];
-  // ----------------------------------
+    // Tenta carregar do localStorage, senão usa o mock
+    const storedProducts = localStorage.getItem("produtos_fiscais");
+    if (storedProducts) {
+      const products: ProdutoFiscal[] = JSON.parse(storedProducts);
+      const found = products.find((p) => p.id === productId);
+      setProduct(found || mockProduct);
+    } else {
+      setProduct(mockProduct);
+    }
 
-  // Cálculos
+    // 2. Carregar Histórico
+    const mockHistory: HistoricoCompra[] = [
+      {
+        id: "1",
+        produtoId: productId,
+        fornecedorId: "1",
+        nomeFornecedor: "Distribuidora Alpha",
+        data: "2024-02-10T10:00:00",
+        quantidadeTotal: 100,
+        quantidadeConvertidaUnd: 100,
+        valorTotalNF: 425,
+        precoBrutoUnd: 4.5,
+        custoLiquidoUnd: 4.25,
+      },
+      {
+        id: "2",
+        produtoId: productId,
+        fornecedorId: "2",
+        nomeFornecedor: "Atacado Beta",
+        data: "2024-03-15T14:30:00",
+        quantidadeTotal: 50,
+        quantidadeConvertidaUnd: 50,
+        valorTotalNF: 230,
+        precoBrutoUnd: 4.8,
+        custoLiquidoUnd: 4.6,
+      },
+      {
+        id: "3",
+        produtoId: productId,
+        fornecedorId: "1",
+        nomeFornecedor: "Distribuidora Alpha",
+        data: "2024-04-20T09:15:00",
+        quantidadeTotal: 200,
+        quantidadeConvertidaUnd: 200,
+        valorTotalNF: 890,
+        precoBrutoUnd: 4.6,
+        custoLiquidoUnd: 4.45,
+      },
+    ];
+
+    const storedHistory = localStorage.getItem("historico_compras");
+    if (storedHistory) {
+      const allHistory: HistoricoCompra[] = JSON.parse(storedHistory);
+      const productHistory = allHistory.filter(
+        (h) => h.produtoId === productId
+      );
+      setHistorico(productHistory.length > 0 ? productHistory : mockHistory);
+    } else {
+      setHistorico(mockHistory);
+    }
+
+    // 3. Carregar Precificação
+    const storedPricing = localStorage.getItem("precificacao_produtos");
+    if (storedPricing) {
+      const allPricing: PrecificacaoProduto[] = JSON.parse(storedPricing);
+      const productPricing = allPricing.find((p) => p.produtoId === productId);
+      setPrecificacao(productPricing || null);
+      if (productPricing) {
+        setBaseCusto(productPricing.baseCusto);
+        setMargemLucro(productPricing.margemLucroPercentual);
+      }
+    } else {
+      // Mock inicial de precificação se não existir
+      setMargemLucro(30);
+    }
+  }, [productId]);
+
+  // --- CÁLCULOS ---
+
+  // 1. Custo Médio Ponderado
   const custoMedioUnd = useMemo(() => {
-    const totalCusto = historyMock.reduce(
+    if (historico.length === 0) return 0;
+    const totalCusto = historico.reduce(
       (sum, h) => sum + h.custoLiquidoUnd * h.quantidadeConvertidaUnd,
       0
     );
-    const totalQtd = historyMock.reduce(
+    const totalQuantidade = historico.reduce(
       (sum, h) => sum + h.quantidadeConvertidaUnd,
       0
     );
-    return totalQtd > 0 ? totalCusto / totalQtd : 0;
-  }, [historyMock]);
+    return totalQuantidade > 0 ? totalCusto / totalQuantidade : 0;
+  }, [historico]);
 
+  // 2. Última Compra
   const ultimaCompra = useMemo(() => {
-    return [...historyMock].sort(
+    if (historico.length === 0) return null;
+    return [...historico].sort(
       (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
     )[0];
-  }, [historyMock]);
+  }, [historico]);
 
-  const custoBase =
-    baseCusto === "custo_medio"
-      ? custoMedioUnd
-      : ultimaCompra?.custoLiquidoUnd || 0;
+  // 3. Custo Base (Selecionado)
+  const custoBase = useMemo(() => {
+    if (baseCusto === "custo_medio") {
+      return custoMedioUnd;
+    } else {
+      return ultimaCompra?.custoLiquidoUnd || 0;
+    }
+  }, [baseCusto, custoMedioUnd, ultimaCompra]);
 
+  // 4. Preço Sugerido
   const precoVendaSugerido = useMemo(() => {
     if (custoBase === 0 || margemLucro >= 100) return 0;
+    // Fórmula: Custo / (1 - Margem%)
+    // Ex: Custo 100, Margem 30% -> 100 / 0.7 = 142.85
     return custoBase / (1 - margemLucro / 100);
   }, [custoBase, margemLucro]);
 
-  const handleSavePricing = () => {
+  // Ação: Salvar/Aplicar Preço
+  const handleAplicarPreco = () => {
+    const novaPrecificacao: PrecificacaoProduto = {
+      produtoId: productId,
+      baseCusto,
+      custoBase,
+      margemLucroPercentual: margemLucro,
+      precoVendaUnitario: precoVendaSugerido,
+      atualizadoEm: new Date().toISOString(),
+    };
+
+    // Salvar no localStorage (simulação de persistência)
+    const storedPricing = localStorage.getItem("precificacao_produtos");
+    const allPricing: PrecificacaoProduto[] = storedPricing
+      ? JSON.parse(storedPricing)
+      : [];
+    const index = allPricing.findIndex((p) => p.produtoId === productId);
+
+    if (index >= 0) {
+      allPricing[index] = novaPrecificacao;
+    } else {
+      allPricing.push(novaPrecificacao);
+    }
+
+    localStorage.setItem("precificacao_produtos", JSON.stringify(allPricing));
+    setPrecificacao(novaPrecificacao);
+
     toast({
-      title: "Preço Atualizado",
-      description: `Novo preço de venda definido: R$ ${precoVendaSugerido.toFixed(
-        2
-      )}`,
+      title: "Preço Aplicado!",
+      description: `Novo preço de venda: R$ ${precoVendaSugerido.toFixed(2)}`,
     });
   };
 
   const sections = [
-    { id: "historico" as SectionType, label: "Histórico de Compras" },
-    { id: "custoMedio" as SectionType, label: "Custo Médio" },
-    { id: "precificacao" as SectionType, label: "Precificação" },
+    {
+      id: "historico" as SectionType,
+      label: "Histórico de Compras",
+      icon: History,
+    },
+    { id: "custoMedio" as SectionType, label: "Custo Médio", icon: TrendingUp },
+    {
+      id: "precificacao" as SectionType,
+      label: "Precificação",
+      icon: Calculator,
+    },
   ];
+
+  if (!product) {
+    return (
+      <div className="p-8 text-center text-muted-foreground">
+        Carregando produto...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-20 md:pb-0">
@@ -128,8 +238,8 @@ export default function CustoPage() {
         <DashboardHeader />
       </div>
 
-      <main className="container mx-auto max-w-5xl space-y-6 p-4">
-        {/* Cabeçalho do Produto */}
+      <main className="container mx-auto max-w-6xl space-y-6 p-4">
+        {/* Cabeçalho */}
         <div className="flex flex-col gap-4">
           <Button
             variant="ghost"
@@ -140,171 +250,461 @@ export default function CustoPage() {
             Voltar para Produtos
           </Button>
 
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              {productMock.nome}
-            </h1>
-            <p className="text-muted-foreground flex gap-4 text-sm mt-1">
-              <span>
-                EAN:{" "}
-                <span className="font-mono">{productMock.codigoBarras}</span>
-              </span>
-              <span>•</span>
-              <span>
-                NCM: <span className="font-mono">{productMock.ncm}</span>
-              </span>
-            </p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                {product.nome}
+              </h1>
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-1">
+                <span className="flex items-center gap-1">
+                  <Badge variant="outline" className="font-mono text-xs">
+                    EAN
+                  </Badge>
+                  {product.codigoBarras}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Badge variant="outline" className="font-mono text-xs">
+                    NCM
+                  </Badge>
+                  {product.ncm}
+                </span>
+                {product.grupo && <span>Grupo: {product.grupo}</span>}
+              </div>
+            </div>
+
+            {precificacao && (
+              <div className="text-right bg-green-50 dark:bg-green-900/20 px-4 py-2 rounded-lg border border-green-100 dark:border-green-800">
+                <p className="text-xs text-green-700 dark:text-green-400 font-medium">
+                  Preço de Venda Atual
+                </p>
+                <p className="text-2xl font-bold text-green-700 dark:text-green-400">
+                  R$ {precificacao.precoVendaUnitario.toFixed(2)}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
-        <Card className="p-6">
-          {/* Navegação Interna (Tabs Manuais) */}
-          <div className="border-b mb-6 overflow-x-auto">
-            <div className="flex gap-4 min-w-max">
+        <Card className="p-0 overflow-hidden border-none shadow-md">
+          {/* Navegação de Abas */}
+          <div className="bg-muted/30 border-b">
+            <div className="flex overflow-x-auto">
               {sections.map((section) => (
                 <button
                   key={section.id}
                   onClick={() => setActiveSection(section.id)}
-                  className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
+                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all border-b-2 whitespace-nowrap hover:bg-muted/50 ${
                     activeSection === section.id
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
+                      ? "border-primary text-primary bg-background"
+                      : "border-transparent text-muted-foreground"
                   }`}
                 >
+                  <section.icon className="h-4 w-4" />
                   {section.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Conteúdo: Histórico */}
-          {activeSection === "historico" && (
-            <div className="space-y-4">
-              <div className="rounded-md border overflow-x-auto">
-                <div className="min-w-[600px]">
-                  <div className="grid grid-cols-5 gap-4 p-4 font-medium text-sm bg-muted/50 border-b">
-                    <div>Data</div>
-                    <div className="col-span-2">Fornecedor</div>
-                    <div className="text-right">Qtd.</div>
-                    <div className="text-right">Custo Líq. (UN)</div>
+          <div className="p-6">
+            {/* SEÇÃO 1: HISTÓRICO DE COMPRAS */}
+            {activeSection === "historico" && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-lg">
+                    Entradas de Nota Fiscal
+                  </h3>
+                  <Badge variant="secondary">
+                    {historico.length} registros
+                  </Badge>
+                </div>
+
+                {historico.length === 0 ? (
+                  <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                    <p className="text-muted-foreground">
+                      Nenhuma compra registrada para este produto.
+                    </p>
                   </div>
-                  {historyMock.map((item) => (
-                    <div
-                      key={item.id}
-                      className="grid grid-cols-5 gap-4 p-4 text-sm border-b last:border-0 items-center hover:bg-muted/30"
-                    >
-                      <div className="text-muted-foreground">
-                        {new Date(item.data).toLocaleDateString("pt-BR")}
+                ) : (
+                  <div className="rounded-md border overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/50 border-b">
+                        <tr>
+                          <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                            Data
+                          </th>
+                          <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                            Fornecedor
+                          </th>
+                          <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                            Qtd Total
+                          </th>
+                          <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                            Qtd (UN)
+                          </th>
+                          <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                            Total NF
+                          </th>
+                          <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                            Custo Líq (UN)
+                          </th>
+                          <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                            Lucro Calc.
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {historico.map((compra) => {
+                          const precoVenda =
+                            precificacao?.precoVendaUnitario || 0;
+                          const lucroPercentual =
+                            precoVenda > 0
+                              ? ((precoVenda - compra.custoLiquidoUnd) /
+                                  precoVenda) *
+                                100
+                              : 0;
+
+                          return (
+                            <tr
+                              key={compra.id}
+                              className="hover:bg-muted/20 transition-colors"
+                            >
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                {new Date(compra.data).toLocaleDateString(
+                                  "pt-BR"
+                                )}
+                              </td>
+                              <td
+                                className="px-4 py-3 max-w-[200px] truncate"
+                                title={compra.nomeFornecedor}
+                              >
+                                {compra.nomeFornecedor}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                {compra.quantidadeTotal}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                {compra.quantidadeConvertidaUnd}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                R$ {compra.valorTotalNF.toFixed(2)}
+                              </td>
+                              <td className="px-4 py-3 text-right font-medium text-orange-600 dark:text-orange-400">
+                                R$ {compra.custoLiquidoUnd.toFixed(2)}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                {lucroPercentual > 0 ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-green-600 border-green-200 bg-green-50"
+                                  >
+                                    {lucroPercentual.toFixed(1)}%
+                                  </Badge>
+                                ) : (
+                                  "-"
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SEÇÃO 2: CUSTO MÉDIO */}
+            {activeSection === "custoMedio" && (
+              <div className="space-y-8">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="p-4 bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
+                    <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">
+                      Custo Médio (UN)
+                    </p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                      R$ {custoMedioUnd.toFixed(2)}
+                    </p>
+                  </Card>
+
+                  <Card className="p-4 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800">
+                    <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1">
+                      Total Comprado (UN)
+                    </p>
+                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                      {historico.reduce(
+                        (sum, h) => sum + h.quantidadeConvertidaUnd,
+                        0
+                      )}
+                    </p>
+                  </Card>
+
+                  {ultimaCompra && (
+                    <>
+                      <Card className="p-4 bg-purple-50 border-purple-200 dark:bg-purple-950/30 dark:border-purple-800">
+                        <p className="text-sm text-purple-600 dark:text-purple-400 font-medium mb-1">
+                          Data Última Compra
+                        </p>
+                        <p className="text-lg font-semibold text-purple-700 dark:text-purple-300">
+                          {new Date(ultimaCompra.data).toLocaleDateString(
+                            "pt-BR"
+                          )}
+                        </p>
+                      </Card>
+
+                      <Card className="p-4 bg-orange-50 border-orange-200 dark:bg-orange-950/30 dark:border-orange-800">
+                        <p className="text-sm text-orange-600 dark:text-orange-400 font-medium mb-1">
+                          Custo Última Compra
+                        </p>
+                        <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                          R$ {ultimaCompra.custoLiquidoUnd.toFixed(2)}
+                        </p>
+                      </Card>
+                    </>
+                  )}
+                </div>
+
+                {historico.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-lg mb-4">
+                      Últimas 5 Compras para Base de Cálculo
+                    </h3>
+                    <div className="border rounded-md overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/50 border-b">
+                          <tr>
+                            <th className="px-4 py-3 text-left">Data</th>
+                            <th className="px-4 py-3 text-left">Fornecedor</th>
+                            <th className="px-4 py-3 text-right">
+                              Custo Líquido (UN)
+                            </th>
+                            <th className="px-4 py-3 text-right">
+                              Variação da Média
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {[...historico]
+                            .sort(
+                              (a, b) =>
+                                new Date(b.data).getTime() -
+                                new Date(a.data).getTime()
+                            )
+                            .slice(0, 5)
+                            .map((compra) => {
+                              const variacao =
+                                custoMedioUnd > 0
+                                  ? ((compra.custoLiquidoUnd - custoMedioUnd) /
+                                      custoMedioUnd) *
+                                    100
+                                  : 0;
+                              return (
+                                <tr
+                                  key={compra.id}
+                                  className="hover:bg-muted/20"
+                                >
+                                  <td className="px-4 py-3">
+                                    {new Date(compra.data).toLocaleDateString(
+                                      "pt-BR"
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    {compra.nomeFornecedor}
+                                  </td>
+                                  <td className="px-4 py-3 text-right font-medium">
+                                    R$ {compra.custoLiquidoUnd.toFixed(2)}
+                                  </td>
+                                  <td className="px-4 py-3 text-right">
+                                    <span
+                                      className={`text-xs px-2 py-1 rounded-full ${
+                                        variacao > 0
+                                          ? "bg-red-100 text-red-700"
+                                          : "bg-green-100 text-green-700"
+                                      }`}
+                                    >
+                                      {variacao > 0 ? "+" : ""}
+                                      {variacao.toFixed(1)}%
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SEÇÃO 3: PRECIFICAÇÃO */}
+            {activeSection === "precificacao" && (
+              <div className="grid lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="grid gap-6 p-6 border rounded-xl bg-card">
+                    <div className="space-y-2">
+                      <Label className="text-base">
+                        1. Defina a Base de Custo
+                      </Label>
+                      <select
+                        value={baseCusto}
+                        onChange={(e) =>
+                          setBaseCusto(
+                            e.target.value as
+                              | "custo_medio"
+                              | "custo_ultima_compra"
+                          )
+                        }
+                        className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      >
+                        <option value="custo_medio">
+                          Usar Custo Médio (R$ {custoMedioUnd.toFixed(2)})
+                        </option>
+                        <option value="custo_ultima_compra">
+                          Usar Custo da Última Compra (R${" "}
+                          {ultimaCompra?.custoLiquidoUnd.toFixed(2) || "0.00"})
+                        </option>
+                      </select>
+                      <p className="text-sm text-muted-foreground">
+                        O custo base será utilizado como ponto de partida para
+                        aplicar a margem.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="p-4 rounded-lg bg-muted/50 border">
+                        <Label className="text-muted-foreground">
+                          Custo Base Selecionado
+                        </Label>
+                        <p className="text-3xl font-bold mt-1">
+                          R$ {custoBase.toFixed(2)}
+                        </p>
                       </div>
-                      <div className="col-span-2 font-medium">
-                        {item.nomeFornecedor}
-                      </div>
-                      <div className="text-right">
-                        {item.quantidadeConvertidaUnd}
-                      </div>
-                      <div className="text-right font-medium">
-                        R$ {item.custoLiquidoUnd.toFixed(2)}
+
+                      <div className="space-y-2">
+                        <Label className="text-base">
+                          2. Margem de Lucro (%)
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            value={margemLucro}
+                            onChange={(e) =>
+                              setMargemLucro(parseFloat(e.target.value) || 0)
+                            }
+                            className="h-14 text-lg font-semibold pr-10"
+                            placeholder="Ex: 30"
+                          />
+                          <span className="absolute right-4 top-4 text-muted-foreground font-semibold">
+                            %
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+                  </div>
 
-          {/* Conteúdo: Custo Médio */}
-          {activeSection === "custoMedio" && (
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="p-4 bg-blue-50/50 border-blue-100 dark:bg-blue-900/10 dark:border-blue-900">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Custo Médio Ponderado
-                </p>
-                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                  R$ {custoMedioUnd.toFixed(2)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Baseado em todas as entradas registradas
-                </p>
-              </Card>
+                  {margemLucro > 0 && (
+                    <Card className="p-6 bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800">
+                      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div>
+                          <Label className="text-blue-800 dark:text-blue-300 text-base">
+                            3. Preço de Venda Sugerido
+                          </Label>
+                          <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                            Baseado no custo de R$ {custoBase.toFixed(2)} com
+                            margem de {margemLucro}%
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-4xl font-bold text-blue-700 dark:text-blue-400">
+                            R$ {precoVendaSugerido.toFixed(2)}
+                          </p>
+                          <p className="text-xs text-blue-600 mt-1">
+                            Por Unidade
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+                  )}
 
-              <Card className="p-4 bg-orange-50/50 border-orange-100 dark:bg-orange-900/10 dark:border-orange-900">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Último Custo Líquido
-                </p>
-                <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
-                  R$ {ultimaCompra.custoLiquidoUnd.toFixed(2)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Baseado na entrada de{" "}
-                  {new Date(ultimaCompra.data).toLocaleDateString("pt-BR")}
-                </p>
-              </Card>
-            </div>
-          )}
-
-          {/* Conteúdo: Precificação */}
-          {activeSection === "precificacao" && (
-            <div className="space-y-6 max-w-2xl">
-              <div className="grid gap-4 p-4 bg-muted/30 rounded-lg border">
-                <div className="space-y-2">
-                  <Label>Base de Custo para Cálculo</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors"
-                    value={baseCusto}
-                    onChange={(e) => setBaseCusto(e.target.value as any)}
+                  <Button
+                    onClick={handleAplicarPreco}
+                    disabled={margemLucro <= 0 || custoBase <= 0}
+                    className="w-full h-12 text-base shadow-lg"
+                    size="lg"
                   >
-                    <option value="custo_medio">
-                      Usar Custo Médio (R$ {custoMedioUnd.toFixed(2)})
-                    </option>
-                    <option value="custo_ultima_compra">
-                      Usar Última Compra (R${" "}
-                      {ultimaCompra.custoLiquidoUnd.toFixed(2)})
-                    </option>
-                  </select>
+                    <Save className="w-5 h-5 mr-2" />
+                    Aplicar Novo Preço
+                  </Button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Margem de Lucro (%)</Label>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        value={margemLucro}
-                        onChange={(e) => setMargemLucro(Number(e.target.value))}
-                        className="pr-8"
-                      />
-                      <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">
-                        %
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Custo Base</Label>
-                    <Input
-                      value={`R$ ${custoBase.toFixed(2)}`}
-                      disabled
-                      className="bg-muted"
-                    />
+                {/* Sidebar da Precificação (Info) */}
+                <div className="space-y-6">
+                  {precificacao ? (
+                    <Card className="p-6 bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-green-100 rounded-full dark:bg-green-900">
+                          <TrendingUp className="h-5 w-5 text-green-700 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-green-900 dark:text-green-300">
+                            Preço Ativo
+                          </h4>
+                          <p className="text-3xl font-bold text-green-700 dark:text-green-400 my-2">
+                            R$ {precificacao.precoVendaUnitario.toFixed(2)}
+                          </p>
+                          <p className="text-xs text-green-800 dark:text-green-500">
+                            Atualizado em:{" "}
+                            {new Date(precificacao.atualizadoEm).toLocaleString(
+                              "pt-BR"
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-800 grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="block text-green-700/70">
+                            Margem
+                          </span>
+                          <span className="font-medium text-green-900 dark:text-green-300">
+                            {precificacao.margemLucroPercentual}%
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-green-700/70">Base</span>
+                          <span className="font-medium text-green-900 dark:text-green-300">
+                            {precificacao.baseCusto === "custo_medio"
+                              ? "Custo Médio"
+                              : "Última Compra"}
+                          </span>
+                        </div>
+                      </div>
+                    </Card>
+                  ) : (
+                    <Card className="p-6 border-dashed bg-muted/30">
+                      <div className="flex flex-col items-center text-center text-muted-foreground">
+                        <AlertCircle className="h-10 w-10 mb-2 opacity-50" />
+                        <p>
+                          Este produto ainda não possui preço de venda definido.
+                        </p>
+                      </div>
+                    </Card>
+                  )}
+
+                  <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/10 dark:border-yellow-800">
+                    <h4 className="font-semibold text-yellow-900 dark:text-yellow-300 text-sm mb-2">
+                      Dica de Gestão
+                    </h4>
+                    <p className="text-xs text-yellow-800 dark:text-yellow-400 leading-relaxed">
+                      Mantenha a margem de lucro revisada sempre que houver
+                      variação significativa no custo médio ou troca de
+                      fornecedor.
+                    </p>
                   </div>
                 </div>
               </div>
-
-              <div className="flex items-center justify-between p-6 bg-primary/5 rounded-xl border border-primary/20">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Preço de Venda Sugerido
-                  </p>
-                  <p className="text-4xl font-bold text-primary mt-1">
-                    R$ {precoVendaSugerido.toFixed(2)}
-                  </p>
-                </div>
-                <Button size="lg" onClick={handleSavePricing}>
-                  <Save className="mr-2 h-4 w-4" />
-                  Aplicar Preço
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </Card>
       </main>
     </div>
