@@ -44,17 +44,70 @@ model Store {
   updatedAt DateTime  @updatedAt
 }
 
-// Modelo de Produto
+// Modelo de Produto (Expandido para Dados Fiscais e Completos)
 model Product {
   id          String   @id @default(cuid())
-  ean         String   @unique // Código de barras EAN
+  
+  // Dados Básicos
+  ean         String   @unique // Código de barras principal
   name        String
   description String?
   imageUrl    String?
-  category    String
-  storeId     String?
-  store       Store?   @relation(fields: [storeId], references: [id])
-  batches     Batch[]
+  category    String   // Corresponde ao 'grupo'
+  brand       String?  // Marca
+  
+  // Unidades e Conversão
+  commercialUnit String  @default("UN") // Ex: CX, UN, KG
+  taxUnit        String? @default("UN") // Unidade tributável
+  conversionFactor Float @default(1.0)
+  
+  // Dados Fiscais Gerais
+  fiscalType       String // Tipo do item (revenda, materia_prima, etc)
+  ncm              String
+  cest             String?
+  origin           String @default("0") // Origem da mercadoria
+
+  // ICMS
+  icmsCstIn        String? // CST Entrada
+  icmsCstOut       String? // CST Saída
+  icmsRate         Float?  // Alíquota
+  icmsBcMod        String? // Modalidade Base Cálculo
+  icmsBcRed        Float?  // Redução Base Cálculo
+  icmsSt           Boolean @default(false)
+  icmsMvaOrig      Float?
+  icmsMvaAdj       Float?
+  icmsCredit       Boolean @default(false)
+
+  // PIS/COFINS
+  pisCstIn         String?
+  pisCstOut        String?
+  pisRate          Float?
+  cofinsCstIn      String?
+  cofinsCstOut     String?
+  cofinsRate       Float?
+  pisCofinsCredit  Boolean @default(false)
+
+  // IPI
+  ipiCode          String? // Enquadramento
+  ipiCst           String?
+  ipiRate          Float?
+  ipiCredit        Boolean @default(false)
+
+  // Configuração de Preço/Custo
+  suggestedMargin  Float?
+  operationalCost  Float?
+  notes            String?
+
+  // Relacionamentos
+  storeId          String?
+  store            Store?   @relation(fields: [storeId], references: [id])
+  
+  batches          Batch[]            // Lotes e Validades
+  additionalBarcodes Barcode[]        // Múltiplos EANs
+  suppliers          ProductSupplier[] // Fornecedores vinculados
+  purchaseHistory    PurchaseHistory[] // Histórico de compras
+  pricing            ProductPricing[]  // Histórico de precificação
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -63,14 +116,71 @@ model Product {
   @@index([storeId])
 }
 
-// Modelo de Lote (Batch)
+// Tabela de Códigos de Barras Adicionais (Caixa, Fardo, etc)
+model Barcode {
+  id        String   @id @default(cuid())
+  code      String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+// Fornecedores vinculados ao produto
+model ProductSupplier {
+  id              String  @id @default(cuid())
+  supplierCode    String? // Código no fornecedor
+  supplierName    String
+  unit            String  @default("UN")
+  refCode         String? // Código de referência
+  
+  productId       String
+  product         Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@index([productId])
+}
+
+// Histórico de Compras (Entradas de Nota)
+model PurchaseHistory {
+  id              String   @id @default(cuid())
+  supplierName    String
+  date            DateTime
+  totalQty        Float
+  convertedQty    Float
+  totalValue      Float
+  unitPriceGross  Float
+  unitCostNet     Float
+  
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+// Histórico/Configuração de Precificação
+model ProductPricing {
+  id              String   @id @default(cuid())
+  baseType        String   // 'custo_medio' ou 'custo_ultima_compra'
+  baseCost        Float
+  marginPercent   Float
+  sellingPrice    Float
+  
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  updatedAt       DateTime @default(now())
+
+  @@index([productId])
+}
+
+// Modelo de Lote (Batch) - Mantido igual
 model Batch {
   id              String     @id @default(cuid())
   productId       String
   product         Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
   expirationDate  DateTime
-  quantityInitial Int        // Quantidade inicial ao registrar
-  quantityCurrent Int        // Quantidade atual (após vendas/auditorias)
+  quantityInitial Int        
+  quantityCurrent Int        
   status          BatchStatus @default(SAFE)
   auditLogs       AuditLog[]
   createdAt       DateTime   @default(now())
@@ -89,7 +199,7 @@ enum BatchStatus {
   DEPLETED  // Estoque zerado
 }
 
-// Modelo de Log de Auditoria
+// Modelo de Log de Auditoria - Mantido igual
 model AuditLog {
   id         String         @id @default(cuid())
   userId     String
@@ -97,8 +207,8 @@ model AuditLog {
   batchId    String
   batch      Batch          @relation(fields: [batchId], references: [id], onDelete: Cascade)
   actionType AuditActionType
-  quantity   Int?           // Quantidade afetada (para vendas/ajustes)
-  notes      String?        // Notas opcionais
+  quantity   Int?           // Quantidade afetada
+  notes      String?
   timestamp  DateTime       @default(now())
 
   @@index([userId])

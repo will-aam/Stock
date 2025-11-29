@@ -1,268 +1,269 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { usePathname } from "next/navigation";
-import {
-  Plus,
-  Search,
-  Package,
-  Barcode,
-  Tag,
-  AlertTriangle,
-  ImageIcon,
-  Pencil,
-  Trash2,
-  Download,
-  Upload,
-  FileText,
-  Filter,
-  X,
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
-import Link from "next/link";
+import { ProdutoFiscal } from "@/types/produto-fiscal";
+import { Pencil, Trash2, Search, Package, Calculator } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export function ProductList() {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const router = useRouter();
 
-  // Dados mockados de produtos
-  const [products, setProducts] = useState([
+  // Dados mockados para visualização estática (simulando DB)
+  const [products, setProducts] = useState<ProdutoFiscal[]>([
     {
-      id: 1,
-      internalCode: "PROD001",
-      ean: "7891000100103",
-      name: "Leite Integral 1L",
-      category: "Laticínios",
-      alertDays: 30,
-    },
+      id: "1",
+      nome: "Refrigerante Coca-Cola 2L",
+      codigoBarras: "7894900011517",
+      unidadeMedidaComercial: "UN",
+      fatorConversao: 1,
+      tipoItem: "mercadoria_revenda",
+      ncm: "22021000",
+      origemMercadoria: "0",
+      icmsCstEntrada: "060",
+      icmsCstSaida: "060",
+      icmsAliquota: 18,
+      icmsST: true,
+      icmsGeraCredito: false,
+      pisCstEntrada: "73",
+      pisCstSaida: "01",
+      pisAliquota: 1.65,
+      cofinsCstEntrada: "73",
+      cofinsCstSaida: "01",
+      cofinsAliquota: 7.6,
+      pisCofinsGeraCredito: false,
+      ipiAliquota: 0,
+      ipiGeraCredito: false,
+      grupo: "Bebidas",
+      criadoEm: new Date().toISOString(),
+    } as unknown as ProdutoFiscal,
     {
-      id: 2,
-      internalCode: "PROD002",
-      ean: "7894321711263",
-      name: "Iogurte Natural 170g",
-      category: "Laticínios",
-      alertDays: 15,
-    },
-    {
-      id: 3,
-      internalCode: "PROD003",
-      ean: "7896005800042",
-      name: "Arroz Branco 5kg",
-      category: "Cereais",
-      alertDays: 60,
-    },
+      id: "2",
+      nome: "Arroz Branco Tipo 1 - 5kg",
+      codigoBarras: "7896036095904",
+      unidadeMedidaComercial: "PCT",
+      fatorConversao: 5,
+      tipoItem: "mercadoria_revenda",
+      ncm: "10063021",
+      origemMercadoria: "0",
+      icmsCstEntrada: "000",
+      icmsCstSaida: "000",
+      icmsAliquota: 12,
+      icmsST: false,
+      icmsGeraCredito: true,
+      pisCstEntrada: "50",
+      pisCstSaida: "01",
+      pisAliquota: 1.65,
+      cofinsCstEntrada: "50",
+      cofinsCstSaida: "01",
+      cofinsAliquota: 7.6,
+      pisCofinsGeraCredito: true,
+      ipiAliquota: 0,
+      ipiGeraCredito: false,
+      grupo: "Alimentos",
+      criadoEm: new Date().toISOString(),
+    } as unknown as ProdutoFiscal,
   ]);
 
-  // Função para lidar com a seleção de categorias no filtro
-  const handleCategoryToggle = (category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return products;
+    const term = searchTerm.toLowerCase();
+    return products.filter(
+      (p) =>
+        p.nome.toLowerCase().includes(term) ||
+        p.codigoBarras.includes(term) ||
+        p.ncm.includes(term)
     );
+  }, [products, searchTerm]);
+
+  const tipoItemLabels: Record<string, string> = {
+    mercadoria_revenda: "Revenda",
+    materia_prima: "Insumo",
+    uso_consumo: "Uso e Consumo",
+    ativo: "Ativo",
+    brinde: "Brinde",
   };
 
-  // Função para limpar todos os filtros
-  const clearFilters = () => {
-    setSelectedCategories([]);
+  const handleDelete = (id: string) => {
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+    toast({
+      title: "Produto removido",
+      description: "Item excluído da lista visual.",
+    });
   };
 
-  // Filtragem combinada (por termo de busca e categorias)
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.ean.includes(searchTerm) ||
-      p.internalCode.includes(searchTerm);
-
-    const matchesCategory =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(p.category);
-
-    return matchesSearch && matchesCategory;
-  });
-
-  // Lista de categorias disponíveis para o filtro
-  const availableCategories = [
-    "Laticínios",
-    "Cereais",
-    "Bebidas",
-    "Limpeza",
-    "Higiene",
-    "Bazar",
-  ];
+  const handleEdit = (product: ProdutoFiscal) => {
+    toast({
+      title: "Editar",
+      description: `Abrindo edição para: ${product.nome}`,
+    });
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h3 className="text-lg font-medium">Catálogo de Produtos</h3>
-          <p className="text-sm text-muted-foreground">
-            Gerencie o catálogo mestre de produtos, marcas e regras de validade
-          </p>
-        </div>
-
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Button variant="outline" className="hidden sm:flex">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
-          </Button>
-          <Link href="/produtos/cadastro" className="w-full sm:w-auto">
-            <Button className="mobile-button flex items-center gap-2 w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Produto
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Barra de Busca com Filtro */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Card className="p-4">
+        {/* Barra de Busca */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome, código EAN ou código interno..."
-            className="pl-9 mobile-optimized"
+            placeholder="Buscar por nome, código de barras ou NCM..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 mobile-optimized"
           />
         </div>
 
-        {/* Filtro de Categoria */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="relative">
-              <Filter className="h-4 w-4" />
-              {selectedCategories.length > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                  {selectedCategories.length}
-                </span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64" align="end">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Filtrar por Categoria</h4>
-                {selectedCategories.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="h-auto p-0 text-xs"
-                  >
-                    Limpar
-                  </Button>
-                )}
-              </div>
-              <div className="space-y-2">
-                {availableCategories.map((category) => (
-                  <div key={category} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`category-${category}`}
-                      checked={selectedCategories.includes(category)}
-                      onCheckedChange={() => handleCategoryToggle(category)}
-                    />
-                    <Label
-                      htmlFor={`category-${category}`}
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {category}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              <div className="pt-2 border-t">
-                <Button
-                  size="sm"
-                  className="w-full"
-                  onClick={() => {
-                    // Aqui você poderia aplicar os filtros
-                    // Por enquanto, apenas fechar o popover
-                  }}
-                >
-                  Aplicar Filtros
-                </Button>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          {filteredProducts.length}{" "}
+          {filteredProducts.length === 1 ? "produto" : "produtos"} encontrado(s)
+        </p>
 
-      {/* Tabela de Produtos com Componentes do Shadcn UI */}
-      <Card className="overflow-hidden">
-        <CardContent className="p-4">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[120px]">Código</TableHead>
-                <TableHead className="w-[150px]">EAN</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-mono text-xs font-medium">
-                    {product.internalCode}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {product.ean}
-                  </TableCell>
-                  <TableCell>{product.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="capitalize">
-                      {product.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 hover:text-primary"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+        {/* Lista de Cards */}
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-12">
+            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <p className="text-muted-foreground">
+              {searchTerm
+                ? "Nenhum produto encontrado"
+                : "Nenhum produto cadastrado ainda"}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredProducts.map((product) => (
+              <Card
+                key={product.id}
+                className="p-4 hover:border-primary/50 transition-colors"
+              >
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* Imagem (Placeholder se não houver) */}
+                  <div className="shrink-0">
+                    {product.imagemUrl ? (
+                      <img
+                        src={product.imagemUrl}
+                        alt={product.nome}
+                        className="h-16 w-16 object-cover rounded-md border"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 bg-muted rounded-md flex items-center justify-center border">
+                        <Package className="h-8 w-8 text-muted-foreground/50" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Informações */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <h3 className="font-semibold text-base truncate">
+                      {product.nome}
+                    </h3>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                      <div>
+                        <span className="font-medium text-foreground">
+                          EAN:
+                        </span>{" "}
+                        {product.codigoBarras}
+                      </div>
+                      <div>
+                        <span className="font-medium text-foreground">
+                          NCM:
+                        </span>{" "}
+                        {product.ncm}
+                      </div>
+                      {product.grupo && (
+                        <div>
+                          <span className="font-medium text-foreground">
+                            Grupo:
+                          </span>{" "}
+                          {product.grupo}
+                        </div>
+                      )}
+                      <div>
+                        <span className="font-medium text-foreground">
+                          Tipo:
+                        </span>{" "}
+                        {tipoItemLabels[product.tipoItem] || product.tipoItem}
+                      </div>
+                      <div>
+                        <span className="font-medium text-foreground">
+                          ICMS:
+                        </span>{" "}
+                        {product.icmsAliquota}%
+                      </div>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
+
+                    {/* Badges Fiscais */}
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {product.icmsGeraCredito && (
+                        <Badge
+                          variant="outline"
+                          className="text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20"
+                        >
+                          Cred. ICMS
+                        </Badge>
+                      )}
+                      {product.pisCofinsGeraCredito && (
+                        <Badge
+                          variant="outline"
+                          className="text-blue-600 border-blue-200 bg-blue-50 dark:bg-blue-900/20"
+                        >
+                          Cred. PIS/COF
+                        </Badge>
+                      )}
+                      {product.icmsST && (
+                        <Badge
+                          variant="outline"
+                          className="text-orange-600 border-orange-200 bg-orange-50 dark:bg-orange-900/20"
+                        >
+                          ICMS ST
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Ações */}
+                  <div className="flex sm:flex-col gap-2 justify-end sm:justify-start">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(product)}
+                      className="h-8 px-2"
+                    >
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2"
+                      onClick={() =>
+                        router.push(`/produtos/${product.id}/custo`)
+                      } // Atualize esta linha
+                    >
+                      <Calculator className="h-4 w-4 mr-2" />
+                      Custo
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(product.id)}
+                      className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );
