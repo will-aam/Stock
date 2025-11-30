@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,17 +19,29 @@ import {
   TrendingUp,
   AlertCircle,
   History,
+  Building2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
 type SectionType = "historico" | "custoMedio" | "precificacao";
 
+// Mock de Lojas para identificar o contexto
+const mockStores: Record<string, string> = {
+  "1": "Matriz - Centro",
+  "2": "Filial - Zona Sul",
+};
+
 export default function CustoPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
+
+  // Contexto da Página
   const productId = params?.id as string;
+  const storeId = searchParams.get("storeId") || "1"; // Default para Matriz
+  const storeName = mockStores[storeId] || "Loja Desconhecida";
 
   // Estados
   const [activeSection, setActiveSection] = useState<SectionType>("historico");
@@ -45,9 +57,9 @@ export default function CustoPage() {
   >("custo_medio");
   const [margemLucro, setMargemLucro] = useState(0);
 
-  // --- MOCKS INICIAIS (Para visualização sem banco de dados) ---
+  // --- MOCKS E CARREGAMENTO DE DADOS ---
   useEffect(() => {
-    // 1. Carregar Produto
+    // 1. Carregar Produto (Dados Globais)
     const mockProduct: ProdutoFiscal = {
       id: productId,
       nome:
@@ -59,21 +71,15 @@ export default function CustoPage() {
       grupo: productId === "1" ? "Bebidas" : "Alimentos",
     } as ProdutoFiscal;
 
-    // Tenta carregar do localStorage, senão usa o mock
-    const storedProducts = localStorage.getItem("produtos_fiscais");
-    if (storedProducts) {
-      const products: ProdutoFiscal[] = JSON.parse(storedProducts);
-      const found = products.find((p) => p.id === productId);
-      setProduct(found || mockProduct);
-    } else {
-      setProduct(mockProduct);
-    }
+    setProduct(mockProduct);
 
-    // 2. Carregar Histórico
-    const mockHistory: HistoricoCompra[] = [
+    // 2. Simulação de Histórico (Filtrado por StoreId)
+    // Na vida real, isso viria de `prisma.purchaseHistory.findMany({ where: { storeId } })`
+    const allHistory: HistoricoCompra[] = [
+      // Compras da Loja 1 (Matriz)
       {
         id: "1",
-        produtoId: productId,
+        produtoId: "1",
         fornecedorId: "1",
         nomeFornecedor: "Distribuidora Alpha",
         data: "2024-02-10T10:00:00",
@@ -85,19 +91,7 @@ export default function CustoPage() {
       },
       {
         id: "2",
-        produtoId: productId,
-        fornecedorId: "2",
-        nomeFornecedor: "Atacado Beta",
-        data: "2024-03-15T14:30:00",
-        quantidadeTotal: 50,
-        quantidadeConvertidaUnd: 50,
-        valorTotalNF: 230,
-        precoBrutoUnd: 4.8,
-        custoLiquidoUnd: 4.6,
-      },
-      {
-        id: "3",
-        produtoId: productId,
+        produtoId: "1",
         fornecedorId: "1",
         nomeFornecedor: "Distribuidora Alpha",
         data: "2024-04-20T09:15:00",
@@ -107,38 +101,48 @@ export default function CustoPage() {
         precoBrutoUnd: 4.6,
         custoLiquidoUnd: 4.45,
       },
+
+      // Compras da Loja 2 (Filial) - Logística mais cara
+      {
+        id: "3",
+        produtoId: "1",
+        fornecedorId: "2",
+        nomeFornecedor: "Atacado Beta",
+        data: "2024-03-15T14:30:00",
+        quantidadeTotal: 50,
+        quantidadeConvertidaUnd: 50,
+        valorTotalNF: 240,
+        precoBrutoUnd: 5.0,
+        custoLiquidoUnd: 4.8,
+      },
     ];
 
-    const storedHistory = localStorage.getItem("historico_compras");
-    if (storedHistory) {
-      const allHistory: HistoricoCompra[] = JSON.parse(storedHistory);
-      const productHistory = allHistory.filter(
-        (h) => h.produtoId === productId
-      );
-      setHistorico(productHistory.length > 0 ? productHistory : mockHistory);
-    } else {
-      setHistorico(mockHistory);
-    }
+    const storeHistory = allHistory.filter((h) => {
+      if (storeId === "1") return ["1", "2"].includes(h.id);
+      return ["3"].includes(h.id);
+    });
 
-    // 3. Carregar Precificação
-    const storedPricing = localStorage.getItem("precificacao_produtos");
-    if (storedPricing) {
-      const allPricing: PrecificacaoProduto[] = JSON.parse(storedPricing);
-      const productPricing = allPricing.find((p) => p.produtoId === productId);
-      setPrecificacao(productPricing || null);
-      if (productPricing) {
-        setBaseCusto(productPricing.baseCusto);
-        setMargemLucro(productPricing.margemLucroPercentual);
-      }
-    } else {
-      // Mock inicial de precificação se não existir
-      setMargemLucro(30);
-    }
-  }, [productId]);
+    setHistorico(storeHistory);
 
-  // --- CÁLCULOS ---
+    // 3. Simulação de Precificação Atual da Loja
+    // Na vida real: `prisma.productStoreConfig.findUnique(...)`
+    const mockPricing: PrecificacaoProduto = {
+      produtoId: productId,
+      baseCusto: "custo_medio",
+      custoBase: storeId === "1" ? 4.35 : 4.8,
+      margemLucroPercentual: storeId === "1" ? 30 : 35, // Margens diferentes por loja
+      precoVendaUnitario: storeId === "1" ? 6.21 : 7.38,
+      atualizadoEm: new Date().toISOString(),
+    };
 
-  // 1. Custo Médio Ponderado
+    setPrecificacao(mockPricing);
+    setBaseCusto(mockPricing.baseCusto);
+    setMargemLucro(mockPricing.margemLucroPercentual);
+  }, [productId, storeId]);
+
+  // --- CÁLCULOS EM TEMPO REAL ---
+
+  // 1. Custo Médio Ponderado (Contexto da Loja)
   const custoMedioUnd = useMemo(() => {
     if (historico.length === 0) return 0;
     const totalCusto = historico.reduce(
@@ -160,7 +164,7 @@ export default function CustoPage() {
     )[0];
   }, [historico]);
 
-  // 3. Custo Base (Selecionado)
+  // 3. Custo Base Selecionado
   const custoBase = useMemo(() => {
     if (baseCusto === "custo_medio") {
       return custoMedioUnd;
@@ -169,15 +173,12 @@ export default function CustoPage() {
     }
   }, [baseCusto, custoMedioUnd, ultimaCompra]);
 
-  // 4. Preço Sugerido
+  // 4. Preço Sugerido (Fórmula)
   const precoVendaSugerido = useMemo(() => {
     if (custoBase === 0 || margemLucro >= 100) return 0;
-    // Fórmula: Custo / (1 - Margem%)
-    // Ex: Custo 100, Margem 30% -> 100 / 0.7 = 142.85
     return custoBase / (1 - margemLucro / 100);
   }, [custoBase, margemLucro]);
 
-  // Ação: Salvar/Aplicar Preço
   const handleAplicarPreco = () => {
     const novaPrecificacao: PrecificacaoProduto = {
       produtoId: productId,
@@ -188,25 +189,13 @@ export default function CustoPage() {
       atualizadoEm: new Date().toISOString(),
     };
 
-    // Salvar no localStorage (simulação de persistência)
-    const storedPricing = localStorage.getItem("precificacao_produtos");
-    const allPricing: PrecificacaoProduto[] = storedPricing
-      ? JSON.parse(storedPricing)
-      : [];
-    const index = allPricing.findIndex((p) => p.produtoId === productId);
-
-    if (index >= 0) {
-      allPricing[index] = novaPrecificacao;
-    } else {
-      allPricing.push(novaPrecificacao);
-    }
-
-    localStorage.setItem("precificacao_produtos", JSON.stringify(allPricing));
     setPrecificacao(novaPrecificacao);
 
     toast({
-      title: "Preço Aplicado!",
-      description: `Novo preço de venda: R$ ${precoVendaSugerido.toFixed(2)}`,
+      title: "Preço Salvo!",
+      description: `O valor de R$ ${precoVendaSugerido.toFixed(
+        2
+      )} foi aplicado na ${storeName}.`,
     });
   };
 
@@ -272,16 +261,20 @@ export default function CustoPage() {
               </div>
             </div>
 
-            {precificacao && (
-              <div className="text-right bg-green-50 dark:bg-green-900/20 px-4 py-2 rounded-lg border border-green-100 dark:border-green-800">
-                <p className="text-xs text-green-700 dark:text-green-400 font-medium">
-                  Preço de Venda Atual
+            {/* Box de Contexto de Loja */}
+            <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-950/40 px-4 py-2 rounded-lg border border-blue-100 dark:border-blue-900">
+              <div className="p-2 bg-white dark:bg-blue-900 rounded-full shadow-sm">
+                <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
+                  Contexto
                 </p>
-                <p className="text-2xl font-bold text-green-700 dark:text-green-400">
-                  R$ {precificacao.precoVendaUnitario.toFixed(2)}
+                <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                  {storeName}
                 </p>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -307,12 +300,12 @@ export default function CustoPage() {
           </div>
 
           <div className="p-6">
-            {/* SEÇÃO 1: HISTÓRICO DE COMPRAS */}
+            {/* SEÇÃO 1: HISTÓRICO DE COMPRAS (COMPLETA) */}
             {activeSection === "historico" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-lg">
-                    Entradas de Nota Fiscal
+                    Entradas na {storeName}
                   </h3>
                   <Badge variant="secondary">
                     {historico.length} registros
@@ -322,7 +315,7 @@ export default function CustoPage() {
                 {historico.length === 0 ? (
                   <div className="text-center py-12 border-2 border-dashed rounded-lg">
                     <p className="text-muted-foreground">
-                      Nenhuma compra registrada para este produto.
+                      Nenhuma compra registrada nesta loja.
                     </p>
                   </div>
                 ) : (
@@ -414,7 +407,7 @@ export default function CustoPage() {
               </div>
             )}
 
-            {/* SEÇÃO 2: CUSTO MÉDIO */}
+            {/* SEÇÃO 2: CUSTO MÉDIO (COMPLETA) */}
             {activeSection === "custoMedio" && (
               <div className="space-y-8">
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -429,7 +422,7 @@ export default function CustoPage() {
 
                   <Card className="p-4 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800">
                     <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1">
-                      Total Comprado (UN)
+                      Total Comprado
                     </p>
                     <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
                       {historico.reduce(
@@ -467,7 +460,7 @@ export default function CustoPage() {
                 {historico.length > 0 && (
                   <div>
                     <h3 className="font-semibold text-lg mb-4">
-                      Últimas 5 Compras para Base de Cálculo
+                      Últimas 5 Compras (Análise de Variação)
                     </h3>
                     <div className="border rounded-md overflow-hidden">
                       <table className="w-full text-sm">
@@ -537,7 +530,7 @@ export default function CustoPage() {
               </div>
             )}
 
-            {/* SEÇÃO 3: PRECIFICAÇÃO */}
+            {/* SEÇÃO 3: PRECIFICAÇÃO (COMPLETA COM SIDEBAR) */}
             {activeSection === "precificacao" && (
               <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
@@ -558,7 +551,7 @@ export default function CustoPage() {
                         className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       >
                         <option value="custo_medio">
-                          Usar Custo Médio (R$ {custoMedioUnd.toFixed(2)})
+                          Usar Custo Médio Local (R$ {custoMedioUnd.toFixed(2)})
                         </option>
                         <option value="custo_ultima_compra">
                           Usar Custo da Última Compra (R${" "}
@@ -634,7 +627,7 @@ export default function CustoPage() {
                     size="lg"
                   >
                     <Save className="w-5 h-5 mr-2" />
-                    Aplicar Novo Preço
+                    Salvar Preço na {storeName}
                   </Button>
                 </div>
 
