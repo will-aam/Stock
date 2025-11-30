@@ -47,7 +47,7 @@ export function AppSidebar() {
   const configItems = [
     { title: "Meu Perfil", url: "/perfil", icon: User },
     { title: "Empresas", url: "/empresas", icon: Building2 },
-    { title: "Usuários", url: "/usuarios", icon: Users }, // Alterado de "Pessoas" para "Usuários"
+    { title: "Usuários", url: "/usuarios", icon: Users },
   ];
 
   // Subitens do menu Produtos (com Cadastro adicionado)
@@ -61,11 +61,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <span className="text-lg font-bold">V</span>
-          </div>
           <span className="font-semibold group-data-[collapsible=icon]:hidden">
-            Stock System
+            Stock System (HUB)
           </span>
         </div>
       </SidebarHeader>
