@@ -1,5 +1,6 @@
 // Esquema do banco de dados para o sistema Val
 // Sistema de Gestão de Lotes e Validades para Varejo
+// Versão Refatorada e Refinada: Produto Global + Contexto de Loja
 
 generator client {
   provider = "prisma-client-js"
@@ -10,7 +11,64 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo de Usuário
+// Enums Refinados e Adicionais
+enum UserRole {
+  ADMIN
+  MANAGER
+  STOCKER
+}
+
+enum BatchStatus {
+  SAFE      // Vence em > 45 dias
+  WARNING   // Vence em 15-45 dias
+  CRITICAL  // Vence em < 15 dias
+  EXPIRED   // Já vencido
+  DEPLETED  // Estoque zerado
+}
+
+enum AuditActionType {
+  ENTRY         // Nova entrada de lote
+  CONFIRMED     // Presença confirmada em auditoria
+  DEPLETED      // Marcado como vazio
+  SOLD          // Registrar venda manual
+  ADJUSTED      // Ajuste de estoque
+  EXPIRED       // Marcado como vencido
+}
+
+// Enums de Regras Fiscais (para maior segurança e consistência)
+enum TaxRegime {
+  SIMPLES_NACIONAL
+  LUCRO_PRESUMIDO
+  LUCRO_REAL
+}
+
+enum FiscalType {
+  REVENDA_MERCADORIA
+  MATERIA_PRIMA
+  EMBALAGEM
+  USO_CONSUMO
+  ATIVO_FIXO
+  BRINDE
+}
+
+enum Origin {
+  NACIONAL_0                 // 0 - Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8
+  ESTRANGEIRA_IMPORTACAO_1   // 1 - Estrangeira - Importação direta
+  ESTRANGEIRA_ADQUIRIDA_2    // 2 - Estrangeira - Adquirida no mercado interno
+  NACIONAL Conteudo_3        // 3 - Nacional, conteudo superior 40%
+  NACIONAL Processos_4       // 4 - Nacional, processos produtivos básicos
+  NACIONAL Conteudo_5        // 5 - Nacional, conteudo inferior 40%
+  ESTRANGEira_6              // 6 - Estrangeira - Importação direta, com similar nacional
+  ESTRANGEira_7              // 7 - Estrangeira - Adquirida no mercado, com similar nacional
+  NACIONAL_MARCA_8           // 8 - Nacional, mercadoria ou bem com Conteúdo de Importação superior a 70%
+}
+
+enum PisCofinsRegime {
+  CUMULATIVO
+  NAO_CUMULATIVO
+}
+
+// Modelo de Usuário (Sem alterações relevantes)
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -27,93 +85,103 @@ model User {
   @@index([email])
 }
 
-enum UserRole {
-  ADMIN
-  MANAGER
-  STOCKER
-}
-
-// Modelo de Loja (para suporte multi-loja)
+// 1. A Loja agora precisa de seus próprios dados fiscais
 model Store {
-  id        String    @id @default(cuid())
-  name      String
-  address   String?
-  users     User[]
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id              String     @id @default(cuid())
+  name            String
+  cnpj            String     @unique // Essencial para o match do XML
+  uf              String     // Essencial para cálculo de impostos (ST, Difal)
+  taxRegime       TaxRegime  // Regime tributário da loja
+  address         String?
+  users           User[]
+  
+  // Relacionamentos
+  batches         Batch[]
+  purchaseHistory PurchaseHistory[]
+  productConfigs  ProductStoreConfig[] // A camada de "Ajuste"
+  
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 }
 
-// Modelo de Produto (Expandido para Dados Fiscais e Completos)
+// 2. O Produto é o "Mestre Global". Guarda o que não muda (NCM, Nome, EAN).
 model Product {
-  id          String   @id @default(cuid())
+  id                String   @id @default(cuid())
   
-  // Dados Básicos
-  ean         String   @unique // Código de barras principal
-  name        String
-  description String?
-  imageUrl    String?
-  category    String   // Corresponde ao 'grupo'
-  brand       String?  // Marca
+  // Dados Básicos (Intrínsecos ao produto)
+  ean               String   @unique // Código de barras principal
+  name              String
+  description       String?
+  imageUrl          String?
+  category          String   // Corresponde ao 'grupo'
+  brand             String?  // Marca
   
-  // Unidades e Conversão
-  commercialUnit String  @default("UN") // Ex: CX, UN, KG
-  taxUnit        String? @default("UN") // Unidade tributável
-  conversionFactor Float @default(1.0)
+  // Unidades e Conversão (Características físicas)
+  commercialUnit    String   @default("UN") // Ex: CX, UN, KG
+  taxUnit           String   @default("UN") // Unidade tributável padrão (agora obrigatório)
+  conversionFactor  Decimal  @default(1.0) @db.Decimal(10, 4)
   
-  // Dados Fiscais Gerais
-  fiscalType       String // Tipo do item (revenda, materia_prima, etc)
-  ncm              String
-  cest             String?
-  origin           String @default("0") // Origem da mercadoria
-
-  // ICMS
-  icmsCstIn        String? // CST Entrada
-  icmsCstOut       String? // CST Saída
-  icmsRate         Float?  // Alíquota
-  icmsBcMod        String? // Modalidade Base Cálculo
-  icmsBcRed        Float?  // Redução Base Cálculo
-  icmsSt           Boolean @default(false)
-  icmsMvaOrig      Float?
-  icmsMvaAdj       Float?
-  icmsCredit       Boolean @default(false)
-
-  // PIS/COFINS
-  pisCstIn         String?
-  pisCstOut        String?
-  pisRate          Float?
-  cofinsCstIn      String?
-  cofinsCstOut     String?
-  cofinsRate       Float?
-  pisCofinsCredit  Boolean @default(false)
-
-  // IPI
-  ipiCode          String? // Enquadramento
-  ipiCst           String?
-  ipiRate          Float?
-  ipiCredit        Boolean @default(false)
-
-  // Configuração de Preço/Custo
-  suggestedMargin  Float?
-  operationalCost  Float?
-  notes            String?
+  // Dados Fiscais Gerais (Intrínsecos ao produto)
+  fiscalType        FiscalType
+  ncm               String
+  cest              String?
+  origin            Origin   @default(NACIONAL_0)
 
   // Relacionamentos
-  storeId          String?
-  store            Store?   @relation(fields: [storeId], references: [id])
-  
-  batches          Batch[]            // Lotes e Validades
+  batches           Batch[]            // O lote sabe de qual loja é
+  purchaseHistory   PurchaseHistory[]  // O histórico sabe de qual loja é
+  storeConfigs      ProductStoreConfig[] // Configurações específicas por loja
   additionalBarcodes Barcode[]        // Múltiplos EANs
-  suppliers          ProductSupplier[] // Fornecedores vinculados
-  purchaseHistory    PurchaseHistory[] // Histórico de compras
-  pricing            ProductPricing[]  // Histórico de precificação
+  suppliers         ProductSupplier[] // Fornecedores vinculados
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([ean])
   @@index([category])
-  @@index([storeId])
+}
+
+// 3. A Camada de Ajuste (Produto x Empresa)
+model ProductStoreConfig {
+  id          String   @id @default(cuid())
+  
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  // Overrides Fiscais (Sobrescrevem o padrão se preenchidos)
+  icmsCstIn        String? // Ex: Na filial PR é 000, na filial SP é 060
+  icmsCstOut       String?
+  icmsRate         Decimal? @db.Decimal(5, 2)
+  icmsBcMod        String?
+  icmsBcRed        Decimal? @db.Decimal(5, 2)
+  icmsSt           Boolean  @default(false)
+  icmsMvaOrig      Decimal? @db.Decimal(5, 2)
+  icmsMvaAdj       Decimal? @db.Decimal(5, 2)
+  icmsCredit       Boolean  @default(false)
+
+  pisCstIn         String?
+  pisCstOut        String?
+  pisRate          Decimal? @db.Decimal(5, 2)
+  cofinsCstIn      String?
+  cofinsCstOut     String?
+  cofinsRate       Decimal? @db.Decimal(5, 2)
+  pisCofinsCredit  Boolean  @default(false) // Filial Lucro Real = true, Simples = false
+
+  ipiCode          String? // Enquadramento
+  ipiCst           String?
+  ipiRate          Decimal? @db.Decimal(5, 2)
+  ipiCredit        Boolean  @default(false)
+  
+  // Precificação por Loja (Custo e Venda podem variar por região)
+  suggestedMargin  Decimal? @db.Decimal(5, 2)
+  operationalCost  Decimal? @db.Decimal(5, 2)
+  precoVenda       Decimal? @db.Decimal(10, 2)
+  notes            String?
+
+  @@unique([productId, storeId]) // Garante um config por produto por loja
 }
 
 // Tabela de Códigos de Barras Adicionais (Caixa, Fardo, etc)
@@ -141,43 +209,45 @@ model ProductSupplier {
   @@index([productId])
 }
 
-// Histórico de Compras (Entradas de Nota)
+// 4. Histórico de Compras (Sempre amarrado a uma loja específica)
 model PurchaseHistory {
   id              String   @id @default(cuid())
+  
+  // Relacionamento Obrigatório com a Loja
+  storeId         String
+  store           Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  // Relacionamento com o Produto Global
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  // Dados da Nota
   supplierName    String
   date            DateTime
-  totalQty        Float
-  convertedQty    Float
-  totalValue      Float
-  unitPriceGross  Float
-  unitCostNet     Float
+  totalQty        Decimal  @db.Decimal(12, 4)
+  convertedQty    Decimal  @db.Decimal(12, 4)
+  totalValue      Decimal  @db.Decimal(12, 2)
+  unitPriceGross  Decimal  @db.Decimal(12, 4)
+  unitCostNet     Decimal  @db.Decimal(12, 4) // Calculado usando a regra da Store + Produto
   
-  productId       String
-  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
 
+  @@index([storeId])
   @@index([productId])
 }
 
-// Histórico/Configuração de Precificação
-model ProductPricing {
-  id              String   @id @default(cuid())
-  baseType        String   // 'custo_medio' ou 'custo_ultima_compra'
-  baseCost        Float
-  marginPercent   Float
-  sellingPrice    Float
-  
-  productId       String
-  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  updatedAt       DateTime @default(now())
-
-  @@index([productId])
-}
-
-// Modelo de Lote (Batch) - Mantido igual
+// Modelo de Lote (Batch) - Agora vinculado obrigatoriamente a uma Loja
 model Batch {
   id              String     @id @default(cuid())
+  
+  // Relacionamento Obrigatório com a Loja
+  storeId         String
+  store           Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  // Relacionamento com o Produto Global
   productId       String
   product         Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
   expirationDate  DateTime
   quantityInitial Int        
   quantityCurrent Int        
@@ -186,20 +256,13 @@ model Batch {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
+  @@index([storeId])
   @@index([productId])
   @@index([expirationDate])
   @@index([status])
 }
 
-enum BatchStatus {
-  SAFE      // Vence em > 45 dias
-  WARNING   // Vence em 15-45 dias
-  CRITICAL  // Vence em < 15 dias
-  EXPIRED   // Já vencido
-  DEPLETED  // Estoque zerado
-}
-
-// Modelo de Log de Auditoria - Mantido igual
+// Modelo de Log de Auditoria (Sem alterações relevantes)
 model AuditLog {
   id         String         @id @default(cuid())
   userId     String
@@ -214,13 +277,4 @@ model AuditLog {
   @@index([userId])
   @@index([batchId])
   @@index([timestamp])
-}
-
-enum AuditActionType {
-  ENTRY         // Nova entrada de lote
-  CONFIRMED     // Presença confirmada em auditoria
-  DEPLETED      // Marcado como vazio
-  SOLD          // Registrar venda manual
-  ADJUSTED      // Ajuste de estoque
-  EXPIRED       // Marcado como vencido
 }

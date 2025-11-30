@@ -41,6 +41,8 @@ export function ProductList() {
       ipiAliquota: 0,
       ipiGeraCredito: false,
       grupo: "Bebidas",
+      imagemUrl:
+        "https://fortatacadista.vteximg.com.br/arquivos/ids/299392-800-800/2301822_7894900027013_BEB-REFRIG.COCA-COLA-2L-PET..jpg?v=637764859239570000",
       criadoEm: new Date().toISOString(),
     } as unknown as ProdutoFiscal,
     {
@@ -67,6 +69,8 @@ export function ProductList() {
       ipiAliquota: 0,
       ipiGeraCredito: false,
       grupo: "Alimentos",
+      imagemUrl:
+        "https://prezunic.vtexassets.com/arquivos/ids/180742/65678a821ef3739680761582.jpg?v=638368812869870000",
       criadoEm: new Date().toISOString(),
     } as unknown as ProdutoFiscal,
   ]);
@@ -244,7 +248,7 @@ export function ProductList() {
                       className="h-8 px-2"
                       onClick={() =>
                         router.push(`/produtos/${product.id}/custo`)
-                      } // Atualize esta linha
+                      }
                     >
                       <Calculator className="h-4 w-4 mr-2" />
                       Custo
