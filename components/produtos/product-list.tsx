@@ -193,11 +193,11 @@ export function ProductList() {
                         <img
                           src={product.imagemUrl}
                           alt={product.nome}
-                          className="h-16 w-16 object-cover rounded-md border"
+                          className="h-24 w-24 object-cover rounded-md border"
                         />
                       ) : (
-                        <div className="h-16 w-16 bg-muted rounded-md flex items-center justify-center border">
-                          <Package className="h-8 w-8 text-muted-foreground/50" />
+                        <div className="h-24 w-24 bg-muted rounded-md flex items-center justify-center border">
+                          <Package className="h-10 w-10 text-muted-foreground/50" />
                         </div>
                       )}
                     </div>
