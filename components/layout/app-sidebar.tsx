@@ -42,6 +42,9 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   const mainItems = [{ title: "Início", url: "/dashboard", icon: Home }];
+  const orderSystemItems = [
+    { title: "Ordi ", url: "/ordi", icon: ClipboardCheck },
+  ];
 
   // Itens simples de configuração (Meu Perfil, Empresas e Usuários)
   const configItems = [
@@ -72,6 +75,21 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.url}
+                    tooltip={item.title}
+                  >
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+              {/* sistema de pedidos - ordi */}
+              {orderSystemItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
