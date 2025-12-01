@@ -1,130 +1,121 @@
 "use client";
 
-import { CheckCircle, FileText, Plus, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import type { ItemRequisicao } from "@/lib/mock-data";
+import type React from "react";
 
-interface ConfirmacaoRequisicaoProps {
-  dados: {
-    funcionarioNome: string;
-    setorNome: string;
-    empresaNome: string;
-    itens: ItemRequisicao[];
-    dataHora: string;
-    protocolo: string;
-  };
-  onNovaRequisicao: () => void;
-  onSair: () => void;
+import { useState } from "react";
+import { User, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { getFuncionarioByCpf } from "@/lib/mock-data";
+import { useFuncionarioStore } from "@/lib/funcionario-store";
+
+interface LoginFormProps {
+  onSuccess: () => void;
 }
 
-export function ConfirmacaoRequisicao({
-  dados,
-  onNovaRequisicao,
-  onSair,
-}: ConfirmacaoRequisicaoProps) {
+export function LoginForm({ onSuccess }: LoginFormProps) {
+  const [cpf, setCpf] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { setFuncionarioLogado } = useFuncionarioStore();
+
+  const formatCpf = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 3) return numbers;
+    if (numbers.length <= 6)
+      return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
+    if (numbers.length <= 9)
+      return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(
+        6
+      )}`;
+    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(
+      6,
+      9
+    )}-${numbers.slice(9, 11)}`;
+  };
+
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCpf(e.target.value);
+    setCpf(formatted);
+    setError("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    // Simula um delay de API
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const funcionario = getFuncionarioByCpf(cpf);
+
+    if (!funcionario) {
+      setError("CPF não encontrado no sistema. Verifique e tente novamente.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!funcionario.podeSolicitar) {
+      setError("Você não tem permissão para fazer requisições.");
+      setIsLoading(false);
+      return;
+    }
+
+    setFuncionarioLogado(funcionario);
+    setIsLoading(false);
+    onSuccess();
+  };
+
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
-      {/* Header de sucesso */}
-      <div className="bg-primary/10 border-b border-primary/20 px-6 py-8 text-center">
-        <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="h-10 w-10 text-primary" />
+    <div className="bg-card border border-border rounded-xl p-8">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <User className="h-8 w-8 text-primary" />
         </div>
         <h1 className="text-2xl font-bold text-card-foreground mb-2">
-          Requisição Enviada!
+          Identificação
         </h1>
         <p className="text-muted-foreground">
-          Sua solicitação foi registrada com sucesso.
+          Digite seu CPF para acessar o sistema
         </p>
       </div>
 
-      {/* Resumo da requisição */}
-      <div className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <FileText className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-card-foreground">
-            Resumo da Requisição
-          </h2>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="cpf">CPF</Label>
+          <Input
+            id="cpf"
+            type="text"
+            placeholder="000.000.000-00"
+            value={cpf}
+            onChange={handleCpfChange}
+            maxLength={14}
+            className="text-center text-lg font-mono"
+          />
         </div>
 
-        <div className="bg-muted/30 border border-border rounded-lg p-4 space-y-3">
-          <div className="flex justify-between items-center pb-3 border-b border-border">
-            <span className="text-sm text-muted-foreground">Protocolo</span>
-            <span className="font-mono font-semibold text-primary">
-              {dados.protocolo}
-            </span>
+        {error && (
+          <div className="flex items-center gap-2 text-destructive-foreground bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span className="text-sm">{error}</span>
           </div>
-          <div className="grid sm:grid-cols-3 gap-3 text-sm">
-            <div>
-              <p className="text-muted-foreground">Funcionário</p>
-              <p className="font-medium text-card-foreground">
-                {dados.funcionarioNome}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Setor</p>
-              <p className="font-medium text-card-foreground">
-                {dados.setorNome}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Empresa</p>
-              <p className="font-medium text-card-foreground">
-                {dados.empresaNome}
-              </p>
-            </div>
-          </div>
-          <div className="pt-3 border-t border-border">
-            <p className="text-sm text-muted-foreground mb-2">Data/Hora</p>
-            <p className="font-medium text-card-foreground">{dados.dataHora}</p>
-          </div>
-        </div>
+        )}
 
-        {/* Lista de itens */}
-        <div className="mt-6">
-          <h3 className="font-medium text-card-foreground mb-3">
-            Itens Solicitados
-          </h3>
-          <div className="space-y-2">
-            {dados.itens.map((item, index) => (
-              <div
-                key={index}
-                className="bg-muted/30 border border-border rounded-lg px-4 py-3"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium text-card-foreground">
-                      {item.nome}
-                    </p>
-                    {item.observacoes && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {item.observacoes}
-                      </p>
-                    )}
-                  </div>
-                  <span className="bg-primary/10 text-primary text-sm font-medium px-3 py-1 rounded-full">
-                    {item.quantidade}x
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={cpf.length < 14 || isLoading}
+        >
+          {isLoading ? "Verificando..." : "Entrar"}
+        </Button>
+      </form>
 
-        {/* Ações */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-3">
-          <Button onClick={onNovaRequisicao} className="flex-1">
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Requisição
-          </Button>
-          <Button
-            onClick={onSair}
-            variant="outline"
-            className="flex-1 bg-transparent"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair do Sistema
-          </Button>
-        </div>
+      <div className="mt-6 pt-6 border-t border-border">
+        <p className="text-xs text-muted-foreground text-center">
+          Use um dos CPFs de teste listados na página inicial para acessar.
+        </p>
       </div>
     </div>
   );

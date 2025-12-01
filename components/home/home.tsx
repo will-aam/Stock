@@ -233,8 +233,8 @@ export function Home() {
   const modules: Module[] = [
     {
       id: "req",
-      title: "Requisição de Materiais",
-      desc: "Solicite matéria-prima e insumos para o setor.",
+      title: "Ordi - Requisição de Materiais",
+      desc: "Gestão de requisições de materiais para o setor.",
       icon: ClipboardList,
       theme: "blue",
     },
