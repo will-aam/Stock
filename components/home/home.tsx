@@ -9,15 +9,8 @@ import {
   ScanBarcode,
   Building2,
   Users,
-  Settings,
-  LogOut,
-  Menu,
-  X,
   TrendingUp,
-  AlertCircle,
   Clock,
-  Search,
-  Bell,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -28,7 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -38,11 +30,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// Separator e Sheet não são mais necessários
-// import { Separator } from "@/components/ui/separator";
-// import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-// Tipagem dos dados (sem alterações)
+// Tipagem dos dados (com alterações)
 interface Stat {
   label: string;
   value: string;
@@ -58,6 +47,7 @@ interface Module {
   icon: React.ElementType;
   theme: string;
   badge?: string;
+  link?: string; // Nova propriedade para o link
 }
 
 interface Activity {
@@ -84,7 +74,7 @@ const StatCard: React.FC<{ stat: Stat }> = ({ stat }) => (
   </Card>
 );
 
-// Componente para os cards de módulos (sem alterações)
+// Componente para os cards de módulos (com alterações)
 const ModuleCard: React.FC<{ module: Module }> = ({ module }) => (
   <Card className="group hover:shadow-lg hover:border-primary transition-all duration-300 cursor-pointer relative overflow-hidden">
     <CardContent className="p-6">
@@ -117,9 +107,21 @@ const ModuleCard: React.FC<{ module: Module }> = ({ module }) => (
           {module.desc}
         </p>
 
-        <div className="flex items-center text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">
-          Acessar Módulo &rarr;
-        </div>
+        {/* Alteração: Adicionando link quando disponível */}
+        {module.link ? (
+          <a
+            href={module.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0"
+          >
+            Acessar Módulo &rarr;
+          </a>
+        ) : (
+          <div className="flex items-center text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">
+            Acessar Módulo &rarr;
+          </div>
+        )}
       </div>
     </CardContent>
   </Card>
@@ -229,7 +231,7 @@ export function Home() {
     },
   ];
 
-  // Definição dos Módulos do Sistema (sem alterações)
+  // Definição dos Módulos do Sistema (com alterações)
   const modules: Module[] = [
     {
       id: "req",
@@ -252,6 +254,7 @@ export function Home() {
       icon: ScanBarcode,
       theme: "orange",
       badge: "Mobile",
+      link: "https://countiflyv1.vercel.app/", // Adicionando o link
     },
     {
       id: "stock",
