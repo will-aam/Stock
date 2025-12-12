@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Package, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-// import { ThemeToggle } from "@/components/theme-toggle";
 import { LoginForm } from "@/components/solicitar/login-form";
 import { RequisicaoForm } from "@/components/solicitar/requisicao-form";
 import { ConfirmacaoRequisicao } from "@/components/solicitar/confirmacao-requisicao";
