@@ -193,7 +193,7 @@ export default function AdminRequisicoesPage() {
                 Lixeira
               </Button>
             </Link>
-            <Link href="/configuracoes">
+            <Link href="/ordi/configuracoes">
               <Button
                 variant="outline"
                 size="sm"
