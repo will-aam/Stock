@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Package, Filter, Download, RefreshCw, Search, X } from "lucide-react";
+import {
+  Package,
+  Filter,
+  RefreshCw,
+  Search,
+  X,
+  Settings,
+  HelpCircle,
+} from "lucide-react"; // Importe o HelpCircle
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +41,7 @@ export default function AdminRequisicoesPage() {
   const [periodoFilter, setPeriodoFilter] = useState<PeriodoFilter>("todos");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [showHelpModal, setShowHelpModal] = useState<boolean>(false); // Estado para o modal de ajuda
 
   // Setores filtrados por empresa
   const setoresFiltrados = useMemo(() => {
@@ -100,13 +109,11 @@ export default function AdminRequisicoesPage() {
         const funcionario = funcionarios.find((f) => f.id === r.funcionarioId);
         const nomeFuncionario = funcionario?.nome.toLowerCase() || "";
 
-        // CORREÇÃO: Troquei 'materiais' por 'itens'
         const materiaisMatch =
           r.itens?.some((m: { nome: string }) =>
             m.nome.toLowerCase().includes(lowerCaseQuery)
           ) || false;
 
-        // CORREÇÃO: Troquei 'descricao' por 'observacoesGerais'
         const descricaoMatch =
           r.observacoesGerais?.toLowerCase().includes(lowerCaseQuery) || false;
 
@@ -150,16 +157,6 @@ export default function AdminRequisicoesPage() {
     setSearchQuery("");
   };
 
-  // Função para baixar relatório PDF
-  const baixarRelatorioPDF = () => {
-    const link = document.createElement("a");
-    link.href = "/relatorio-requisicoes.pdf";
-    link.download = "relatorio-requisicoes.pdf";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   // Verifica se há algum filtro ativo
   const hasActiveFilters =
     empresaFilter !== "todas" ||
@@ -181,15 +178,25 @@ export default function AdminRequisicoesPage() {
             </span>
           </Link>
           <div className="flex items-center gap-2">
-            <Link href="/solicitar">
+            <Link href="/configuracoes">
               <Button
                 variant="outline"
                 size="sm"
                 className="hidden sm:flex bg-transparent"
               >
-                Portal do Funcionário
+                <Settings className="h-4 w-4 mr-1" />
+                Configurações
               </Button>
             </Link>
+            {/* Botão de Ajuda */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowHelpModal(true)}
+              aria-label="Ajuda sobre a página"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>
@@ -205,12 +212,6 @@ export default function AdminRequisicoesPage() {
               Gerencie e acompanhe todas as requisições
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={baixarRelatorioPDF}>
-              <Download className="h-4 w-4 mr-1" />
-              Baixar Relatório PDF
-            </Button>
-          </div>
         </div>
 
         {/* Barra de busca e filtros minimalista */}
@@ -219,7 +220,6 @@ export default function AdminRequisicoesPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              // MELHORIA: Placeholder mais preciso
               placeholder="Buscar por material, funcionário ou observações..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -334,6 +334,30 @@ export default function AdminRequisicoesPage() {
           <KanbanBoard requisicoes={requisicoesFiltradas} />
         </div>
       </main>
+
+      {/* Modal de Ajuda */}
+      {showHelpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card rounded-lg shadow-lg max-w-md w-full p-6 relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4"
+              onClick={() => setShowHelpModal(false)}
+              aria-label="Fechar modal de ajuda"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+
+            <h2 className="text-lg font-semibold mb-3">Sobre esta página</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Esta página é dedicada à gestão de requisições de materiais de
+              escritório. É um sistema simples para adicionar e acompanhar
+              pedidos de itens como canetas, papéis e outros suprimentos.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
