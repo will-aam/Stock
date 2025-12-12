@@ -28,8 +28,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { StatsCards } from "@/components/admin/stats-cards";
-import { KanbanBoard } from "@/components/admin/kanban-board";
+import { StatsCards } from "@/components/ordi/stats-cards";
+import { KanbanBoard } from "@/components/ordi/kanban-board";
 import { useRequisicoesStore } from "@/lib/requisicoes-store";
 import {
   empresas,
