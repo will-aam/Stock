@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Eye, ArrowRight, X, User, Calendar, Package } from "lucide-react";
+import {
+  Eye,
+  ArrowRight,
+  X,
+  User,
+  Calendar,
+  Package,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRequisicoesStore } from "@/lib/requisicoes-store";
 import { RequisicaoModal } from "./requisicao-modal";
@@ -38,8 +46,8 @@ const columns: {
   {
     status: "concluida",
     label: "Concluídas",
-    color: "border-primary",
-    bgHeader: "bg-primary/10",
+    color: "border-green-500", // Alterado para verde
+    bgHeader: "bg-green-500/10", // Alterado para verde
   },
   {
     status: "negada",
@@ -83,6 +91,11 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
 
   const canDeny = (current: StatusRequisicao): boolean => {
     return current === "nova" || current === "em_atendimento";
+  };
+
+  // Verifica se o status permite envio para lixeira
+  const canSendToTrash = (current: StatusRequisicao): boolean => {
+    return current === "concluida" || current === "negada";
   };
 
   return (
@@ -196,6 +209,16 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
                             title="Negar requisição"
                           >
                             <X className="h-3 w-3" />
+                          </Button>
+                        )}
+                        {canSendToTrash(req.status) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-muted-foreground hover:text-destructive"
+                            title="Enviar para lixeira"
+                          >
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         )}
                       </div>

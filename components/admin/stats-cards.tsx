@@ -37,9 +37,9 @@ export function StatsCards({ requisicoes }: StatsCardsProps) {
       label: "Concluídas",
       value: stats.concluidas,
       icon: CheckCircle,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
-      borderColor: "border-primary/30",
+      color: "text-green-400",
+      bgColor: "bg-green-500/10",
+      borderColor: "border-green-500/30",
     },
     {
       label: "Negadas",

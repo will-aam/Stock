@@ -288,6 +288,6 @@ export const statusLabels: Record<StatusRequisicao, string> = {
 export const statusColors: Record<StatusRequisicao, string> = {
   nova: "bg-blue-500/20 text-blue-400 border-blue-500/30",
   em_atendimento: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  concluida: "bg-primary/20 text-primary border-primary/30",
+  concluida: "bg-green-500/20 text-green-400 border-green-500/30",
   negada: "bg-red-500/20 text-red-400 border-red-500/30",
 };
