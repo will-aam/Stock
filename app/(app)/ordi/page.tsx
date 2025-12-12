@@ -9,6 +9,7 @@ import {
   X,
   Settings,
   HelpCircle,
+  Trash2, // Importando o ícone de lixeira
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -182,6 +183,16 @@ export default function AdminRequisicoesPage() {
             </span>
           </Link>
           <div className="flex items-center gap-2">
+            <Link href="/lixeira">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex bg-transparent"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Lixeira
+              </Button>
+            </Link>
             <Link href="/configuracoes">
               <Button
                 variant="outline"

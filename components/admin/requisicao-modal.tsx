@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Users, Calendar, Package, Check } from "lucide-react"; // Importando o ícone de Check
+import { X, Users, Calendar, Package, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,13 +27,30 @@ export function RequisicaoModal({ requisicao, onClose }: RequisicaoModalProps) {
   const { updateItens } = useRequisicoesStore();
   const setor = getSetorById(requisicao.setorId);
 
-  const [itemsState, setItemsState] = useState<ModalItemState[]>(
-    requisicao.itens.map((item) => ({
-      ...item,
-      isApproved: true,
-      quantidadeAprovada: item.quantidade,
-    }))
-  );
+  // Estado inicial dos itens
+  let initialItemsState = requisicao.itens.map((item) => ({
+    ...item,
+    isApproved: true,
+    quantidadeAprovada: item.quantidade,
+  }));
+
+  const [itemsState, setItemsState] =
+    useState<ModalItemState[]>(initialItemsState);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Verifica se há alterações nos itens
+  useEffect(() => {
+    const hasItemChanges = itemsState.some((item, index) => {
+      const originalItem = initialItemsState[index];
+      return (
+        item.isApproved !== originalItem.isApproved ||
+        item.quantidadeAprovada !== originalItem.quantidadeAprovada
+      );
+    });
+    setHasChanges(hasItemChanges);
+  }, [itemsState, initialItemsState]);
 
   // Adiciona suporte à tecla ESC para fechar o modal
   useEffect(() => {
@@ -66,16 +83,35 @@ export function RequisicaoModal({ requisicao, onClose }: RequisicaoModalProps) {
 
   // NOVA FUNÇÃO: Apenas confirma e salva os itens, sem mudar o status
   const handleConfirmChanges = () => {
-    const finalItems = itemsState
-      .filter((item) => item.isApproved && item.quantidadeAprovada > 0)
-      .map(({ isApproved, quantidadeAprovada, ...rest }) => ({
-        ...rest,
-        quantidade: quantidadeAprovada,
-      }));
+    setIsLoading(true);
 
-    // Chama a nova ação do store para atualizar apenas os itens
-    updateItens(requisicao.id, finalItems);
-    onClose();
+    // Simula um tempo de processamento
+    setTimeout(() => {
+      const finalItems = itemsState
+        .filter((item) => item.isApproved && item.quantidadeAprovada > 0)
+        .map(({ isApproved, quantidadeAprovada, ...rest }) => ({
+          ...rest,
+          quantidade: quantidadeAprovada,
+        }));
+
+      // Chama a nova ação do store para atualizar apenas os itens
+      updateItens(requisicao.id, finalItems);
+
+      // Atualiza o estado inicial para refletir as alterações salvas
+      const newInitialState = itemsState.map((item) => ({
+        ...item,
+        quantidade: item.quantidadeAprovada,
+      }));
+      initialItemsState = newInitialState;
+
+      setIsLoading(false);
+      setShowSuccess(true);
+
+      // Esconde a mensagem de sucesso após 3 segundos
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
+    }, 1000);
   };
 
   return (
@@ -202,11 +238,31 @@ export function RequisicaoModal({ requisicao, onClose }: RequisicaoModalProps) {
         {/* Footer com o Botão Confirmar */}
         <div className="px-5 py-4 border-t border-border bg-muted/20">
           <div className="flex items-center justify-center">
-            <Button onClick={handleConfirmChanges} className="w-full max-w-xs">
-              <Check className="h-4 w-4 mr-2" />
-              Confirmar Alterações
+            <Button
+              onClick={handleConfirmChanges}
+              className="w-full max-w-xs bg-green-600 hover:bg-green-700 text-white"
+              disabled={!hasChanges || isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Confirmar Alterações
+                </>
+              )}
             </Button>
           </div>
+
+          {/* Mensagem de sucesso */}
+          {showSuccess && (
+            <div className="mt-3 p-2 bg-green-100 border border-green-300 rounded-md text-green-800 text-sm text-center">
+              Alterações salvas com sucesso!
+            </div>
+          )}
         </div>
       </div>
     </div>
