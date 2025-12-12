@@ -299,3 +299,15 @@
   z-index: 50;
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Oculta as setas dos inputs de número no Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Oculta as setas dos inputs de número no Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}

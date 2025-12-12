@@ -9,7 +9,7 @@ import {
   X,
   Settings,
   HelpCircle,
-} from "lucide-react"; // Importe o HelpCircle
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { StatsCards } from "@/components/admin/stats-cards";
 import { KanbanBoard } from "@/components/admin/kanban-board";
 import { useRequisicoesStore } from "@/lib/requisicoes-store";
@@ -40,8 +47,7 @@ export default function AdminRequisicoesPage() {
   const [funcionarioFilter, setFuncionarioFilter] = useState<string>("todos");
   const [periodoFilter, setPeriodoFilter] = useState<PeriodoFilter>("todos");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [showHelpModal, setShowHelpModal] = useState<boolean>(false); // Estado para o modal de ajuda
+  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
 
   // Setores filtrados por empresa
   const setoresFiltrados = useMemo(() => {
@@ -106,8 +112,8 @@ export default function AdminRequisicoesPage() {
     if (searchQuery.trim() !== "") {
       const lowerCaseQuery = searchQuery.toLowerCase();
       filtered = filtered.filter((r) => {
-        const funcionario = funcionarios.find((f) => f.id === r.funcionarioId);
-        const nomeFuncionario = funcionario?.nome.toLowerCase() || "";
+        const setor = setores.find((s) => s.id === r.setorId);
+        const nomeSetor = setor?.nome.toLowerCase() || "";
 
         const materiaisMatch =
           r.itens?.some((m: { nome: string }) =>
@@ -118,9 +124,7 @@ export default function AdminRequisicoesPage() {
           r.observacoesGerais?.toLowerCase().includes(lowerCaseQuery) || false;
 
         return (
-          materiaisMatch ||
-          nomeFuncionario.includes(lowerCaseQuery) ||
-          descricaoMatch
+          materiaisMatch || nomeSetor.includes(lowerCaseQuery) || descricaoMatch
         );
       });
     }
@@ -133,7 +137,7 @@ export default function AdminRequisicoesPage() {
     funcionarioFilter,
     periodoFilter,
     searchQuery,
-    funcionarios,
+    setores,
   ]);
 
   // Reset setor quando empresa muda
@@ -188,7 +192,6 @@ export default function AdminRequisicoesPage() {
                 Configurações
               </Button>
             </Link>
-            {/* Botão de Ajuda */}
             <Button
               variant="ghost"
               size="icon"
@@ -220,7 +223,7 @@ export default function AdminRequisicoesPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por material, funcionário ou observações..."
+              placeholder="Buscar por material, setor ou observações..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 pr-10"
@@ -237,94 +240,102 @@ export default function AdminRequisicoesPage() {
             )}
           </div>
 
-          {/* Botão de filtro */}
-          <Button
-            variant={showFilters ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="relative"
-          >
-            <Filter className="h-4 w-4" />
-            {hasActiveFilters && (
-              <span className="absolute -top-1 -right-1 h-3 w-3 bg-primary rounded-full"></span>
-            )}
-          </Button>
+          {/* Botão de filtro dropdown com bolinha indicadora */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant={hasActiveFilters ? "default" : "outline"}
+                size="sm"
+                className="relative"
+              >
+                <Filter className="h-4 w-4" />
+                {hasActiveFilters && (
+                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-primary rounded-full"></span>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-96">
+              <DropdownMenuLabel>Filtrar Requisições</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <div className="p-4 space-y-3">
+                <Select
+                  value={empresaFilter}
+                  onValueChange={handleEmpresaChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Empresa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas as empresas</SelectItem>
+                    {empresas.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-          {/* Botão limpar filtros */}
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={limparFiltros}>
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Limpar
-            </Button>
-          )}
+                <Select value={setorFilter} onValueChange={handleSetorChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Setor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os setores</SelectItem>
+                    {setoresFiltrados.map((setor) => (
+                      <SelectItem key={setor.id} value={setor.id}>
+                        {setor.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={funcionarioFilter}
+                  onValueChange={setFuncionarioFilter}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Funcionário" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os funcionários</SelectItem>
+                    {funcionariosFiltrados.map((func) => (
+                      <SelectItem key={func.id} value={func.id}>
+                        {func.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={periodoFilter}
+                  onValueChange={(v) => setPeriodoFilter(v as PeriodoFilter)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Período" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todo período</SelectItem>
+                    <SelectItem value="hoje">Hoje</SelectItem>
+                    <SelectItem value="semana">Esta semana</SelectItem>
+                    <SelectItem value="mes">Este mês</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="p-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={limparFiltros}
+                  className="w-full justify-start"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Limpar todos os filtros
+                </Button>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-
-        {/* Painel de filtros expansível */}
-        {showFilters && (
-          <div className="bg-card border border-border rounded-xl p-4 mb-6 animate-in slide-in-from-top-2 duration-200">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Select value={empresaFilter} onValueChange={handleEmpresaChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Empresa" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas as empresas</SelectItem>
-                  {empresas.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={setorFilter} onValueChange={handleSetorChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Setor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os setores</SelectItem>
-                  {setoresFiltrados.map((setor) => (
-                    <SelectItem key={setor.id} value={setor.id}>
-                      {setor.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={funcionarioFilter}
-                onValueChange={setFuncionarioFilter}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Funcionário" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os funcionários</SelectItem>
-                  {funcionariosFiltrados.map((func) => (
-                    <SelectItem key={func.id} value={func.id}>
-                      {func.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={periodoFilter}
-                onValueChange={(v) => setPeriodoFilter(v as PeriodoFilter)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Período" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todo período</SelectItem>
-                  <SelectItem value="hoje">Hoje</SelectItem>
-                  <SelectItem value="semana">Esta semana</SelectItem>
-                  <SelectItem value="mes">Este mês</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
 
         {/* Stats Cards */}
         <StatsCards requisicoes={requisicoesFiltradas} />

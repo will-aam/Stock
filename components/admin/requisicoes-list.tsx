@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Eye, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRequisicoesStore } from "@/lib/requisicoes-store";
@@ -18,10 +18,24 @@ interface RequisicoesListProps {
   requisicoes: Requisicao[];
 }
 
+/**
+ * Agora a lista é renderizada por setor:
+ * - Um card por setor com resumo (nome do setor, qtd de requisições, qtd de itens)
+ * - Cada card pode ser expandido para ver as requisições daquele setor.
+ * - Dentro da requisição, o setor é a informação principal e o funcionário é um detalhe.
+ */
 export function RequisicoesList({ requisicoes }: RequisicoesListProps) {
   const { updateStatus } = useRequisicoesStore();
   const [selectedRequisicao, setSelectedRequisicao] =
     useState<Requisicao | null>(null);
+
+  // Controla quais setores estão expandidos (usando um Record para eficiência)
+  const [expandedSetores, setExpandedSetores] = useState<
+    Record<string, boolean>
+  >({});
+
+  const toggleSetor = (setorId: string) =>
+    setExpandedSetores((s) => ({ ...s, [setorId]: !s[setorId] }));
 
   const getNextStatus = (
     current: StatusRequisicao
@@ -39,6 +53,25 @@ export function RequisicoesList({ requisicoes }: RequisicoesListProps) {
     return current === "nova" || current === "em_atendimento";
   };
 
+  // Agrupa requisições por setor para a nova visualização
+  const groupedBySetor = useMemo(() => {
+    const map: Record<string, Requisicao[]> = {};
+    requisicoes.forEach((req) => {
+      if (!map[req.setorId]) map[req.setorId] = [];
+      map[req.setorId].push(req);
+    });
+    return map;
+  }, [requisicoes]);
+
+  // Ordena os setores alfabeticamente para uma exibição consistente
+  const setoresOrdenados = useMemo(() => {
+    return Object.keys(groupedBySetor).sort((a, b) => {
+      const sa = getSetorById(a)?.nome ?? a;
+      const sb = getSetorById(b)?.nome ?? b;
+      return sa.localeCompare(sb);
+    });
+  }, [groupedBySetor]);
+
   if (requisicoes.length === 0) {
     return (
       <div className="bg-card border border-border rounded-xl p-12 text-center">
@@ -51,151 +84,190 @@ export function RequisicoesList({ requisicoes }: RequisicoesListProps) {
 
   return (
     <>
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <div className="hidden md:grid grid-cols-[1fr_120px_1fr_100px_100px_120px] gap-4 px-4 py-3 bg-muted/50 border-b border-border text-sm font-medium text-muted-foreground">
-          <span>Funcionário</span>
-          <span>Setor</span>
-          <span>Itens</span>
-          <span>Data</span>
-          <span>Status</span>
-          <span>Ações</span>
-        </div>
+      {/* Exibe um card por setor */}
+      <div className="space-y-4">
+        {setoresOrdenados.map((setorId) => {
+          const reqs = groupedBySetor[setorId] || [];
+          const setor = getSetorById(setorId);
+          const totalItens = reqs.reduce((acc, r) => acc + r.itens.length, 0);
+          const allStatuses = Array.from(new Set(reqs.map((r) => r.status)));
 
-        {/* Lista */}
-        <div className="divide-y divide-border">
-          {requisicoes.map((req) => {
-            const funcionario = getFuncionarioById(req.funcionarioId);
-            const setor = getSetorById(req.setorId);
-            const nextStatus = getNextStatus(req.status);
+          const isExpanded = !!expandedSetores[setorId];
 
-            return (
-              <div
-                key={req.id}
-                className="md:grid md:grid-cols-[1fr_120px_1fr_100px_100px_120px] gap-4 px-4 py-4 hover:bg-muted/30 transition-colors"
-              >
-                {/* Mobile view */}
-                <div className="md:hidden space-y-3 mb-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-card-foreground">
-                      {funcionario?.nome}
-                    </span>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full border ${
-                        statusColors[req.status]
-                      }`}
-                    >
-                      {statusLabels[req.status]}
-                    </span>
+          return (
+            <div
+              key={setorId}
+              className="bg-card border border-border rounded-xl overflow-hidden"
+            >
+              {/* Header do card do setor */}
+              <div className="flex items-center justify-between px-4 py-3 gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-md bg-muted/20 px-3 py-2 text-sm font-semibold">
+                    {setor?.nome ?? "Setor desconhecido"}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {setor?.nome}
+                    {reqs.length} requisição{reqs.length > 1 ? "es" : ""} •{" "}
+                    {totalItens} item{totalItens > 1 ? "s" : ""}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {req.itens.length}{" "}
-                    {req.itens.length === 1 ? "item" : "itens"} •{" "}
-                    {new Date(req.dataCriacao).toLocaleDateString("pt-BR")}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 bg-transparent"
-                      onClick={() => setSelectedRequisicao(req)}
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      Detalhes
-                    </Button>
-                    {nextStatus && (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => updateStatus(req.id, nextStatus)}
+                  <div className="flex items-center gap-2 text-sm">
+                    {allStatuses.map((st) => (
+                      <span
+                        key={st}
+                        className={`text-xs px-2 py-1 rounded-full border ${statusColors[st]}`}
                       >
-                        <ArrowRight className="h-3 w-3" />
-                      </Button>
-                    )}
-                    {canDeny(req.status) && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => updateStatus(req.id, "negada")}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    )}
+                        {statusLabels[st]}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
-                {/* Desktop view - Removido empresa */}
-                <div className="hidden md:flex items-center">
-                  <span className="font-medium text-card-foreground">
-                    {funcionario?.nome}
-                  </span>
-                </div>
-                <div className="hidden md:flex items-center text-sm text-muted-foreground">
-                  {setor?.nome}
-                </div>
-                <div className="hidden md:flex items-center text-sm text-muted-foreground">
-                  {req.itens.slice(0, 2).map((item, i) => (
-                    <span key={i}>
-                      {item.quantidade}x {item.nome}
-                      {i < Math.min(req.itens.length, 2) - 1 && ", "}
-                    </span>
-                  ))}
-                  {req.itens.length > 2 && (
-                    <span> +{req.itens.length - 2}</span>
-                  )}
-                </div>
-                <div className="hidden md:flex items-center text-sm text-muted-foreground">
-                  {new Date(req.dataCriacao).toLocaleDateString("pt-BR")}
-                </div>
-                <div className="hidden md:flex items-center">
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full border ${
-                      statusColors[req.status]
-                    }`}
-                  >
-                    {statusLabels[req.status]}
-                  </span>
-                </div>
-                <div className="hidden md:flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
-                    size="icon"
-                    onClick={() => setSelectedRequisicao(req)}
-                    title="Ver detalhes"
+                    onClick={() => toggleSetor(setorId)}
+                    size="sm"
                   >
-                    <Eye className="h-4 w-4" />
+                    {isExpanded ? "Recolher" : "Ver requisições"}
                   </Button>
-                  {nextStatus && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => updateStatus(req.id, nextStatus)}
-                      title={`Mover para ${statusLabels[nextStatus]}`}
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {canDeny(req.status) && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => updateStatus(req.id, "negada")}
-                      title="Negar requisição"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
                 </div>
               </div>
-            );
-          })}
-        </div>
+
+              {/* Conteúdo expandido: lista de requisições daquele setor */}
+              {isExpanded && (
+                <div className="divide-y divide-border">
+                  {reqs.map((req) => {
+                    const funcionario = getFuncionarioById(req.funcionarioId);
+                    const nextStatus = getNextStatus(req.status);
+
+                    return (
+                      <div
+                        key={req.id}
+                        className="px-4 py-4 hover:bg-muted/30 transition-colors space-y-2 md:space-y-0 md:grid md:grid-cols-[1fr_120px_1fr_100px_100px_120px] md:gap-4 md:items-center"
+                      >
+                        {/* Mobile view */}
+                        <div className="md:hidden space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-card-foreground">
+                              {setor?.nome}
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-1 rounded-full border ${
+                                statusColors[req.status]
+                              }`}
+                            >
+                              {statusLabels[req.status]}
+                            </span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Solicitante: {funcionario?.nome}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {req.itens.length} item
+                            {req.itens.length > 1 ? "s" : ""} •{" "}
+                            {new Date(req.dataCriacao).toLocaleDateString(
+                              "pt-BR"
+                            )}
+                          </div>
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 bg-transparent"
+                              onClick={() => setSelectedRequisicao(req)}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              Detalhes
+                            </Button>
+                            {nextStatus && (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => updateStatus(req.id, nextStatus)}
+                              >
+                                {statusLabels[nextStatus]}
+                              </Button>
+                            )}
+                            {canDeny(req.status) && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => updateStatus(req.id, "negada")}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Desktop view */}
+                        <div className="hidden md:block">
+                          <span className="font-medium text-card-foreground">
+                            {setor?.nome}
+                          </span>
+                          <div className="text-sm text-muted-foreground">
+                            Solicitante: {funcionario?.nome}
+                          </div>
+                        </div>
+                        <div className="hidden md:flex items-center text-sm text-muted-foreground">
+                          {req.itens.length} item
+                          {req.itens.length > 1 ? "s" : ""}
+                        </div>
+                        <div className="hidden md:flex items-center text-sm text-muted-foreground">
+                          {new Date(req.dataCriacao).toLocaleDateString(
+                            "pt-BR"
+                          )}
+                        </div>
+                        <div className="hidden md:flex items-center">
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full border ${
+                              statusColors[req.status]
+                            }`}
+                          >
+                            {statusLabels[req.status]}
+                          </span>
+                        </div>
+                        <div className="hidden md:flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setSelectedRequisicao(req)}
+                            title="Ver detalhes"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {nextStatus && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => updateStatus(req.id, nextStatus)}
+                              title={`Mover para ${statusLabels[nextStatus]}`}
+                            >
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {canDeny(req.status) && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => updateStatus(req.id, "negada")}
+                              title="Negar requisição"
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Modal de detalhes */}
+      {/* Modal de detalhes (sem alterações) */}
       {selectedRequisicao && (
         <RequisicaoModal
           requisicao={selectedRequisicao}

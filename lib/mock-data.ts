@@ -86,16 +86,22 @@ export const funcionarios = [
   },
 ];
 
+// --- INÍCIO DAS ALTERAÇÕES ---
+
+// Tipos
 export type StatusRequisicao =
   | "nova"
   | "em_atendimento"
   | "concluida"
   | "negada";
 
+// ALTERAÇÃO 1: Adicionado o campo opcional 'funcionarioId' à interface
 export interface ItemRequisicao {
   nome: string;
   quantidade: number;
   observacoes?: string;
+  // novo: id do funcionário que solicitou ESSE item
+  funcionarioId?: string;
 }
 
 export interface Requisicao {
@@ -110,6 +116,7 @@ export interface Requisicao {
   observacoesGerais?: string;
 }
 
+// ALTERAÇÃO 2: Adicionado 'funcionarioId' a cada item dentro de cada requisição
 // Requisições mockadas
 export const requisicoesIniciais: Requisicao[] = [
   {
@@ -119,9 +126,14 @@ export const requisicoesIniciais: Requisicao[] = [
     empresaId: "emp-1",
     status: "nova",
     itens: [
-      { nome: "Canetas azuis", quantidade: 6, observacoes: "Preferência BIC" },
-      { nome: "Mouse sem fio", quantidade: 1 },
-      { nome: "Pilha AA para mouse", quantidade: 2 },
+      {
+        nome: "Canetas azuis",
+        quantidade: 6,
+        observacoes: "Preferência BIC",
+        funcionarioId: "func-1",
+      },
+      { nome: "Mouse sem fio", quantidade: 1, funcionarioId: "func-1" },
+      { nome: "Pilha AA para mouse", quantidade: 2, funcionarioId: "func-1" },
     ],
     dataCriacao: "2025-11-29T10:30:00",
     dataAtualizacao: "2025-11-29T10:30:00",
@@ -133,9 +145,14 @@ export const requisicoesIniciais: Requisicao[] = [
     empresaId: "emp-2",
     status: "nova",
     itens: [
-      { nome: "Resma de papel A4", quantidade: 5 },
-      { nome: "Grampeador", quantidade: 1 },
-      { nome: "Grampos", quantidade: 2, observacoes: "Caixa com 5000 unid." },
+      { nome: "Resma de papel A4", quantidade: 5, funcionarioId: "func-2" },
+      { nome: "Grampeador", quantidade: 1, funcionarioId: "func-2" },
+      {
+        nome: "Grampos",
+        quantidade: 2,
+        observacoes: "Caixa com 5000 unid.",
+        funcionarioId: "func-2",
+      },
     ],
     dataCriacao: "2025-11-29T14:15:00",
     dataAtualizacao: "2025-11-29T14:15:00",
@@ -147,8 +164,12 @@ export const requisicoesIniciais: Requisicao[] = [
     empresaId: "emp-1",
     status: "em_atendimento",
     itens: [
-      { nome: "Calculadora financeira", quantidade: 1 },
-      { nome: "Caderno grande", quantidade: 2 },
+      {
+        nome: "Calculadora financeira",
+        quantidade: 1,
+        funcionarioId: "func-3",
+      },
+      { nome: "Caderno grande", quantidade: 2, funcionarioId: "func-3" },
     ],
     dataCriacao: "2025-11-28T09:00:00",
     dataAtualizacao: "2025-11-29T08:00:00",
@@ -160,8 +181,8 @@ export const requisicoesIniciais: Requisicao[] = [
     empresaId: "emp-2",
     status: "em_atendimento",
     itens: [
-      { nome: "Suporte para notebook", quantidade: 1 },
-      { nome: "Hub USB", quantidade: 1 },
+      { nome: "Suporte para notebook", quantidade: 1, funcionarioId: "func-4" },
+      { nome: "Hub USB", quantidade: 1, funcionarioId: "func-4" },
     ],
     dataCriacao: "2025-11-27T16:45:00",
     dataAtualizacao: "2025-11-28T11:30:00",
@@ -173,9 +194,9 @@ export const requisicoesIniciais: Requisicao[] = [
     empresaId: "emp-3",
     status: "concluida",
     itens: [
-      { nome: "Teclado mecânico", quantidade: 1 },
-      { nome: "Mouse pad grande", quantidade: 1 },
-      { nome: "Cabo HDMI 2m", quantidade: 2 },
+      { nome: "Teclado mecânico", quantidade: 1, funcionarioId: "func-5" },
+      { nome: "Mouse pad grande", quantidade: 1, funcionarioId: "func-5" },
+      { nome: "Cabo HDMI 2m", quantidade: 2, funcionarioId: "func-5" },
     ],
     dataCriacao: "2025-11-25T10:00:00",
     dataAtualizacao: "2025-11-27T14:00:00",
@@ -187,8 +208,13 @@ export const requisicoesIniciais: Requisicao[] = [
     empresaId: "emp-1",
     status: "concluida",
     itens: [
-      { nome: "Pastas suspensas", quantidade: 20 },
-      { nome: "Etiquetas adesivas", quantidade: 5, observacoes: "Folha A4" },
+      { nome: "Pastas suspensas", quantidade: 20, funcionarioId: "func-6" },
+      {
+        nome: "Etiquetas adesivas",
+        quantidade: 5,
+        observacoes: "Folha A4",
+        funcionarioId: "func-6",
+      },
     ],
     dataCriacao: "2025-11-24T11:20:00",
     dataAtualizacao: "2025-11-26T09:00:00",
@@ -199,7 +225,14 @@ export const requisicoesIniciais: Requisicao[] = [
     setorId: "set-5",
     empresaId: "emp-2",
     status: "negada",
-    itens: [{ nome: "Cadeira gamer", quantidade: 1, observacoes: "Cor preta" }],
+    itens: [
+      {
+        nome: "Cadeira gamer",
+        quantidade: 1,
+        observacoes: "Cor preta",
+        funcionarioId: "func-7",
+      },
+    ],
     dataCriacao: "2025-11-23T15:30:00",
     dataAtualizacao: "2025-11-24T10:00:00",
     observacoesGerais: "Item fora do catálogo de materiais permitidos.",
@@ -211,9 +244,18 @@ export const requisicoesIniciais: Requisicao[] = [
     empresaId: "emp-3",
     status: "nova",
     itens: [
-      { nome: "Tinta para carimbo", quantidade: 2, observacoes: "Azul" },
-      { nome: "Carimbo personalizado", quantidade: 1 },
-      { nome: "Bloco de notas adesivas", quantidade: 10 },
+      {
+        nome: "Tinta para carimbo",
+        quantidade: 2,
+        observacoes: "Azul",
+        funcionarioId: "func-8",
+      },
+      { nome: "Carimbo personalizado", quantidade: 1, funcionarioId: "func-8" },
+      {
+        nome: "Bloco de notas adesivas",
+        quantidade: 10,
+        funcionarioId: "func-8",
+      },
     ],
     dataCriacao: "2025-11-30T08:00:00",
     dataAtualizacao: "2025-11-30T08:00:00",
@@ -224,7 +266,9 @@ export const requisicoesIniciais: Requisicao[] = [
     setorId: "set-3",
     empresaId: "emp-1",
     status: "negada",
-    itens: [{ nome: 'Monitor ultrawide 34"', quantidade: 1 }],
+    itens: [
+      { nome: 'Monitor ultrawide 34"', quantidade: 1, funcionarioId: "func-1" },
+    ],
     dataCriacao: "2025-11-20T14:00:00",
     dataAtualizacao: "2025-11-21T16:00:00",
     observacoesGerais:
@@ -237,11 +281,12 @@ export const requisicoesIniciais: Requisicao[] = [
     empresaId: "emp-1",
     status: "concluida",
     itens: [
-      { nome: "Envelopes A4", quantidade: 50 },
+      { nome: "Envelopes A4", quantidade: 50, funcionarioId: "func-3" },
       {
         nome: "Clipes de papel",
         quantidade: 5,
         observacoes: "Caixa 100 unid.",
+        funcionarioId: "func-3",
       },
     ],
     dataCriacao: "2025-11-15T09:30:00",
@@ -249,7 +294,9 @@ export const requisicoesIniciais: Requisicao[] = [
   },
 ];
 
-// Funções auxiliares
+// --- FIM DAS ALTERAÇÕES ---
+
+// Funções auxiliares (sem alterações)
 export function getFuncionarioByCpf(cpf: string) {
   return funcionarios.find((f) => f.cpf === cpf);
 }

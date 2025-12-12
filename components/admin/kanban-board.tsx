@@ -5,7 +5,7 @@ import {
   Eye,
   ArrowRight,
   X,
-  User,
+  Users, // Mantido para o setor
   Calendar,
   Package,
   Trash2,
@@ -46,8 +46,8 @@ const columns: {
   {
     status: "concluida",
     label: "Concluídas",
-    color: "border-green-500", // Alterado para verde
-    bgHeader: "bg-green-500/10", // Alterado para verde
+    color: "border-green-500",
+    bgHeader: "bg-green-500/10",
   },
   {
     status: "negada",
@@ -93,7 +93,6 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
     return current === "nova" || current === "em_atendimento";
   };
 
-  // Verifica se o status permite envio para lixeira
   const canSendToTrash = (current: StatusRequisicao): boolean => {
     return current === "concluida" || current === "negada";
   };
@@ -128,7 +127,6 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
                 </div>
               ) : (
                 requisicoesByStatus[column.status].map((req) => {
-                  const funcionario = getFuncionarioById(req.funcionarioId);
                   const setor = getSetorById(req.setorId);
                   const nextStatus = getNextStatus(req.status);
 
@@ -137,21 +135,18 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
                       key={req.id}
                       className="bg-muted/30 border border-border rounded-lg p-4 hover:border-primary/50 transition-colors"
                     >
-                      {/* Cabeçalho do card */}
+                      {/* Cabeçalho do card - APENAS O SETOR */}
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
+                          <Users className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium text-card-foreground text-sm">
-                            {funcionario?.nome}
+                            {setor?.nome}
                           </span>
                         </div>
                       </div>
 
+                      {/* Detalhes - APENAS A DATA */}
                       <div className="space-y-2 text-xs text-muted-foreground mb-3">
-                        <div className="flex items-center gap-2">
-                          <Package className="h-3 w-3" />
-                          <span>{setor?.nome}</span>
-                        </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-3 w-3" />
                           <span>
