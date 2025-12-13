@@ -95,6 +95,8 @@ export type StatusRequisicao =
   | "concluida"
   | "negada";
 
+export type ItemTag = "separar" | "comprar" | null;
+
 // ALTERAÇÃO 1: Adicionado o campo opcional 'funcionarioId' à interface
 export interface ItemRequisicao {
   nome: string;
@@ -102,6 +104,7 @@ export interface ItemRequisicao {
   observacoes?: string;
   // novo: id do funcionário que solicitou ESSE item
   funcionarioId?: string;
+  tag?: ItemTag;
 }
 
 export interface Requisicao {
