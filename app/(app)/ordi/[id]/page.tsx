@@ -1,3 +1,4 @@
+// app/(app)/ordi/[id]/page.tsx
 "use client";
 
 import { use, useState } from "react";

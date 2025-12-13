@@ -1,3 +1,4 @@
+// app/(app)/ordi/configuracoes/page.tsx
 "use client";
 
 import { DashboardHeader } from "@/components/home/dashboard-header";
