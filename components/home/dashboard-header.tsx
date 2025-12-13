@@ -1,12 +1,9 @@
 "use client";
 
-import { Bell, Settings, Moon, Sun } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/use-theme";
 
 export function DashboardHeader() {
-  const { theme, toggleTheme } = useTheme();
-
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -21,13 +18,6 @@ export function DashboardHeader() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </Button>
           <Button variant="ghost" size="icon">
             <Bell className="h-5 w-5" />
           </Button>
