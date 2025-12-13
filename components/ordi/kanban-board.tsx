@@ -1,25 +1,29 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   Eye,
   ArrowRight,
   X,
-  Users, // Mantido para o setor
   Calendar,
   Package,
   Trash2,
+  Archive,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRequisicoesStore } from "@/lib/requisicoes-store";
 import { RequisicaoModal } from "./requisicao-modal";
+import { TrashSheet } from "@/components/ordi/trash/trash-sheet";
+import { useToast } from "@/hooks/use-toast";
 import {
   type Requisicao,
   type StatusRequisicao,
   statusLabels,
-  getFuncionarioById,
   getSetorById,
 } from "@/lib/mock-data";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface KanbanBoardProps {
   requisicoes: Requisicao[];
@@ -30,30 +34,35 @@ const columns: {
   label: string;
   color: string;
   bgHeader: string;
+  textColor: string;
 }[] = [
   {
     status: "nova",
     label: "Novas",
     color: "border-blue-500",
     bgHeader: "bg-blue-500/10",
+    textColor: "text-blue-700 dark:text-blue-400",
   },
   {
     status: "em_atendimento",
     label: "Em Atendimento",
     color: "border-yellow-500",
     bgHeader: "bg-yellow-500/10",
+    textColor: "text-yellow-700 dark:text-yellow-400",
   },
   {
     status: "concluida",
     label: "Concluídas",
     color: "border-green-500",
     bgHeader: "bg-green-500/10",
+    textColor: "text-green-700 dark:text-green-400",
   },
   {
     status: "negada",
     label: "Negadas",
     color: "border-red-500",
     bgHeader: "bg-red-500/10",
+    textColor: "text-red-700 dark:text-red-400",
   },
 ];
 
@@ -61,108 +70,104 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
   const { updateStatus } = useRequisicoesStore();
   const [selectedRequisicao, setSelectedRequisicao] =
     useState<Requisicao | null>(null);
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
+  const { toast } = useToast();
 
-  const requisicoesByStatus = useMemo(() => {
-    const grouped: Record<StatusRequisicao, Requisicao[]> = {
-      nova: [],
-      em_atendimento: [],
-      concluida: [],
-      negada: [],
-    };
+  const handleNextStatus = (id: string, currentStatus: StatusRequisicao) => {
+    let next: StatusRequisicao = "nova";
+    if (currentStatus === "nova") next = "em_atendimento";
+    else if (currentStatus === "em_atendimento") next = "concluida";
 
-    requisicoes.forEach((req) => {
-      grouped[req.status].push(req);
+    updateStatus(id, next);
+    toast({
+      title: "Status atualizado",
+      description: `Pedido movido para ${statusLabels[next]}.`,
     });
-
-    return grouped;
-  }, [requisicoes]);
-
-  const getNextStatus = (
-    current: StatusRequisicao
-  ): StatusRequisicao | null => {
-    const flow: Record<StatusRequisicao, StatusRequisicao | null> = {
-      nova: "em_atendimento",
-      em_atendimento: "concluida",
-      concluida: null,
-      negada: null,
-    };
-    return flow[current];
   };
 
-  const canDeny = (current: StatusRequisicao): boolean => {
-    return current === "nova" || current === "em_atendimento";
+  const handleDeny = (id: string) => {
+    updateStatus(id, "negada");
+    toast({
+      title: "Pedido Negado",
+      description: "O setor será notificado.",
+      variant: "destructive",
+    });
   };
 
-  const canSendToTrash = (current: StatusRequisicao): boolean => {
-    return current === "concluida" || current === "negada";
+  const handleArchive = (id: string) => {
+    // Simulação de arquivamento
+    toast({
+      title: "Arquivado",
+      description: "Item movido para o histórico.",
+    });
+  };
+
+  const handleMoveToTrash = (id: string) => {
+    // Simulação de lixeira
+    toast({
+      title: "Lixeira",
+      description: "Item movido para a lixeira.",
+    });
   };
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {columns.map((column) => (
+    <div className="flex flex-col h-full">
+      {/* Grid do Kanban - Ocupa 100% da largura sem scroll lateral */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full min-h-0">
+        {columns.map((col) => (
           <div
-            key={column.status}
-            className="bg-card border border-border rounded-xl overflow-hidden"
+            key={col.status}
+            className="flex flex-col h-full min-h-0 rounded-xl border bg-card shadow-sm"
           >
-            {/* Header da coluna */}
+            {/* Header da Coluna */}
             <div
-              className={`${column.bgHeader} border-b ${column.color} border-b-2 px-4 py-3`}
+              className={`p-4 rounded-t-xl border-t-4 ${col.color} ${col.bgHeader} flex justify-between items-center shrink-0`}
             >
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-card-foreground">
-                  {column.label}
-                </h3>
-                <span className="bg-background/50 text-card-foreground text-sm font-medium px-2 py-0.5 rounded-full">
-                  {requisicoesByStatus[column.status].length}
-                </span>
-              </div>
+              <h3 className={cn("font-semibold", col.textColor)}>
+                {col.label}
+              </h3>
+              <Badge
+                variant="secondary"
+                className="bg-background/80 font-mono text-xs"
+              >
+                {requisicoes.filter((r) => r.status === col.status).length}
+              </Badge>
             </div>
 
-            {/* Cards */}
-            <div className="p-3 space-y-3 max-h-[600px] overflow-y-auto">
-              {requisicoesByStatus[column.status].length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  Nenhuma requisição
-                </div>
-              ) : (
-                requisicoesByStatus[column.status].map((req) => {
+            {/* Área de Cards (Scroll APENAS vertical aqui dentro) */}
+            <div className="flex-1 p-3 space-y-3 overflow-y-auto min-h-0 scrollbar-thin max-h-[calc(100vh-280px)]">
+              {requisicoes
+                .filter((r) => r.status === col.status)
+                .map((req) => {
                   const setor = getSetorById(req.setorId);
-                  const nextStatus = getNextStatus(req.status);
 
                   return (
                     <div
                       key={req.id}
-                      className="bg-muted/30 border border-border rounded-lg p-4 hover:border-primary/50 transition-colors"
+                      className="bg-background p-3 rounded-lg border shadow-sm hover:shadow-md transition-all group"
                     >
-                      {/* Cabeçalho do card - APENAS O SETOR */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium text-card-foreground text-sm">
-                            {setor?.nome}
+                      {/* Topo: Setor e Data */}
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center text-sm font-semibold text-primary">
+                          <Building2 className="h-4 w-4 mr-1.5" />
+                          <span className="truncate max-w-[120px]">
+                            {setor?.nome || "Geral"}
                           </span>
                         </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {new Date(req.dataCriacao).toLocaleDateString(
+                            "pt-BR"
+                          )}
+                        </span>
                       </div>
 
-                      {/* Detalhes - APENAS A DATA */}
-                      <div className="space-y-2 text-xs text-muted-foreground mb-3">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-3 w-3" />
-                          <span>
-                            {new Date(req.dataCriacao).toLocaleDateString(
-                              "pt-BR"
-                            )}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Itens */}
-                      <div className="bg-background/50 rounded-md p-2 mb-3">
-                        <p className="text-xs text-muted-foreground mb-1">
+                      {/* Meio: Prévia dos Itens */}
+                      <div className="bg-muted/30 rounded-md p-2 mb-3">
+                        <p className="text-xs text-muted-foreground mb-1.5">
                           Itens ({req.itens.length})
                         </p>
-                        <div className="text-xs text-card-foreground">
+                        <div className="text-xs text-card-foreground space-y-0.5">
                           {req.itens.slice(0, 2).map((item, i) => (
                             <div key={i} className="truncate">
                               • {item.quantidade}x {item.nome}
@@ -176,50 +181,88 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      {/* Rodapé: Botões de Ação */}
+                      <div className="flex gap-1.5">
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="flex-1 bg-transparent"
+                          className="flex-1 h-7 text-xs"
                           onClick={() => setSelectedRequisicao(req)}
+                          title="Ver Detalhes"
                         >
                           <Eye className="h-3 w-3 mr-1" />
                           Detalhes
                         </Button>
-                        {nextStatus && (
+
+                        {/* Botões de Ação Condicionais */}
+                        {(col.status === "nova" ||
+                          col.status === "em_atendimento") && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 rounded-md hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20"
+                              onClick={() =>
+                                handleNextStatus(req.id, col.status)
+                              }
+                              title={`Mover para ${
+                                statusLabels[
+                                  col.status === "nova"
+                                    ? "em_atendimento"
+                                    : "concluida"
+                                ]
+                              }`}
+                            >
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 rounded-md hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                              onClick={() => handleDeny(req.id)}
+                              title="Negar Requisição"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </>
+                        )}
+
+                        {col.status === "concluida" && (
                           <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => updateStatus(req.id, nextStatus)}
-                            title={`Mover para ${statusLabels[nextStatus]}`}
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 rounded-md hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20"
+                            onClick={() => handleArchive(req.id)}
+                            title="Arquivar"
                           >
-                            <ArrowRight className="h-3 w-3" />
+                            <Archive className="h-3.5 w-3.5" />
                           </Button>
                         )}
-                        {canDeny(req.status) && (
+
+                        {(col.status === "negada" || col.status === "nova") && (
                           <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => updateStatus(req.id, "negada")}
-                            title="Negar requisição"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 rounded-md hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleMoveToTrash(req.id)}
+                            title="Excluir"
                           >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        )}
-                        {canSendToTrash(req.status) && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-muted-foreground hover:text-destructive"
-                            title="Enviar para lixeira"
-                          >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         )}
                       </div>
                     </div>
                   );
-                })
+                })}
+
+              {requisicoes.filter((r) => r.status === col.status).length ===
+                0 && (
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground/50 py-8">
+                  <div className="h-12 w-12 border-2 border-dashed rounded-full flex items-center justify-center mb-2">
+                    <Package className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs">Sem pedidos</p>
+                </div>
               )}
             </div>
           </div>
@@ -232,6 +275,8 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
           onClose={() => setSelectedRequisicao(null)}
         />
       )}
-    </>
+
+      <TrashSheet open={isTrashOpen} onOpenChange={setIsTrashOpen} />
+    </div>
   );
 }

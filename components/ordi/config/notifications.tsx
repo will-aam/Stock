@@ -149,41 +149,6 @@ export function NotificationsSettings() {
         </Card>
       </div>
 
-      {/* Integrações Externas */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <MessageSquare className="h-4 w-4 text-primary" />
-            Integrações
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between space-x-2">
-            <div className="flex flex-col space-y-1">
-              <Label htmlFor="slack" className="text-base">
-                Notificações no Slack / Teams
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Enviar alertas de "Novos Pedidos Urgentes" para um canal
-                específico.
-              </p>
-            </div>
-            <Switch
-              id="slack"
-              checked={slackIntegration}
-              onCheckedChange={setSlackIntegration}
-            />
-          </div>
-
-          {slackIntegration && (
-            <div className="mt-4 p-3 bg-muted rounded-md text-sm border border-dashed flex items-center gap-2 text-muted-foreground">
-              <Zap className="h-4 w-4" />
-              Configuração de Webhook simulada (ativo).
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       <div className="flex justify-end">
         <Button
           onClick={handleSave}

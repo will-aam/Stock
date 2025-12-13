@@ -13,6 +13,13 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, Save, Package, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,6 +36,9 @@ export function AllowedItems() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // 1. Crie o Estado
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   // Dados Mockados (Simulando o banco de dados do sistema principal)
   const [products, setProducts] = useState<SystemProduct[]>([
@@ -104,13 +114,21 @@ export function AllowedItems() {
     },
   ]);
 
-  // Filtragem local
-  const filteredProducts = products.filter(
-    (p) =>
+  // 2. Extraia as Categorias Únicas
+  const categories = Array.from(new Set(products.map((p) => p.category)));
+
+  // 3. Atualize a Lógica de Filtragem
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch =
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      p.category.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCategory =
+      selectedCategory === "all" || p.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
 
   const handleToggle = (id: string) => {
     setProducts(
@@ -152,13 +170,22 @@ export function AllowedItems() {
               className="pl-9 bg-background"
             />
           </div>
-          <Button
-            variant="outline"
-            size="icon"
-            title="Filtros avançados (Demo)"
-          >
-            <Filter className="h-4 w-4" />
-          </Button>
+
+          {/* 4. Implemente o Componente Visual (Select) */}
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-[200px]">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Categorias</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

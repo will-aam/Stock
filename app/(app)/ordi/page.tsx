@@ -1,3 +1,4 @@
+// app/(app)/ordi/page.tsx
 "use client";
 
 import { useState, useMemo } from "react";
@@ -31,6 +32,7 @@ import {
 import { StatsCards } from "@/components/ordi/stats-cards";
 import { KanbanBoard } from "@/components/ordi/kanban-board";
 import { useRequisicoesStore } from "@/lib/requisicoes-store";
+import { TrashSheet } from "@/components/ordi/trash/trash-sheet";
 import {
   empresas,
   setores,
@@ -49,6 +51,8 @@ export default function AdminRequisicoesPage() {
   const [periodoFilter, setPeriodoFilter] = useState<PeriodoFilter>("todos");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+  // Estado para controlar a abertura da lixeira
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
 
   // Setores filtrados por empresa
   const setoresFiltrados = useMemo(() => {
@@ -183,16 +187,14 @@ export default function AdminRequisicoesPage() {
             </span>
           </Link>
           <div className="flex items-center gap-2">
-            <Link href="/lixeira">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex bg-transparent"
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Lixeira
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              onClick={() => setIsTrashOpen(true)}
+              className="gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <Trash2 className="h-4 w-4" />
+              Lixeira
+            </Button>
             <Link href="/ordi/configuracoes">
               <Button
                 variant="outline"
@@ -380,6 +382,7 @@ export default function AdminRequisicoesPage() {
           </div>
         </div>
       )}
+      <TrashSheet open={isTrashOpen} onOpenChange={setIsTrashOpen} />
     </div>
   );
 }
