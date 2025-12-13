@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { Eye, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRequisicoesStore } from "@/lib/requisicoes-store";
-import { RequisicaoModal } from "./requisicao-modal";
+import { RequisicaoSheet } from "./requisicao-sheet";
 import {
   type Requisicao,
   type StatusRequisicao,
@@ -268,13 +268,12 @@ export function RequisicoesList({ requisicoes }: RequisicoesListProps) {
         })}
       </div>
 
-      {/* Modal de detalhes (sem alterações) */}
-      {selectedRequisicao && (
-        <RequisicaoModal
-          requisicao={selectedRequisicao}
-          onClose={() => setSelectedRequisicao(null)}
-        />
-      )}
+      {/* Sheet de detalhes */}
+      <RequisicaoSheet
+        requisicao={selectedRequisicao}
+        open={!!selectedRequisicao}
+        onOpenChange={(open) => !open && setSelectedRequisicao(null)}
+      />
     </>
   );
 }
