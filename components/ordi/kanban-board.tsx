@@ -80,12 +80,12 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
 
   const handleNextStatus = (
     req: Requisicao,
-    currentStatus: StatusRequisicao
+    currentStatus: StatusRequisicao,
   ) => {
     // Status Lock Validation
     if (currentStatus === "nova") {
       const allItemsTagged = req.itens.every(
-        (item) => item.tag === "separar" || item.tag === "comprar"
+        (item) => item.tag === "separar" || item.tag === "comprar",
       );
 
       if (!allItemsTagged) {
@@ -129,7 +129,7 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
       let next: StatusRequisicao | null = null;
       if (req.status === "nova") {
         const allItemsTagged = req.itens.every(
-          (item) => item.tag === "separar" || item.tag === "comprar"
+          (item) => item.tag === "separar" || item.tag === "comprar",
         );
         if (allItemsTagged) next = "em_atendimento";
         else failed.push(id);
@@ -160,7 +160,7 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
 
   const toggleSelectCard = (id: string) => {
     setSelectedCards((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
     );
   };
 
@@ -220,8 +220,8 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
               </Badge>
             </div>
 
-            {/* Área de Cards (Scroll APENAS vertical aqui dentro) */}
-            <div className="flex-1 p-3 space-y-3 overflow-y-auto min-h-0 scrollbar-thin max-h-[calc(100vh-280px)]">
+            {/* Área de Cards (sem scroll) */}
+            <div className="flex-1 p-3 space-y-3 min-h-0">
               {requisicoes
                 .filter((r) => r.status === col.status)
                 .map((req) => {
@@ -257,7 +257,7 @@ export function KanbanBoard({ requisicoes }: KanbanBoardProps) {
                         <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center">
                           <Calendar className="h-3 w-3 mr-1" />
                           {new Date(req.dataCriacao).toLocaleDateString(
-                            "pt-BR"
+                            "pt-BR",
                           )}
                         </span>
                       </div>
