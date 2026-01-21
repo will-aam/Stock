@@ -6,14 +6,13 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      {/* Sidebar visível apenas em Desktop (padrão do componente Sidebar) */}
+      {/* Sidebar visível apenas em Desktop */}
       <AppSidebar />
 
-      <SidebarInset>
-        {/* Header Mobile / Trigger do Sidebar */}
+      {/* ALTERAÇÃO IMPORTANTE: h-screen e overflow-hidden aqui travam a altura da aplicação na tela */}
+      <SidebarInset className="h-screen overflow-hidden flex flex-col">
+        {/* Header Mobile */}
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 md:hidden">
-          {/* Opcional: Se quiser abrir o sidebar no mobile também, descomente a linha abaixo */}
-          {/* <SidebarTrigger className="-ml-1" /> */}
           <div className="flex items-center gap-2 font-semibold">
             <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground text-xs">
               V
@@ -22,8 +21,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Conteúdo da Página */}
-        <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+        {/* Conteúdo da Página 
+            - flex-1: Ocupa o espaço restante
+            - overflow-hidden: Impede scroll duplo
+            - min-h-0: Permite que os filhos (como o Kanban) encolham para ativar seus próprios scrolls
+        */}
+        <div className="flex flex-1 flex-col gap-4 p-4 overflow-hidden min-h-0">
+          {children}
+        </div>
       </SidebarInset>
 
       {/* Navegação Inferior (Apenas Mobile) */}
