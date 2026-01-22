@@ -9,7 +9,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar visível apenas em Desktop */}
       <AppSidebar />
 
-      {/* ALTERAÇÃO IMPORTANTE: h-screen e overflow-hidden aqui travam a altura da aplicação na tela */}
+      {/* A altura da tela é travada aqui (h-screen) */}
       <SidebarInset className="h-screen overflow-hidden flex flex-col">
         {/* Header Mobile */}
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 md:hidden">
@@ -21,12 +21,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Conteúdo da Página 
-            - flex-1: Ocupa o espaço restante
-            - overflow-hidden: Impede scroll duplo
-            - min-h-0: Permite que os filhos (como o Kanban) encolham para ativar seus próprios scrolls
+        {/* CORREÇÃO: 
+            1. 'overflow-hidden' removido e substituído por 'overflow-y-auto'.
+               Isso permite que páginas longas (Empresas, Produtos) tenham rolagem.
+            2. Classes adicionadas para ocultar a barra de rolagem visualmente:
+               [&::-webkit-scrollbar]:hidden -> Chrome/Safari/Edge
+               [-ms-overflow-style:none] -> IE/Edge antigo
+               [scrollbar-width:none] -> Firefox
         */}
-        <div className="flex flex-1 flex-col gap-4 p-4 overflow-hidden min-h-0">
+        <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {children}
         </div>
       </SidebarInset>
