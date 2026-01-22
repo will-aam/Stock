@@ -27,11 +27,11 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
     if (numbers.length <= 9)
       return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(
-        6
+        6,
       )}`;
     return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(
       6,
-      9
+      9,
     )}-${numbers.slice(9, 11)}`;
   };
 
@@ -111,12 +111,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           {isLoading ? "Verificando..." : "Entrar"}
         </Button>
       </form>
-
-      <div className="mt-6 pt-6 border-t border-border">
-        <p className="text-xs text-muted-foreground text-center">
-          Use um dos CPFs de teste listados na página inicial para acessar.
-        </p>
-      </div>
     </div>
   );
 }

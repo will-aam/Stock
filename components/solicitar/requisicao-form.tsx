@@ -60,12 +60,14 @@ export function RequisicaoForm({ onSuccess }: RequisicaoFormProps) {
 
   const updateItem = (id: string, field: keyof ItemForm, value: string) => {
     setItens(
-      itens.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+      itens.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item,
+      ),
     );
   };
 
   const isValid = itens.every(
-    (item) => item.nome.trim() && Number.parseInt(item.quantidade) > 0
+    (item) => item.nome.trim() && Number.parseInt(item.quantidade) > 0,
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,9 +80,9 @@ export function RequisicaoForm({ onSuccess }: RequisicaoFormProps) {
 
     const now = new Date();
     const protocolo = `REQ-${now.getFullYear()}${String(
-      now.getMonth() + 1
+      now.getMonth() + 1,
     ).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${Math.floor(
-      Math.random() * 10000
+      Math.random() * 10000,
     )
       .toString()
       .padStart(4, "0")}`;

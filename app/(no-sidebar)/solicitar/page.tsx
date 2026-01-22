@@ -48,39 +48,6 @@ export default function SolicitarPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline text-sm">Voltar</span>
-            </Link>
-            <div className="h-6 w-px bg-border" />
-            <div className="flex items-center gap-2">
-              <Package className="h-6 w-6 text-primary" />
-              <span className="font-semibold text-foreground">Stock</span>
-              <span className="text-muted-foreground text-sm hidden sm:inline">
-                — Portal de Requisição
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {funcionarioLogado && step !== "login" && (
-              <button
-                onClick={handleLogout}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors mr-2"
-              >
-                Sair
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">

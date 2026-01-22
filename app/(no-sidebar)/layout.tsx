@@ -1,5 +1,4 @@
 import type React from "react";
-import { MobileNav } from "@/components/layout/mobile-nav";
 
 /**
  * Layout para páginas que NÃO devem exibir o sidebar.
@@ -27,9 +26,6 @@ export default function NoSidebarLayout({
 
       {/* Conteúdo da página */}
       <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
-
-      {/* Navegação Inferior (apenas mobile) — reutiliza o componente existente */}
-      <MobileNav />
     </>
   );
 }
