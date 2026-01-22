@@ -12,7 +12,12 @@ import Link from "next/link";
 
 export default function OrdiConfigPage() {
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    // ALTERAÇÃO:
+    // 1. Removido 'min-h-screen' (pois o layout trava a altura).
+    // 2. Adicionado 'h-full' para ocupar o espaço disponível.
+    // 3. Adicionado 'overflow-y-auto' para permitir rolagem interna.
+    // 4. Adicionadas classes para ocultar a barra de rolagem.
+    <div className="h-full bg-background pb-20 md:pb-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <div className="md:hidden">
         <DashboardHeader />
       </div>
@@ -30,12 +35,12 @@ export default function OrdiConfigPage() {
             </Button>
           </Link>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">
+            <h3 className="text-2xl font-bold tracking-tight">
               Configurações do Sistema Ordi
-            </h2>
-            <p className="text-muted-foreground">
+            </h3>
+            {/* <p className="text-muted-foreground">
               Gerencie regras de automação, catálogo de itens e notificações.
-            </p>
+            </p> */}
           </div>
         </div>
 
