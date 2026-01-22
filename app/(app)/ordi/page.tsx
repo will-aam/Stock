@@ -9,8 +9,11 @@ import {
   Search,
   X,
   Settings,
-  HelpCircle,
   Trash2,
+  Copy,
+  Send,
+  Check,
+  Link as LinkIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { StatsCards } from "@/components/ordi/stats-cards";
 import { KanbanBoard } from "@/components/ordi/kanban-board";
 import { useRequisicoesStore } from "@/lib/requisicoes-store";
@@ -40,26 +49,52 @@ import {
   getSetoresByEmpresa,
   getFuncionariosBySetor,
 } from "@/lib/mock-data";
+import { useToast } from "@/hooks/use-toast";
 
 type PeriodoFilter = "todos" | "hoje" | "semana" | "mes";
 
 export default function AdminRequisicoesPage() {
   const { requisicoes } = useRequisicoesStore();
+  const { toast } = useToast();
+
   const [empresaFilter, setEmpresaFilter] = useState<string>("todas");
   const [setorFilter, setSetorFilter] = useState<string>("todos");
   const [funcionarioFilter, setFuncionarioFilter] = useState<string>("todos");
   const [periodoFilter, setPeriodoFilter] = useState<PeriodoFilter>("todos");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+  // const [showHelpModal, setShowHelpModal] = useState<boolean>(false); // Removido conforme solicitado
   const [isTrashOpen, setIsTrashOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
-  // Setores filtrados por empresa
+  // Link de Exemplo (Estático)
+  const SHARE_LINK = "http://localhost:3000/solicitar";
+
+  // --- Funções de Compartilhamento ---
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(SHARE_LINK);
+    setIsCopied(true);
+    toast({
+      title: "Link copiado!",
+      description: "O link de solicitação está na sua área de transferência.",
+    });
+
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const handleSendEmail = () => {
+    toast({
+      title: "E-mails enviados",
+      description:
+        "O link de acesso foi disparado para todos os funcionários ativos.",
+    });
+  };
+
+  // --- Lógica de Filtros (Mantida) ---
   const setoresFiltrados = useMemo(() => {
     if (empresaFilter === "todas") return setores;
     return getSetoresByEmpresa(empresaFilter);
   }, [empresaFilter]);
 
-  // Funcionários filtrados por setor
   const funcionariosFiltrados = useMemo(() => {
     if (setorFilter === "todos") {
       if (empresaFilter === "todas") return funcionarios;
@@ -68,23 +103,18 @@ export default function AdminRequisicoesPage() {
     return getFuncionariosBySetor(setorFilter);
   }, [empresaFilter, setorFilter]);
 
-  // Requisições filtradas
   const requisicoesFiltradas = useMemo(() => {
     let filtered = [...requisicoes];
 
-    // Filtros de select
     if (empresaFilter !== "todas") {
       filtered = filtered.filter((r) => r.empresaId === empresaFilter);
     }
-
     if (setorFilter !== "todos") {
       filtered = filtered.filter((r) => r.setorId === setorFilter);
     }
-
     if (funcionarioFilter !== "todos") {
       filtered = filtered.filter((r) => r.funcionarioId === funcionarioFilter);
     }
-
     if (periodoFilter !== "todos") {
       const now = new Date();
       const startOfDay = new Date(
@@ -95,7 +125,6 @@ export default function AdminRequisicoesPage() {
 
       filtered = filtered.filter((r) => {
         const dataReq = new Date(r.dataCriacao);
-
         switch (periodoFilter) {
           case "hoje":
             return dataReq >= startOfDay;
@@ -112,27 +141,22 @@ export default function AdminRequisicoesPage() {
       });
     }
 
-    // Filtro de busca geral
     if (searchQuery.trim() !== "") {
       const lowerCaseQuery = searchQuery.toLowerCase();
       filtered = filtered.filter((r) => {
         const setor = setores.find((s) => s.id === r.setorId);
         const nomeSetor = setor?.nome.toLowerCase() || "";
-
         const materiaisMatch =
           r.itens?.some((m: { nome: string }) =>
             m.nome.toLowerCase().includes(lowerCaseQuery),
           ) || false;
-
         const descricaoMatch =
           r.observacoesGerais?.toLowerCase().includes(lowerCaseQuery) || false;
-
         return (
           materiaisMatch || nomeSetor.includes(lowerCaseQuery) || descricaoMatch
         );
       });
     }
-
     return filtered;
   }, [
     requisicoes,
@@ -171,9 +195,8 @@ export default function AdminRequisicoesPage() {
     searchQuery !== "";
 
   return (
-    // ALTERAÇÃO 1: h-full e overflow-hidden para travar a altura na tela
     <div className="h-full flex flex-col bg-background overflow-hidden">
-      {/* Header - shrink-0 impede que ele seja esmagado */}
+      {/* Header */}
       <header className="border-b border-border bg-card shrink-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -183,15 +206,49 @@ export default function AdminRequisicoesPage() {
               — Painel de Requisições
             </span>
           </Link>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => setIsTrashOpen(true)}
-              className="gap-2 text-muted-foreground hover:text-foreground"
-            >
-              <Trash2 className="h-4 w-4" />
-              Lixeira
-            </Button>
+
+          <div className="flex items-center gap-3">
+            <TooltipProvider>
+              <div className="flex items-center border rounded-md bg-muted/40 p-0.5 mr-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="link"
+                      size="icon"
+                      className="h-8 w-8 hover:bg-background"
+                      onClick={handleCopyLink}
+                    >
+                      {isCopied ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p>Copiar link de acesso</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* LIXEIRA (Apenas Ícone) */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => setIsTrashOpen(true)}
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Lixeira</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {/* CONFIGURAÇÕES */}
             <Link href="/ordi/configuracoes">
               <Button
                 variant="outline"
@@ -202,22 +259,26 @@ export default function AdminRequisicoesPage() {
                 Configurações
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowHelpModal(true)}
-              aria-label="Ajuda sobre a página"
-            >
-              <HelpCircle className="h-4 w-4" />
-            </Button>
+
+            {/* Ajuda removida conforme solicitado */}
           </div>
         </div>
       </header>
 
-      {/* ALTERAÇÃO 2: flex-1 e min-h-0 para o container principal */}
       <main className="container mx-auto px-4 py-6 flex-1 flex flex-col min-h-0">
         {/* Container para Título, Busca e Stats (partes que NÃO devem rolar) */}
         <div className="shrink-0 flex flex-col gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">
+                Requisições de Materiais
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                Gerencie e acompanhe todas as requisições
+              </p>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -340,35 +401,11 @@ export default function AdminRequisicoesPage() {
           <StatsCards requisicoes={requisicoesFiltradas} />
         </div>
 
-        {/* ALTERAÇÃO 3: Área flexível para o Kanban crescer e rolar internamente */}
         <div className="flex-1 mt-6 min-h-0 pb-2">
           <KanbanBoard requisicoes={requisicoesFiltradas} />
         </div>
       </main>
 
-      {/* Modal de Ajuda */}
-      {showHelpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-card rounded-lg shadow-lg max-w-md w-full p-6 relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4"
-              onClick={() => setShowHelpModal(false)}
-              aria-label="Fechar modal de ajuda"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-
-            <h2 className="text-lg font-semibold mb-3">Sobre esta página</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Esta página é dedicada à gestão de requisições de materiais de
-              escritório. É um sistema simples para adicionar e acompanhar
-              pedidos de itens como canetas, papéis e outros suprimentos.
-            </p>
-          </div>
-        </div>
-      )}
       <TrashSheet open={isTrashOpen} onOpenChange={setIsTrashOpen} />
     </div>
   );
