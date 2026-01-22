@@ -49,6 +49,7 @@ const emptyEmpresa: Partial<Empresa> = {
   principal: false,
   isentoIE: false,
   regimeTributario: "simples",
+  centroCusto: "",
   endereco: {
     cep: "",
     logradouro: "",
@@ -60,12 +61,6 @@ const emptyEmpresa: Partial<Empresa> = {
   },
   contato: { telefone: "", email: "", site: "" },
   fiscal: { series: [] },
-  regrasPreco: {
-    venda: "individual",
-    custo: "individual",
-    promocional: "individual",
-    minimo: "individual",
-  },
   integracoes: {},
 };
 
@@ -108,7 +103,7 @@ export function CompanyFormSheet({
   };
 
   const updateNested = (
-    parent: "endereco" | "contato" | "fiscal" | "regrasPreco",
+    parent: "endereco" | "contato" | "fiscal",
     field: string,
     value: any,
   ) => {
@@ -161,7 +156,6 @@ export function CompanyFormSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      {/* Ajuste de largura: sm:max-w-[700px] para ficar menos "generoso" */}
       <SheetContent
         className="w-full sm:max-w-[700px] p-0 flex flex-col bg-background border-l shadow-xl"
         side="right"
@@ -198,9 +192,9 @@ export function CompanyFormSheet({
         {/* CONTEÚDO COM SCROLL E ABAS */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <Tabs defaultValue="geral" className="flex-1 flex flex-col h-full">
-            {/* LISTA DE ABAS - Estilo Padrão (Grid/Bloco) */}
+            {/* LISTA DE ABAS */}
             <div className="px-5 py-3 border-b shrink-0 bg-background">
-              <TabsList className="grid w-full grid-cols-4 h-9">
+              <TabsList className="grid w-full grid-cols-3 h-9">
                 <TabsTrigger value="geral" className="text-xs">
                   Geral
                 </TabsTrigger>
@@ -209,9 +203,6 @@ export function CompanyFormSheet({
                 </TabsTrigger>
                 <TabsTrigger value="fiscal" className="text-xs">
                   Fiscal
-                </TabsTrigger>
-                <TabsTrigger value="regras" className="text-xs">
-                  Regras
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -250,7 +241,7 @@ export function CompanyFormSheet({
 
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-muted-foreground uppercase">
-                      Documentação
+                      Fiscal & Contábil
                     </Label>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
@@ -313,10 +304,13 @@ export function CompanyFormSheet({
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <Label>Inscrição Municipal</Label>
+                        <Label>Centro de Custo</Label>
                         <Input
-                          value={formData.im || ""}
-                          onChange={(e) => updateField("im", e.target.value)}
+                          value={formData.centroCusto || ""}
+                          onChange={(e) =>
+                            updateField("centroCusto", e.target.value)
+                          }
+                          placeholder="Ex: 1.01.001"
                         />
                       </div>
                     </div>
@@ -627,64 +621,6 @@ export function CompanyFormSheet({
                       </tbody>
                     </table>
                   </div>
-                </div>
-              </TabsContent>
-
-              {/* ABA REGRAS */}
-              <TabsContent value="regras" className="space-y-5 mt-0">
-                <div className="bg-blue-50/50 dark:bg-blue-950/10 p-4 rounded-lg border border-blue-100 dark:border-blue-900 mb-4">
-                  <h4 className="font-semibold text-blue-900 dark:text-blue-200 text-sm flex items-center gap-2">
-                    <Settings2 className="h-4 w-4" />
-                    Política de Preços
-                  </h4>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1 leading-relaxed">
-                    Configure como os preços desta empresa se comportam em
-                    relação à rede. "Individual" mantém o preço local;
-                    "Compartilhado" sincroniza com a matriz.
-                  </p>
-                </div>
-
-                <div className="grid gap-3">
-                  {[
-                    { key: "venda", label: "Preço de Venda" },
-                    { key: "custo", label: "Preço de Custo" },
-                    { key: "promocional", label: "Preço Promocional" },
-                    { key: "minimo", label: "Preço Mínimo" },
-                  ].map((rule) => (
-                    <div
-                      key={rule.key}
-                      className="flex items-center justify-between gap-4 p-3 border rounded-lg hover:bg-muted/30 transition-colors bg-card"
-                    >
-                      <Label className="text-sm font-medium">
-                        {rule.label}
-                      </Label>
-                      <div className="w-48">
-                        <Select
-                          value={
-                            formData.regrasPreco?.[
-                              rule.key as keyof typeof formData.regrasPreco
-                            ]
-                          }
-                          onValueChange={(v) =>
-                            updateNested("regrasPreco", rule.key, v)
-                          }
-                        >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="individual">
-                              Individual
-                            </SelectItem>
-                            <SelectItem value="shared">
-                              Compartilhado
-                            </SelectItem>
-                            <SelectItem value="rule_based">Regra</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </TabsContent>
             </div>

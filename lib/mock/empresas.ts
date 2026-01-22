@@ -30,6 +30,7 @@ export interface Empresa {
   regimeTributario: "simples" | "lucro_presumido" | "lucro_real";
   ativa: boolean;
   principal: boolean;
+  centroCusto: string;
   endereco: {
     cep: string;
     logradouro: string;
@@ -51,7 +52,7 @@ export interface Empresa {
     emailEnvioXml?: string;
     series: FiscalSeries[];
   };
-  regrasPreco: PricingRules;
+
   integracoes: {
     whatsappToken?: string;
   };
@@ -70,6 +71,7 @@ export const empresas: Empresa[] = [
     regimeTributario: "lucro_presumido",
     ativa: true,
     principal: true,
+    centroCusto: "1.01.001",
     endereco: {
       cep: "49000-000",
       logradouro: "Av. Beira Mar",
@@ -94,12 +96,6 @@ export const empresas: Empresa[] = [
         },
       ],
     },
-    regrasPreco: {
-      venda: "shared",
-      custo: "individual",
-      promocional: "shared",
-      minimo: "rule_based",
-    },
     integracoes: {},
   },
   {
@@ -114,6 +110,7 @@ export const empresas: Empresa[] = [
     regimeTributario: "lucro_real",
     ativa: true,
     principal: false,
+    centroCusto: "2.01.005",
     endereco: {
       cep: "49000-100",
       logradouro: "Rodovia das Indústrias",
@@ -129,12 +126,6 @@ export const empresas: Empresa[] = [
     fiscal: {
       series: [],
     },
-    regrasPreco: {
-      venda: "individual",
-      custo: "individual",
-      promocional: "individual",
-      minimo: "individual",
-    },
     integracoes: {},
   },
   {
@@ -149,6 +140,7 @@ export const empresas: Empresa[] = [
     regimeTributario: "simples",
     ativa: true,
     principal: false,
+    centroCusto: "1.02.001",
     endereco: {
       cep: "49000-200",
       logradouro: "Rua do Comércio",
@@ -163,12 +155,6 @@ export const empresas: Empresa[] = [
     },
     fiscal: {
       series: [],
-    },
-    regrasPreco: {
-      venda: "shared",
-      custo: "shared",
-      promocional: "shared",
-      minimo: "shared",
     },
     integracoes: {},
   },
