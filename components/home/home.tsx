@@ -1,3 +1,4 @@
+// components/home/home.tsx
 "use client";
 
 import React from "react"; // useState não é mais necessário
@@ -165,22 +166,22 @@ const ActivityTable: React.FC<{ activities: Activity[] }> = ({
                     activity.type === "info"
                       ? "default"
                       : activity.type === "success"
-                      ? "default"
-                      : "secondary"
+                        ? "default"
+                        : "secondary"
                   }
                   className={
                     activity.type === "info"
                       ? "bg-blue-100 text-blue-800"
                       : activity.type === "success"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-amber-100 text-amber-800"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-amber-100 text-amber-800"
                   }
                 >
                   {activity.type === "info"
                     ? "Em andamento"
                     : activity.type === "success"
-                    ? "Concluído"
-                    : "Atenção"}
+                      ? "Concluído"
+                      : "Atenção"}
                 </Badge>
               </TableCell>
             </TableRow>
