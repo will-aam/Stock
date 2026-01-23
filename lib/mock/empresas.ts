@@ -63,7 +63,7 @@ export const empresas: Empresa[] = [
     id: "emp-1",
     displayId: 1,
     razaoSocial: "TechVision Soluções Digitais LTDA",
-    nomeFantasia: "TechVision (Matriz)",
+    nomeFantasia: "TechVision",
     cnpj: "12.345.678/0001-90",
     ie: "123456789",
     isentoIE: false,
