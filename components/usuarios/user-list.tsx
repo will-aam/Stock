@@ -60,13 +60,16 @@ export function UserList({ usuarios, onEdit, onCreate }: UserListProps) {
     toast({ description: `Gerando PDF para crachá de ${nome}...` });
   };
 
-  // Renderização das Etiquetas (Badges) de texto
+  // Renderização das Etiquetas (Badges) de texto - VERSÃO MELHORADA
   const renderModuleBadges = (perms: Usuario["permissoes"]) => {
     if (perms.admin) {
       return (
         <div className="flex flex-wrap gap-1">
-          <Badge variant="destructive" className="hover:bg-red-600">
-            ADMINISTRADOR
+          <Badge
+            variant="outline"
+            className="border-red-300 text-red-600 bg-red-50/50 dark:bg-red-950/20 dark:border-red-800 dark:text-red-400 px-2 py-0.5 text-xs font-medium"
+          >
+            ADMIN
           </Badge>
         </div>
       );
@@ -79,7 +82,7 @@ export function UserList({ usuarios, onEdit, onCreate }: UserListProps) {
         <Badge
           key="stock"
           variant="outline"
-          className="bg-zinc-100 text-zinc-700 border-zinc-200 hover:bg-zinc-200"
+          className="border-gray-300 text-gray-600 bg-gray-50/50 dark:bg-gray-950/20 dark:border-gray-700 dark:text-gray-400 px-2 py-0.5 text-xs font-medium"
         >
           Stock
         </Badge>,
@@ -91,20 +94,19 @@ export function UserList({ usuarios, onEdit, onCreate }: UserListProps) {
         <Badge
           key="ordi"
           variant="outline"
-          className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
+          className="border-blue-300 text-blue-600 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-700 dark:text-blue-400 px-2 py-0.5 text-xs font-medium"
         >
           Ordi
         </Badge>,
       );
     }
 
-    // CORREÇÃO: Countifly
     if (perms.countify) {
       badges.push(
         <Badge
           key="countifly"
           variant="outline"
-          className="bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200"
+          className="border-orange-300 text-orange-600 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-700 dark:text-orange-400 px-2 py-0.5 text-xs font-medium"
         >
           Countifly
         </Badge>,
@@ -116,7 +118,7 @@ export function UserList({ usuarios, onEdit, onCreate }: UserListProps) {
         <Badge
           key="val"
           variant="outline"
-          className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200"
+          className="border-emerald-300 text-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-700 dark:text-emerald-400 px-2 py-0.5 text-xs font-medium"
         >
           Val
         </Badge>,
@@ -128,27 +130,26 @@ export function UserList({ usuarios, onEdit, onCreate }: UserListProps) {
         <Badge
           key="brutos"
           variant="outline"
-          className="bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200"
+          className="border-purple-300 text-purple-600 bg-purple-50/50 dark:bg-purple-950/20 dark:border-purple-700 dark:text-purple-400 px-2 py-0.5 text-xs font-medium"
         >
           Brutos
         </Badge>,
       );
     }
 
-    // CORREÇÃO: Rikko
     if (perms.rico) {
       badges.push(
         <Badge
-          key="rikko"
+          key="rico"
           variant="outline"
-          className="bg-indigo-100 text-indigo-700 border-indigo-200 hover:bg-indigo-200"
+          className="border-indigo-300 text-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/20 dark:border-indigo-700 dark:text-indigo-400 px-2 py-0.5 text-xs font-medium"
         >
           Rikko
         </Badge>,
       );
     }
 
-    return <div className="flex flex-wrap gap-1.5">{badges}</div>;
+    return <div className="flex flex-wrap gap-1">{badges}</div>;
   };
 
   return (
@@ -249,7 +250,7 @@ export function UserList({ usuarios, onEdit, onCreate }: UserListProps) {
                       </span>
                     </TableCell>
 
-                    {/* Acessos (Badges Coloridas) */}
+                    {/* Acessos (Badges Coloridas) - VERSÃO MELHORADA */}
                     <TableCell className="py-2">
                       {renderModuleBadges(user.permissoes)}
                     </TableCell>
