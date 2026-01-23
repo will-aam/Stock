@@ -238,7 +238,7 @@ export function CompanyFormSheet({
         <div className="flex-1 overflow-hidden flex flex-col">
           <Tabs defaultValue="geral" className="flex-1 flex flex-col h-full">
             {/* LISTA DE ABAS */}
-            <div className="px-5 py-3 border-b shrink-0 bg-background">
+            <div className="px-5 py-3  shrink-0 bg-background">
               <TabsList className="grid w-full grid-cols-4 h-9">
                 <TabsTrigger value="geral" className="text-xs">
                   Geral
@@ -602,7 +602,7 @@ export function CompanyFormSheet({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-blue-900 dark:text-blue-100 text-xs">
+                      <Label className="text-white dark:text-blue-100 text-xs">
                         Arquivo (.pfx ou .p12)
                       </Label>
                       {certFileName ? (
@@ -627,7 +627,7 @@ export function CompanyFormSheet({
                             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
                             onChange={handleCertUpload}
                           />
-                          <div className="flex items-center justify-center gap-2 p-2 bg-white dark:bg-black/20 border border-dashed border-blue-300 rounded text-xs text-blue-700 hover:bg-blue-50 transition-colors">
+                          <div className="flex items-center justify-center gap-2 p-2 bg-transparent dark:bg-black/20 border border-dashed border-blue-700 rounded text-xs text-white hover:bg-blue-50 transition-colors">
                             <UploadCloud className="h-4 w-4" />
                             <span>Clique para selecionar o arquivo</span>
                           </div>
@@ -636,13 +636,13 @@ export function CompanyFormSheet({
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-blue-900 dark:text-blue-100 text-xs">
+                      <Label className="text-white dark:text-blue-100 text-xs">
                         Senha do Certificado
                       </Label>
                       <div className="relative">
                         <Input
                           type={showCertPassword ? "text" : "password"}
-                          className="bg-white dark:bg-black/20 h-9 pr-8"
+                          className="bg-transparent dark:bg-black/20 h-9 pr-8"
                           placeholder="••••••••"
                         />
                         <button
