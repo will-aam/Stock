@@ -32,17 +32,22 @@ import {
   Save,
   Loader2,
   Receipt,
-  Users, // Ícone para Setores
+  Users,
+  UploadCloud, // Novo ícone
+  FileKey, // Novo ícone
+  CheckCircle2, // Novo ícone
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Empresa, FiscalSeries } from "@/lib/mock/empresas";
-import { setores as mockSetores } from "@/lib/mock/setores"; // Importando mock para simular carga
+import { setores as mockSetores } from "@/lib/mock/setores";
 import { Badge } from "@/components/ui/badge";
 
 interface CompanyFormSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialData?: Empresa | null;
-  onSave: (data: Partial<Empresa> & { setores?: string[] }) => void; // Atualizado para aceitar setores
+  onSave: (data: Partial<Empresa> & { setores?: string[] }) => void;
 }
 
 const emptyEmpresa: Partial<Empresa> = {
@@ -79,15 +84,19 @@ export function CompanyFormSheet({
     ativo: true,
   });
 
-  // NOVO: Estado para Setores
+  // Estado para Setores
   const [sectors, setSectors] = useState<string[]>([]);
   const [newSectorName, setNewSectorName] = useState("");
+
+  // Estado para Certificado (Visual Apenas)
+  const [certFileName, setCertFileName] = useState<string | null>(null);
+  const [showCertPassword, setShowCertPassword] = useState(false);
 
   useEffect(() => {
     if (open) {
       if (initialData) {
         setFormData(JSON.parse(JSON.stringify(initialData)));
-        // Simulação: Carregar setores dessa empresa (no real viria do backend junto com a empresa)
+        // Carrega setores simulados
         const currentSectors = mockSetores
           .filter((s) => s.empresaId === initialData.id)
           .map((s) => s.nome);
@@ -96,9 +105,13 @@ export function CompanyFormSheet({
             ? currentSectors
             : ["Administrativo", "Comercial"],
         );
+
+        // Simula certificado já carregado se for edição
+        setCertFileName("certificado_a1_matriz.pfx");
       } else {
         setFormData(JSON.parse(JSON.stringify(emptyEmpresa)));
-        setSectors(["Administrativo", "Financeiro", "Comercial"]); // Sugestão padrão
+        setSectors(["Administrativo", "Financeiro", "Comercial"]);
+        setCertFileName(null);
       }
     }
   }, [open, initialData]);
@@ -106,7 +119,6 @@ export function CompanyFormSheet({
   const handleSave = () => {
     setIsLoading(true);
     setTimeout(() => {
-      // Enviamos os dados da empresa + a lista de setores
       onSave({ ...formData, setores: sectors });
       setIsLoading(false);
       onOpenChange(false);
@@ -168,17 +180,24 @@ export function CompanyFormSheet({
     }));
   };
 
-  // Lógica de Setores (NOVA)
+  // Lógica Setores
   const addSector = () => {
     if (!newSectorName.trim()) return;
-    if (sectors.includes(newSectorName.trim())) return; // Evita duplicados
-
+    if (sectors.includes(newSectorName.trim())) return;
     setSectors((prev) => [...prev, newSectorName.trim()]);
     setNewSectorName("");
   };
 
   const removeSector = (indexToRemove: number) => {
     setSectors((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  // Simula Upload de Certificado
+  const handleCertUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCertFileName(file.name);
+    }
   };
 
   return (
@@ -218,7 +237,7 @@ export function CompanyFormSheet({
 
         <div className="flex-1 overflow-hidden flex flex-col">
           <Tabs defaultValue="geral" className="flex-1 flex flex-col h-full">
-            {/* LISTA DE ABAS - 4 Colunas agora */}
+            {/* LISTA DE ABAS */}
             <div className="px-5 py-3 border-b shrink-0 bg-background">
               <TabsList className="grid w-full grid-cols-4 h-9">
                 <TabsTrigger value="geral" className="text-xs">
@@ -239,7 +258,6 @@ export function CompanyFormSheet({
             <div className="flex-1 overflow-y-auto min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] p-5">
               {/* ABA GERAL */}
               <TabsContent value="geral" className="space-y-5 mt-0">
-                {/* ... (Conteúdo Geral mantido igual) ... */}
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-muted-foreground uppercase">
@@ -373,7 +391,6 @@ export function CompanyFormSheet({
 
               {/* ABA ENDEREÇO */}
               <TabsContent value="endereco" className="space-y-5 mt-0">
-                {/* ... (Conteúdo Endereço mantido igual) ... */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-4 w-4" />
@@ -480,7 +497,7 @@ export function CompanyFormSheet({
                 </div>
               </TabsContent>
 
-              {/* ABA SETORES (NOVA) */}
+              {/* ABA SETORES */}
               <TabsContent value="setores" className="space-y-5 mt-0">
                 <div className="bg-blue-50/50 dark:bg-blue-950/10 p-4 rounded-lg border border-blue-100 dark:border-blue-900 mb-4">
                   <div className="flex items-center gap-2 mb-1">
@@ -518,7 +535,6 @@ export function CompanyFormSheet({
                     </Button>
                   </div>
 
-                  {/* Lista de Setores */}
                   <div className="border rounded-md overflow-hidden">
                     <table className="w-full text-sm text-left">
                       <thead className="bg-muted text-muted-foreground text-[10px] uppercase font-semibold">
@@ -563,9 +579,89 @@ export function CompanyFormSheet({
                 </div>
               </TabsContent>
 
-              {/* ABA FISCAL */}
+              {/* ABA FISCAL (COM CERTIFICADO) */}
               <TabsContent value="fiscal" className="space-y-5 mt-0">
-                {/* ... (Conteúdo Fiscal mantido igual) ... */}
+                {/* BLOCO CERTIFICADO DIGITAL */}
+                <div className="bg-blue-50 dark:bg-blue-950/10 border border-blue-200 dark:border-blue-900 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <FileKey className="h-4 w-4 text-blue-700" />
+                      <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                        Certificado Digital (A1)
+                      </h4>
+                    </div>
+                    {certFileName && (
+                      <Badge
+                        variant="outline"
+                        className="bg-transparent text-blue-300 border-blue-700 text-xs flex items-center gap-1"
+                      >
+                        <CheckCircle2 className="h-3 w-3" /> Válido até 12/2026
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-blue-900 dark:text-blue-100 text-xs">
+                        Arquivo (.pfx ou .p12)
+                      </Label>
+                      {certFileName ? (
+                        <div className="flex items-center justify-between p-2 bg-transparent dark:bg-black/20 border border-blue-700 rounded text-xs">
+                          <span className="truncate flex-1 font-medium">
+                            {certFileName}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-red-500"
+                            onClick={() => setCertFileName(null)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <Input
+                            type="file"
+                            accept=".pfx,.p12"
+                            className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                            onChange={handleCertUpload}
+                          />
+                          <div className="flex items-center justify-center gap-2 p-2 bg-white dark:bg-black/20 border border-dashed border-blue-300 rounded text-xs text-blue-700 hover:bg-blue-50 transition-colors">
+                            <UploadCloud className="h-4 w-4" />
+                            <span>Clique para selecionar o arquivo</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-blue-900 dark:text-blue-100 text-xs">
+                        Senha do Certificado
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type={showCertPassword ? "text" : "password"}
+                          className="bg-white dark:bg-black/20 h-9 pr-8"
+                          placeholder="••••••••"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCertPassword(!showCertPassword)}
+                          className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+                        >
+                          {showCertPassword ? (
+                            <EyeOff className="h-3.5 w-3.5" />
+                          ) : (
+                            <Eye className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* BLOCO NFC-E */}
                 <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Receipt className="h-4 w-4 text-amber-700" />
@@ -573,8 +669,8 @@ export function CompanyFormSheet({
                       Credenciais NFC-e
                     </h4>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="md:col-span-2 space-y-1.5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
                       <Label className="text-amber-900 dark:text-amber-100 text-xs">
                         CSC (Token)
                       </Label>
@@ -583,7 +679,7 @@ export function CompanyFormSheet({
                         onChange={(e) =>
                           updateNested("fiscal", "csc", e.target.value)
                         }
-                        className="bg-white dark:bg-black/20 h-8"
+                        className="bg-white dark:bg-black/20 h-9"
                         placeholder="Ex: A1B2C3..."
                       />
                     </div>
@@ -596,13 +692,14 @@ export function CompanyFormSheet({
                         onChange={(e) =>
                           updateNested("fiscal", "cscId", e.target.value)
                         }
-                        className="bg-white dark:bg-black/20 h-8"
+                        className="bg-white dark:bg-black/20 h-9"
                         placeholder="Ex: 000001"
                       />
                     </div>
                   </div>
                 </div>
 
+                {/* BLOCO SÉRIES FISCAIS */}
                 <div className="space-y-3">
                   <h3 className="text-sm font-medium">Séries Fiscais</h3>
                   <div className="flex gap-2 items-end bg-muted/30 p-3 rounded-lg border">
