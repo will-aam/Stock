@@ -32,24 +32,24 @@ import {
   Save,
   Loader2,
   Receipt,
+  Users, // Ícone para Setores
 } from "lucide-react";
 import { Empresa, FiscalSeries } from "@/lib/mock/empresas";
+import { setores as mockSetores } from "@/lib/mock/setores"; // Importando mock para simular carga
 import { Badge } from "@/components/ui/badge";
 
 interface CompanyFormSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialData?: Empresa | null;
-  onSave: (data: Partial<Empresa>) => void;
+  onSave: (data: Partial<Empresa> & { setores?: string[] }) => void; // Atualizado para aceitar setores
 }
 
-// Estado inicial vazio
 const emptyEmpresa: Partial<Empresa> = {
   ativa: true,
   principal: false,
   isentoIE: false,
   regimeTributario: "simples",
-  centroCusto: "",
   endereco: {
     cep: "",
     logradouro: "",
@@ -73,18 +73,32 @@ export function CompanyFormSheet({
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<Empresa>>(emptyEmpresa);
 
-  // Estado local para nova série fiscal
+  // Estado para Séries Fiscais
   const [newSeries, setNewSeries] = useState<Partial<FiscalSeries>>({
     tipo: "NFCe",
     ativo: true,
   });
 
+  // NOVO: Estado para Setores
+  const [sectors, setSectors] = useState<string[]>([]);
+  const [newSectorName, setNewSectorName] = useState("");
+
   useEffect(() => {
     if (open) {
       if (initialData) {
         setFormData(JSON.parse(JSON.stringify(initialData)));
+        // Simulação: Carregar setores dessa empresa (no real viria do backend junto com a empresa)
+        const currentSectors = mockSetores
+          .filter((s) => s.empresaId === initialData.id)
+          .map((s) => s.nome);
+        setSectors(
+          currentSectors.length > 0
+            ? currentSectors
+            : ["Administrativo", "Comercial"],
+        );
       } else {
         setFormData(JSON.parse(JSON.stringify(emptyEmpresa)));
+        setSectors(["Administrativo", "Financeiro", "Comercial"]); // Sugestão padrão
       }
     }
   }, [open, initialData]);
@@ -92,7 +106,8 @@ export function CompanyFormSheet({
   const handleSave = () => {
     setIsLoading(true);
     setTimeout(() => {
-      onSave(formData);
+      // Enviamos os dados da empresa + a lista de setores
+      onSave({ ...formData, setores: sectors });
       setIsLoading(false);
       onOpenChange(false);
     }, 1000);
@@ -116,9 +131,9 @@ export function CompanyFormSheet({
     }));
   };
 
+  // Lógica Fiscal
   const addSeries = () => {
     if (!newSeries.serie || !newSeries.pdv) return;
-
     const seriesToAdd: FiscalSeries = {
       id: Math.random().toString(36).substr(2, 9),
       serie: newSeries.serie,
@@ -127,7 +142,6 @@ export function CompanyFormSheet({
       tipo: newSeries.tipo as "NFe" | "NFCe" | "MDFe",
       ativo: newSeries.ativo || true,
     };
-
     setFormData((prev) => ({
       ...prev,
       fiscal: {
@@ -152,6 +166,19 @@ export function CompanyFormSheet({
         series: prev.fiscal?.series.filter((s) => s.id !== id) || [],
       },
     }));
+  };
+
+  // Lógica de Setores (NOVA)
+  const addSector = () => {
+    if (!newSectorName.trim()) return;
+    if (sectors.includes(newSectorName.trim())) return; // Evita duplicados
+
+    setSectors((prev) => [...prev, newSectorName.trim()]);
+    setNewSectorName("");
+  };
+
+  const removeSector = (indexToRemove: number) => {
+    setSectors((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   return (
@@ -189,17 +216,19 @@ export function CompanyFormSheet({
           </div>
         </SheetHeader>
 
-        {/* CONTEÚDO COM SCROLL E ABAS */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <Tabs defaultValue="geral" className="flex-1 flex flex-col h-full">
-            {/* LISTA DE ABAS */}
+            {/* LISTA DE ABAS - 4 Colunas agora */}
             <div className="px-5 py-3 border-b shrink-0 bg-background">
-              <TabsList className="grid w-full grid-cols-3 h-9">
+              <TabsList className="grid w-full grid-cols-4 h-9">
                 <TabsTrigger value="geral" className="text-xs">
                   Geral
                 </TabsTrigger>
                 <TabsTrigger value="endereco" className="text-xs">
                   Endereço
+                </TabsTrigger>
+                <TabsTrigger value="setores" className="text-xs">
+                  Setores
                 </TabsTrigger>
                 <TabsTrigger value="fiscal" className="text-xs">
                   Fiscal
@@ -210,6 +239,7 @@ export function CompanyFormSheet({
             <div className="flex-1 overflow-y-auto min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] p-5">
               {/* ABA GERAL */}
               <TabsContent value="geral" className="space-y-5 mt-0">
+                {/* ... (Conteúdo Geral mantido igual) ... */}
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-muted-foreground uppercase">
@@ -241,7 +271,7 @@ export function CompanyFormSheet({
 
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-muted-foreground uppercase">
-                      Fiscal & Contábil
+                      Documentação
                     </Label>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
@@ -316,9 +346,7 @@ export function CompanyFormSheet({
                     </div>
                   </div>
                 </div>
-
                 <Separator />
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center justify-between bg-muted/20 p-3 rounded-md border">
                     <div className="space-y-0.5">
@@ -329,7 +357,6 @@ export function CompanyFormSheet({
                       onCheckedChange={(v) => updateField("ativa", v)}
                     />
                   </div>
-
                   <div className="flex items-center justify-between bg-blue-50/50 dark:bg-blue-950/20 p-3 rounded-md border border-blue-100 dark:border-blue-900">
                     <div className="space-y-0.5">
                       <Label className="text-sm text-blue-900 dark:text-blue-100">
@@ -346,12 +373,12 @@ export function CompanyFormSheet({
 
               {/* ABA ENDEREÇO */}
               <TabsContent value="endereco" className="space-y-5 mt-0">
+                {/* ... (Conteúdo Endereço mantido igual) ... */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-4 w-4" />
                     <h3 className="text-sm font-medium">Endereço Comercial</h3>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="md:col-span-1 space-y-1.5">
                       <Label>CEP</Label>
@@ -424,9 +451,7 @@ export function CompanyFormSheet({
                     </div>
                   </div>
                 </div>
-
                 <Separator />
-
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <FileText className="h-4 w-4" />
@@ -455,8 +480,92 @@ export function CompanyFormSheet({
                 </div>
               </TabsContent>
 
+              {/* ABA SETORES (NOVA) */}
+              <TabsContent value="setores" className="space-y-5 mt-0">
+                <div className="bg-blue-50/50 dark:bg-blue-950/10 p-4 rounded-lg border border-blue-100 dark:border-blue-900 mb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Users className="h-4 w-4 text-blue-700" />
+                    <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+                      Departamentos e Setores
+                    </h4>
+                  </div>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    Cadastre aqui os setores desta unidade (ex: RH, Financeiro,
+                    Estoque). Eles estarão disponíveis ao cadastrar
+                    funcionários.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex gap-2 items-end">
+                    <div className="space-y-1 flex-1">
+                      <Label className="text-xs">Novo Setor</Label>
+                      <Input
+                        value={newSectorName}
+                        onChange={(e) => setNewSectorName(e.target.value)}
+                        className="h-9 text-sm"
+                        placeholder="Nome do departamento..."
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addSector();
+                          }
+                        }}
+                      />
+                    </div>
+                    <Button className="h-9" onClick={addSector}>
+                      <Plus className="h-4 w-4 mr-2" /> Adicionar
+                    </Button>
+                  </div>
+
+                  {/* Lista de Setores */}
+                  <div className="border rounded-md overflow-hidden">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-muted text-muted-foreground text-[10px] uppercase font-semibold">
+                        <tr>
+                          <th className="px-4 py-2 w-full">Nome do Setor</th>
+                          <th className="px-4 py-2 text-right">Ação</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {sectors.length === 0 && (
+                          <tr>
+                            <td
+                              colSpan={2}
+                              className="px-4 py-8 text-center text-muted-foreground text-xs"
+                            >
+                              Nenhum setor cadastrado. Adicione o primeiro
+                              acima.
+                            </td>
+                          </tr>
+                        )}
+                        {sectors.map((sector, index) => (
+                          <tr
+                            key={index}
+                            className="bg-card hover:bg-muted/50 transition-colors"
+                          >
+                            <td className="px-4 py-3 font-medium">{sector}</td>
+                            <td className="px-4 py-3 text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => removeSector(index)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </TabsContent>
+
               {/* ABA FISCAL */}
               <TabsContent value="fiscal" className="space-y-5 mt-0">
+                {/* ... (Conteúdo Fiscal mantido igual) ... */}
                 <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Receipt className="h-4 w-4 text-amber-700" />
@@ -496,8 +605,6 @@ export function CompanyFormSheet({
 
                 <div className="space-y-3">
                   <h3 className="text-sm font-medium">Séries Fiscais</h3>
-
-                  {/* Formulário de Adicionar Série (Compacto) */}
                   <div className="flex gap-2 items-end bg-muted/30 p-3 rounded-lg border">
                     <div className="space-y-1 w-20">
                       <Label className="text-[10px] uppercase text-muted-foreground">
@@ -569,7 +676,6 @@ export function CompanyFormSheet({
                     </Button>
                   </div>
 
-                  {/* Lista de Séries */}
                   <div className="border rounded-md overflow-hidden">
                     <table className="w-full text-sm text-left">
                       <thead className="bg-muted text-muted-foreground text-[10px] uppercase font-semibold">
