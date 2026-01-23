@@ -56,7 +56,7 @@ export function CompanyList() {
   const [companies, setCompanies] = useState([
     {
       id: 1,
-      name: "Matriz - Centro",
+      name: "Principal - Centro",
       cnpj: "12.345.678/0001-90", // CNPJ formatado
       uf: "SE",
       taxRegime: TaxRegime.LUCRO_REAL,
@@ -98,7 +98,7 @@ export function CompanyList() {
     value = value.replace(/(\d{2})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3/$4");
     value = value.replace(
       /(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d{2})/,
-      "$1.$2.$3/$4-$5"
+      "$1.$2.$3/$4-$5",
     );
     return value;
   };
@@ -388,7 +388,7 @@ export function CompanyList() {
                           onChange={(e) =>
                             handleInputChange(
                               "state",
-                              e.target.value.toUpperCase()
+                              e.target.value.toUpperCase(),
                             )
                           }
                           maxLength={2}

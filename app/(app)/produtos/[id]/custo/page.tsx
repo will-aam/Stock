@@ -28,7 +28,7 @@ type SectionType = "historico" | "custoMedio" | "precificacao";
 
 // Mock de Lojas para identificar o contexto
 const mockStores: Record<string, string> = {
-  "1": "Matriz - Centro",
+  "1": "Principal - Centro",
   "2": "Filial - Zona Sul",
 };
 
@@ -40,7 +40,7 @@ export default function CustoPage() {
 
   // Contexto da Página
   const productId = params?.id as string;
-  const storeId = searchParams.get("storeId") || "1"; // Default para Matriz
+  const storeId = searchParams.get("storeId") || "1"; // Default para Principal
   const storeName = mockStores[storeId] || "Loja Desconhecida";
 
   // Estados
@@ -48,7 +48,7 @@ export default function CustoPage() {
   const [product, setProduct] = useState<ProdutoFiscal | null>(null);
   const [historico, setHistorico] = useState<HistoricoCompra[]>([]);
   const [precificacao, setPrecificacao] = useState<PrecificacaoProduto | null>(
-    null
+    null,
   );
 
   // Estado do formulário de Precificação
@@ -76,7 +76,7 @@ export default function CustoPage() {
     // 2. Simulação de Histórico (Filtrado por StoreId)
     // Na vida real, isso viria de `prisma.purchaseHistory.findMany({ where: { storeId } })`
     const allHistory: HistoricoCompra[] = [
-      // Compras da Loja 1 (Matriz)
+      // Compras da Loja 1 (Principal)
       {
         id: "1",
         produtoId: "1",
@@ -147,11 +147,11 @@ export default function CustoPage() {
     if (historico.length === 0) return 0;
     const totalCusto = historico.reduce(
       (sum, h) => sum + h.custoLiquidoUnd * h.quantidadeConvertidaUnd,
-      0
+      0,
     );
     const totalQuantidade = historico.reduce(
       (sum, h) => sum + h.quantidadeConvertidaUnd,
-      0
+      0,
     );
     return totalQuantidade > 0 ? totalCusto / totalQuantidade : 0;
   }, [historico]);
@@ -160,7 +160,7 @@ export default function CustoPage() {
   const ultimaCompra = useMemo(() => {
     if (historico.length === 0) return null;
     return [...historico].sort(
-      (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
+      (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime(),
     )[0];
   }, [historico]);
 
@@ -194,7 +194,7 @@ export default function CustoPage() {
     toast({
       title: "Preço Salvo!",
       description: `O valor de R$ ${precoVendaSugerido.toFixed(
-        2
+        2,
       )} foi aplicado na ${storeName}.`,
     });
   };
@@ -364,7 +364,7 @@ export default function CustoPage() {
                             >
                               <td className="px-4 py-3 whitespace-nowrap">
                                 {new Date(compra.data).toLocaleDateString(
-                                  "pt-BR"
+                                  "pt-BR",
                                 )}
                               </td>
                               <td
@@ -427,7 +427,7 @@ export default function CustoPage() {
                     <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
                       {historico.reduce(
                         (sum, h) => sum + h.quantidadeConvertidaUnd,
-                        0
+                        0,
                       )}
                     </p>
                   </Card>
@@ -440,7 +440,7 @@ export default function CustoPage() {
                         </p>
                         <p className="text-lg font-semibold text-purple-700 dark:text-purple-300">
                           {new Date(ultimaCompra.data).toLocaleDateString(
-                            "pt-BR"
+                            "pt-BR",
                           )}
                         </p>
                       </Card>
@@ -481,7 +481,7 @@ export default function CustoPage() {
                             .sort(
                               (a, b) =>
                                 new Date(b.data).getTime() -
-                                new Date(a.data).getTime()
+                                new Date(a.data).getTime(),
                             )
                             .slice(0, 5)
                             .map((compra) => {
@@ -498,7 +498,7 @@ export default function CustoPage() {
                                 >
                                   <td className="px-4 py-3">
                                     {new Date(compra.data).toLocaleDateString(
-                                      "pt-BR"
+                                      "pt-BR",
                                     )}
                                   </td>
                                   <td className="px-4 py-3">
@@ -545,7 +545,7 @@ export default function CustoPage() {
                           setBaseCusto(
                             e.target.value as
                               | "custo_medio"
-                              | "custo_ultima_compra"
+                              | "custo_ultima_compra",
                           )
                         }
                         className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -649,7 +649,7 @@ export default function CustoPage() {
                           <p className="text-xs text-green-800 dark:text-green-500">
                             Atualizado em:{" "}
                             {new Date(precificacao.atualizadoEm).toLocaleString(
-                              "pt-BR"
+                              "pt-BR",
                             )}
                           </p>
                         </div>

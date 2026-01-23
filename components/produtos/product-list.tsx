@@ -26,14 +26,14 @@ import {
 
 // Mock de Lojas (simulando o banco de dados)
 const mockStores = [
-  { id: "1", name: "Matriz - Centro", regime: "Lucro Real" },
+  { id: "1", name: "Principal - Centro", regime: "Lucro Real" },
   { id: "2", name: "Filial - Zona Sul", regime: "Simples Nacional" },
 ];
 
 export function ProductList() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStore, setSelectedStore] = useState<string>("1"); // Default para Matriz
+  const [selectedStore, setSelectedStore] = useState<string>("1"); // Default para Principal
   const router = useRouter();
 
   // Dados mockados com informações específicas por loja (StoreData)
@@ -51,7 +51,7 @@ export function ProductList() {
         "https://fortatacadista.vteximg.com.br/arquivos/ids/299392-800-800/2301822_7894900027013_BEB-REFRIG.COCA-COLA-2L-PET..jpg?v=637764859239570000",
       // Simulação de dados que variam por filial
       storeData: {
-        "1": { price: 8.5, stock: 120 }, // Matriz
+        "1": { price: 8.5, stock: 120 }, // Principal
         "2": { price: 9.0, stock: 45 }, // Filial
       },
     },
@@ -80,7 +80,7 @@ export function ProductList() {
       (p) =>
         p.nome.toLowerCase().includes(term) ||
         p.codigoBarras.includes(term) ||
-        p.ncm.includes(term)
+        p.ncm.includes(term),
     );
   }, [products, searchTerm]);
 

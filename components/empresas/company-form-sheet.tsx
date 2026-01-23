@@ -107,7 +107,7 @@ export function CompanyFormSheet({
         );
 
         // Simula certificado já carregado se for edição
-        setCertFileName("certificado_a1_matriz.pfx");
+        setCertFileName("certificado_a1_Principal.pfx");
       } else {
         setFormData(JSON.parse(JSON.stringify(emptyEmpresa)));
         setSectors(["Administrativo", "Financeiro", "Comercial"]);
@@ -378,7 +378,7 @@ export function CompanyFormSheet({
                   <div className="flex items-center justify-between bg-blue-50/50 dark:bg-blue-950/20 p-3 rounded-md border border-blue-100 dark:border-blue-900">
                     <div className="space-y-0.5">
                       <Label className="text-sm text-blue-900 dark:text-blue-100">
-                        Matriz (Principal)
+                        Principal
                       </Label>
                     </div>
                     <Switch

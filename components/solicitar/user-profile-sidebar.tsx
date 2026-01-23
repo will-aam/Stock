@@ -262,7 +262,7 @@ export function UserProfileSidebar() {
                   <div className="bg-card border rounded-lg divide-y">
                     <div className="flex justify-between p-3 text-sm">
                       <span className="text-muted-foreground">Unidade</span>
-                      <span className="font-medium">Matriz Aracaju</span>
+                      <span className="font-medium">Principal Aracaju</span>
                     </div>
                     <div className="flex justify-between p-3 text-sm">
                       <span className="text-muted-foreground">
