@@ -6,7 +6,7 @@ import { ProductList } from "@/components/produtos/product-list";
 import { ProductFormSheet } from "@/components/produtos/product-form-sheet";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 // Importa o tipo e o mock inicial
 import { produtos as initialProdutos, Produto } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
@@ -80,11 +80,20 @@ export default function ProdutosPage() {
               itens.
             </p>
           </div>
-          {/* Botão de Ação Principal */}
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Produto
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={() => (window.location.href = "/produtos/auxiliares")} // Usando window.location ou router.push
+              className="w-full sm:w-auto"
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Configurações
+            </Button>
+            <Button onClick={handleCreate} className="w-full sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Produto
+            </Button>
+          </div>
         </div>
 
         <Separator />

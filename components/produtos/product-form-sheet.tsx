@@ -35,13 +35,21 @@ import {
   Image as ImageIcon,
   Plus,
   Trash2,
+  Store,
+  MapPin,
+  DollarSign,
 } from "lucide-react";
 
-import { Produto } from "@/lib/mock/produtos/index";
+import {
+  Produto,
+  PrecificacaoPorLoja,
+  EstoquePorLoja,
+} from "@/lib/mock/produtos/index";
 import { gruposTributarios } from "@/lib/mock/produtos/grupos-tributarios";
 import { categorias } from "@/lib/mock/produtos/categorias";
 import { marcas } from "@/lib/mock/produtos/marcas";
 import { unidades } from "@/lib/mock/produtos/unidades";
+import { empresas } from "@/lib/mock/empresas"; // Importando as empresas
 
 interface ProductFormSheetProps {
   open: boolean;
@@ -112,6 +120,73 @@ export function ProductFormSheet({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // --- LÓGICA DE LOJAS (PREÇO E ESTOQUE) ---
+
+  // Atualiza o Preço de Venda (Tabela "Varejo") para uma loja específica
+  const updateLojaPreco = (empresaId: string, valor: number) => {
+    setFormData((prev) => {
+      const newPrecos = [...(prev.precos || [])];
+      const index = newPrecos.findIndex((p) => p.empresaId === empresaId);
+
+      if (index >= 0) {
+        // Atualiza existente
+        const tabelas = [...newPrecos[index].tabelas];
+        const tabIndex = tabelas.findIndex((t) => t.id === "tab-1"); // Assumindo tab-1 como Varejo padrão
+
+        if (tabIndex >= 0) {
+          tabelas[tabIndex] = { ...tabelas[tabIndex], valor };
+        } else {
+          tabelas.push({ id: "tab-1", nome: "Varejo", valor });
+        }
+        newPrecos[index] = { ...newPrecos[index], tabelas };
+      } else {
+        // Cria novo registro de preço para essa loja
+        newPrecos.push({
+          empresaId,
+          precoCusto: 0,
+          custoMedio: 0,
+          margemLucroAlvo: 0,
+          markupAlvo: 0,
+          precoAberto: false,
+          tabelas: [{ id: "tab-1", nome: "Varejo", valor }],
+        });
+      }
+      return { ...prev, precos: newPrecos };
+    });
+  };
+
+  // Atualiza campos de estoque (Atual, Mínimo, Máximo)
+  const updateLojaEstoque = (
+    empresaId: string,
+    field: keyof EstoquePorLoja,
+    value: number,
+  ) => {
+    setFormData((prev) => {
+      const newEstoque = [...(prev.estoque || [])];
+      const index = newEstoque.findIndex((e) => e.empresaId === empresaId);
+
+      if (index >= 0) {
+        newEstoque[index] = { ...newEstoque[index], [field]: value };
+      } else {
+        // Inicializa objeto de estoque se não existir
+        const novoEstoque: any = {
+          empresaId,
+          atual: 0,
+          minimo: 0,
+          maximo: 0,
+          seguranca: 0,
+          pontoReposicao: 0,
+          tempoReposicao: 0,
+          loteEconomicoCompra: 0,
+        };
+        novoEstoque[field] = value;
+        newEstoque.push(novoEstoque);
+      }
+      return { ...prev, estoque: newEstoque };
+    });
+  };
+
+  // --- LÓGICA DE ARRAYS SIMPLES ---
   const addBarcode = () => {
     if (!tempBarcode) return;
     setFormData((prev) => ({
@@ -155,7 +230,7 @@ export function ProductFormSheet({
         className="w-full sm:max-w-[800px] p-0 flex flex-col bg-background border-l shadow-2xl h-full"
         side="right"
       >
-        {/* HEADER (Fixo) */}
+        {/* HEADER */}
         <SheetHeader className="p-5 border-b shrink-0 bg-muted/5">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -185,26 +260,26 @@ export function ProductFormSheet({
           </div>
         </SheetHeader>
 
-        {/* CONTEÚDO (Scrollável) */}
+        {/* CONTEÚDO */}
         <div className="flex-1 overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-950/20">
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
             className="flex-1 flex flex-col h-full"
           >
-            {/* Abas Fixas no Topo */}
+            {/* Abas Fixas */}
             <div className="px-5 pt-4 bg-background border-b shadow-sm z-10 shrink-0">
-              <TabsList className="grid w-full grid-cols-4 h-10 mb-2">
+              <TabsList className="grid w-full grid-cols-5 h-10 mb-2">
                 <TabsTrigger value="principal">Principal</TabsTrigger>
                 <TabsTrigger value="fiscal">Fiscal</TabsTrigger>
+                <TabsTrigger value="lojas">Lojas</TabsTrigger>
                 <TabsTrigger value="logistica">Logística</TabsTrigger>
                 <TabsTrigger value="extras">Extras</TabsTrigger>
               </TabsList>
             </div>
 
-            {/* Área de Scroll */}
+            {/* Área de Scroll (Com scroll invisível) */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              {" "}
               {/* --- ABA PRINCIPAL --- */}
               <TabsContent value="principal" className="space-y-6 mt-0 h-auto">
                 <div className="grid gap-5">
@@ -339,6 +414,7 @@ export function ProductFormSheet({
                   </div>
                 </div>
               </TabsContent>
+
               {/* --- ABA FISCAL --- */}
               <TabsContent value="fiscal" className="space-y-6 mt-0 h-auto">
                 <div className="bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-lg border border-blue-100 dark:border-blue-900 flex gap-3">
@@ -424,6 +500,115 @@ export function ProductFormSheet({
                   </div>
                 </div>
               </TabsContent>
+
+              {/* --- ABA LOJAS (NOVO) --- */}
+              <TabsContent value="lojas" className="space-y-6 mt-0 h-auto">
+                <div className="space-y-4">
+                  {empresas.map((empresa) => {
+                    const dadosPreco = formData.precos?.find(
+                      (p) => p.empresaId === empresa.id,
+                    );
+                    const dadosEstoque = formData.estoque?.find(
+                      (e) => e.empresaId === empresa.id,
+                    );
+                    // Pega o valor da tabela 'tab-1' (Varejo)
+                    const precoVarejo =
+                      dadosPreco?.tabelas?.find((t) => t.id === "tab-1")
+                        ?.valor || 0;
+
+                    return (
+                      <div
+                        key={empresa.id}
+                        className="border rounded-lg p-4 bg-background shadow-sm"
+                      >
+                        <div className="flex items-center gap-2 mb-4">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          <h4 className="font-semibold text-sm">
+                            {empresa.nomeFantasia}
+                          </h4>
+                          <Badge
+                            variant="outline"
+                            className="ml-auto text-[10px]"
+                          >
+                            {empresa.regimeTributario}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">
+                              Preço Venda (Varejo)
+                            </Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-green-600" />
+                              <Input
+                                type="number"
+                                className="pl-7 h-9 font-bold text-green-700"
+                                value={precoVarejo}
+                                onChange={(e) =>
+                                  updateLojaPreco(
+                                    empresa.id,
+                                    parseFloat(e.target.value),
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">
+                              Estoque Atual
+                            </Label>
+                            <Input
+                              type="number"
+                              className="h-9"
+                              value={dadosEstoque?.atual || 0}
+                              onChange={(e) =>
+                                updateLojaEstoque(
+                                  empresa.id,
+                                  "atual",
+                                  parseFloat(e.target.value),
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">
+                              Estoque Mínimo
+                            </Label>
+                            <Input
+                              type="number"
+                              className="h-9"
+                              value={dadosEstoque?.minimo || 0}
+                              onChange={(e) =>
+                                updateLojaEstoque(
+                                  empresa.id,
+                                  "minimo",
+                                  parseFloat(e.target.value),
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">
+                              Localização
+                            </Label>
+                            <Input
+                              className="h-9"
+                              placeholder="Corredor..."
+                              // Nota: Aqui simplifiquei, na prática precisaria atualizar o objeto todo se mudar string
+                              // Para o MVP visual, deixamos assim ou implementamos updateString depois.
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </TabsContent>
+
               {/* --- ABA LOGÍSTICA --- */}
               <TabsContent value="logistica" className="space-y-6 mt-0 h-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -505,6 +690,7 @@ export function ProductFormSheet({
                   </div>
                 </div>
               </TabsContent>
+
               {/* --- ABA EXTRAS --- */}
               <TabsContent value="extras" className="space-y-8 mt-0 h-auto">
                 {/* Imagens */}
