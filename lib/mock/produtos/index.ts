@@ -61,6 +61,7 @@ export interface PrecificacaoPorLoja {
   margemLucroAlvo: number;
   markupAlvo: number;
   precoAberto: boolean;
+  // CORREÇÃO: O preço de venda vem das tabelas
   tabelas: TabelaPreco[];
   agendamentos?: AgendamentoPreco[];
   regrasEspecificas?: RegraPrecificacao[];
@@ -87,7 +88,6 @@ export interface EstoquePorLoja {
   curvaABC?: "A" | "B" | "C";
 }
 
-// Embalagens de Atacado (Packs)
 export interface EmbalagemVenda {
   id: string;
   nome: string;
@@ -98,7 +98,6 @@ export interface EmbalagemVenda {
   ativo: boolean;
 }
 
-// O objeto fiscal detalhado que pode sobrescrever o grupo se necessário
 export interface FiscalDetalhado {
   perfilFiscalId?: string;
   ncm: string;
@@ -122,13 +121,12 @@ export interface FiscalDetalhado {
   aliquotaCbs?: number;
 }
 
-// O PRODUTO MESTRE (VERSÃO FINAL CONSOLIDADA)
+// O PRODUTO MESTRE
 export interface Produto {
   id: string;
   ativo: boolean;
   controlaEstoque: boolean;
 
-  // Identificação
   nome: string;
   descricaoAuxiliar?: string;
   descricaoDetalhadaHtml?: string;
@@ -137,7 +135,6 @@ export interface Produto {
   codigosBarrasAdicionais: string[];
   referencia?: string;
 
-  // Classificação
   tipoItem: string;
   unidade: string;
   casasDecimais: number;
@@ -146,10 +143,8 @@ export interface Produto {
   marcaId: string;
   centroCustoId?: string;
 
-  // Logística
   tipoControle: "unitario" | "lote" | "serie";
 
-  // Visual
   imagens: string[];
   catalogo: {
     publicar: boolean;
@@ -157,34 +152,28 @@ export interface Produto {
     ordem: number;
   };
 
-  // --- DADOS FÍSICOS ---
   pesoBruto: number;
   pesoLiquido: number;
   volume?: number;
   dimensoes?: { altura: number; largura: number; comprimento: number };
 
-  // --- FISCAL INTELIGENTE ---
-  // AQUI A CORREÇÃO: Vincula ao conceito técnico de Grupo Tributário
   grupoTributarioId?: string;
 
-  // Dados fiscais específicos do ITEM (NCM é do item, não do grupo)
+  // DADOS DO ITEM (CORREÇÃO: Origem adicionada aqui)
   ncm: string;
   cest?: string;
+  origem: number; // 0 - Nacional, 1 - Estrangeira...
 
-  // Se preenchido, este objeto sobrescreve as regras do grupo (exceção)
   fiscalExcecao?: FiscalDetalhado;
 
-  // --- ESTRUTURA ---
   tipo: "simples" | "grade" | "kit" | "servico";
   variacoes?: GradeVariacao[];
   embalagens?: EmbalagemVenda[];
   balanca?: DadosBalanca;
 
-  // Relacionamentos
   fornecedores: ProdutoFornecedor[];
   restricoes?: RestricaoVenda;
 
-  // DADOS POR LOJA
   precos: PrecificacaoPorLoja[];
   estoque: EstoquePorLoja[];
 
@@ -206,7 +195,7 @@ export const produtos: Produto[] = [
     codigosBarrasAdicionais: [],
     referencia: "I15-3000",
 
-    tipoItem: "00", // Mercadoria para Revenda
+    tipoItem: "00",
     unidade: "UN",
     casasDecimais: 0,
     categoriaId: "cat-1",
@@ -218,9 +207,9 @@ export const produtos: Produto[] = [
     ],
     catalogo: { publicar: true, destaque: true, ordem: 1 },
 
-    // FISCAL
-    grupoTributarioId: "gt-1", // Vinculado ao grupo "Tributado Integralmente"
+    grupoTributarioId: "gt-1",
     ncm: "8471.30.12",
+    origem: 0, // Adicionado aqui
 
     pesoBruto: 2.5,
     pesoLiquido: 1.8,
@@ -289,10 +278,10 @@ export const produtos: Produto[] = [
     ],
     catalogo: { publicar: true, destaque: false, ordem: 2 },
 
-    // FISCAL
-    grupoTributarioId: "gt-2", // Vinculado ao grupo "Monofásico"
+    grupoTributarioId: "gt-2",
     ncm: "2203.00.00",
     cest: "03.001.00",
+    origem: 0, // Adicionado aqui
 
     embalagens: [
       {

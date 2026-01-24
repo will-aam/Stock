@@ -10,12 +10,12 @@ import {
   Trash2,
   Search,
   Package,
-  Calculator,
   Store,
   MapPin,
+  Barcode,
+  Layers,
+  AlertTriangle,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -23,283 +23,267 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Produto } from "@/lib/mock/produtos/index";
+import { empresas } from "@/lib/mock/empresas";
+import { getGrupoTributarioById } from "@/lib/mock/produtos/grupos-tributarios";
 
-// Mock de Lojas (simulando o banco de dados)
-const mockStores = [
-  { id: "1", name: "Principal - Centro", regime: "Lucro Real" },
-  { id: "2", name: "Filial - Zona Sul", regime: "Simples Nacional" },
-];
+interface ProductListProps {
+  produtos: Produto[];
+  onEdit: (produto: Produto) => void;
+  onCreate: () => void;
+}
 
-export function ProductList() {
-  const { toast } = useToast();
+export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStore, setSelectedStore] = useState<string>("1"); // Default para Principal
-  const router = useRouter();
-
-  // Dados mockados com informações específicas por loja (StoreData)
-  const [products, setProducts] = useState<any[]>([
-    {
-      id: "1",
-      nome: "Refrigerante Coca-Cola 2L",
-      codigoBarras: "7894900011517",
-      unidadeMedidaComercial: "UN",
-      tipoItem: "mercadoria_revenda",
-      ncm: "22021000",
-      icmsAliquota: 18, // Padrão Global
-      grupo: "Bebidas",
-      imagemUrl:
-        "https://fortatacadista.vteximg.com.br/arquivos/ids/299392-800-800/2301822_7894900027013_BEB-REFRIG.COCA-COLA-2L-PET..jpg?v=637764859239570000",
-      // Simulação de dados que variam por filial
-      storeData: {
-        "1": { price: 8.5, stock: 120 }, // Principal
-        "2": { price: 9.0, stock: 45 }, // Filial
-      },
-    },
-    {
-      id: "2",
-      nome: "Arroz Branco Tipo 1 - 5kg",
-      codigoBarras: "7896036095904",
-      unidadeMedidaComercial: "PCT",
-      tipoItem: "mercadoria_revenda",
-      ncm: "10063021",
-      icmsAliquota: 12, // Padrão Global
-      grupo: "Alimentos",
-      imagemUrl:
-        "https://prezunic.vtexassets.com/arquivos/ids/180742/65678a821ef3739680761582.jpg?v=638368812869870000",
-      storeData: {
-        "1": { price: 24.9, stock: 300 },
-        "2": { price: 25.5, stock: 80 },
-      },
-    },
-  ]);
+  const [selectedEmpresaId, setSelectedEmpresaId] = useState<string>(
+    empresas[0]?.id || "",
+  );
 
   const filteredProducts = useMemo(() => {
-    if (!searchTerm) return products;
+    if (!searchTerm) return produtos;
     const term = searchTerm.toLowerCase();
-    return products.filter(
+    return produtos.filter(
       (p) =>
         p.nome.toLowerCase().includes(term) ||
         p.codigoBarras.includes(term) ||
-        p.ncm.includes(term),
+        p.codigoInterno.includes(term) ||
+        (p.referencia && p.referencia.toLowerCase().includes(term)),
     );
-  }, [products, searchTerm]);
+  }, [produtos, searchTerm]);
 
-  const tipoItemLabels: Record<string, string> = {
-    mercadoria_revenda: "Revenda",
-    materia_prima: "Insumo",
-    uso_consumo: "Uso e Consumo",
-    ativo: "Ativo",
-    brinde: "Brinde",
+  // Helper para buscar dados da loja selecionada e o preço principal
+  const getDadosLoja = (produto: Produto) => {
+    const dadosPreco = produto.precos.find(
+      (p) => p.empresaId === selectedEmpresaId,
+    );
+    const dadosEstoque = produto.estoque.find(
+      (e) => e.empresaId === selectedEmpresaId,
+    );
+
+    // CORREÇÃO: Pegamos o valor da primeira tabela de preço (Geralmente "Varejo")
+    const precoVenda = dadosPreco?.tabelas?.[0]?.valor;
+
+    return { precoVenda, estoque: dadosEstoque };
   };
 
-  const handleDelete = (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-    toast({
-      title: "Produto removido",
-      description: "Item excluído da lista visual.",
-    });
-  };
-
-  const handleEdit = (product: any) => {
-    // Ao editar, editamos o produto GLOBAL
-    router.push(`/produtos/cadastro?id=${product.id}`);
-  };
-
-  const handleCost = (product: any) => {
-    // Ao ver custo, passamos o contexto da LOJA selecionada na URL
-    router.push(`/produtos/${product.id}/custo?storeId=${selectedStore}`);
-  };
-
-  const currentStore = mockStores.find((s) => s.id === selectedStore);
+  const currentStore = empresas.find((s) => s.id === selectedEmpresaId);
 
   return (
     <div className="space-y-6">
-      {/* Seletor de Contexto (Loja Ativa) */}
-      <Card className="p-4 bg-muted/30 border-l-4 border-l-primary">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Store className="h-4 w-4" />
-              Contexto Operacional
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Selecione a loja para visualizar preços, estoques e custos
-              específicos da unidade.
-            </p>
-          </div>
-          <div className="w-full sm:w-[300px]">
-            <Select value={selectedStore} onValueChange={setSelectedStore}>
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="Selecione a Loja" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockStores.map((store) => (
-                  <SelectItem key={store.id} value={store.id}>
-                    {store.name}{" "}
-                    <span className="text-muted-foreground text-xs">
-                      ({store.regime})
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      {/* 1. SELETOR DE CONTEXTO */}
+      <div className="bg-muted/30 p-4 rounded-lg border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h3 className="text-sm font-medium flex items-center gap-2">
+            <Store className="h-4 w-4 text-primary" />
+            Contexto Operacional
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Visualizando preços e estoques da unidade selecionada.
+          </p>
         </div>
-      </Card>
+        <div className="w-full sm:w-[300px]">
+          <Select
+            value={selectedEmpresaId}
+            onValueChange={setSelectedEmpresaId}
+          >
+            <SelectTrigger className="bg-background h-9">
+              <SelectValue placeholder="Selecione a Loja" />
+            </SelectTrigger>
+            <SelectContent>
+              {empresas.map((emp) => (
+                <SelectItem key={emp.id} value={emp.id}>
+                  {emp.nomeFantasia}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-      <Card className="p-4">
-        {/* Barra de Busca */}
-        <div className="relative mb-4">
+      {/* 2. BARRA DE AÇÕES */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <div className="relative w-full sm:w-96">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar no catálogo global (Nome, EAN, NCM)..."
+            placeholder="Buscar por nome, EAN, referência..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 mobile-optimized"
+            className="pl-10 h-10"
           />
         </div>
+        <Button onClick={onCreate} className="w-full sm:w-auto h-10">
+          <Package className="w-4 h-4 mr-2" /> Novo Produto
+        </Button>
+      </div>
 
-        <p className="text-sm text-muted-foreground mb-4">
-          {filteredProducts.length}{" "}
-          {filteredProducts.length === 1 ? "produto" : "produtos"} no catálogo
-          global
-        </p>
+      {/* 3. LISTAGEM */}
+      {filteredProducts.length === 0 ? (
+        <div className="text-center py-16 bg-muted/10 rounded-lg border border-dashed">
+          <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+          <p className="text-muted-foreground">
+            {searchTerm
+              ? "Nenhum produto encontrado para sua busca."
+              : "Nenhum produto cadastrado ainda."}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {filteredProducts.map((product) => {
+            const { precoVenda, estoque } = getDadosLoja(product);
+            const grupoTributario = product.grupoTributarioId
+              ? getGrupoTributarioById(product.grupoTributarioId)
+              : null;
 
-        {/* Lista de Cards */}
-        {filteredProducts.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <p className="text-muted-foreground">
-              {searchTerm
-                ? "Nenhum produto encontrado"
-                : "Nenhum produto cadastrado ainda"}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredProducts.map((product) => {
-              // Extrai dados específicos da loja selecionada (mock)
-              const storeInfo = product.storeData?.[selectedStore];
+            const mainImage =
+              product.imagens && product.imagens.length > 0
+                ? product.imagens[0]
+                : null;
 
-              return (
-                <Card
-                  key={product.id}
-                  className="p-4 hover:border-primary/50 transition-colors"
-                >
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    {/* Imagem */}
-                    <div className="shrink-0">
-                      {product.imagemUrl ? (
-                        <img
-                          src={product.imagemUrl}
-                          alt={product.nome}
-                          className="h-24 w-24 object-cover rounded-md border"
-                        />
-                      ) : (
-                        <div className="h-24 w-24 bg-muted rounded-md flex items-center justify-center border">
-                          <Package className="h-10 w-10 text-muted-foreground/50" />
-                        </div>
-                      )}
-                    </div>
+            return (
+              <Card
+                key={product.id}
+                className="p-4 hover:border-primary/40 transition-all duration-200 group"
+              >
+                <div className="flex flex-col sm:flex-row gap-5">
+                  {/* Imagem */}
+                  <div className="shrink-0 relative">
+                    {mainImage ? (
+                      <img
+                        src={mainImage}
+                        alt={product.nome}
+                        className="h-24 w-24 object-cover rounded-md border bg-white"
+                      />
+                    ) : (
+                      <div className="h-24 w-24 bg-muted rounded-md flex items-center justify-center border">
+                        <Package className="h-8 w-8 text-muted-foreground/30" />
+                      </div>
+                    )}
+                    {!product.ativo && (
+                      <Badge
+                        variant="destructive"
+                        className="absolute -top-2 -left-2 text-[10px] px-1.5 h-5"
+                      >
+                        Inativo
+                      </Badge>
+                    )}
+                  </div>
 
-                    {/* Informações */}
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-semibold text-base truncate pr-2">
+                  {/* Informações Principais */}
+                  <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                    <div>
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-bold text-base truncate pr-2 text-foreground/90">
                           {product.nome}
                         </h3>
-                        {/* Indicador visual de qual loja estamos vendo */}
-                        {storeInfo && (
+                        {/* Preço no Topo (Mobile) */}
+                        <div className="sm:hidden font-bold text-green-700">
+                          {precoVenda ? `R$ ${precoVenda.toFixed(2)}` : "R$ --"}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mb-2">
+                        <span className="flex items-center gap-1 bg-muted/50 px-1.5 rounded">
+                          <Barcode className="h-3 w-3" /> {product.codigoBarras}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          Ref: {product.referencia || "-"}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          SKU: {product.codigoInterno}
+                        </span>
+                      </div>
+
+                      {product.descricaoAuxiliar && (
+                        <p className="text-xs text-muted-foreground/80 truncate mb-2">
+                          {product.descricaoAuxiliar}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] h-5 font-normal"
+                        >
+                          {product.unidade}
+                        </Badge>
+                        {grupoTributario && (
                           <Badge
                             variant="secondary"
-                            className="hidden sm:flex shrink-0 bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100"
+                            className="text-[10px] h-5 font-normal bg-blue-50 text-blue-700 hover:bg-blue-100"
                           >
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {currentStore?.name}
+                            <Layers className="h-3 w-3 mr-1" />
+                            {/* CORREÇÃO: Usando .descricao em vez de .nome */}
+                            {grupoTributario.descricao.split("-")[0].trim()}
                           </Badge>
                         )}
                       </div>
+                    </div>
+                  </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                        <div>
-                          <span className="font-medium text-foreground">
-                            EAN:
-                          </span>{" "}
-                          {product.codigoBarras}
-                        </div>
-                        <div>
-                          <span className="font-medium text-foreground">
-                            NCM:
-                          </span>{" "}
-                          {product.ncm}
-                        </div>
-                        <div>
-                          <span className="font-medium text-foreground">
-                            Tipo:
-                          </span>{" "}
-                          {tipoItemLabels[product.tipoItem] || product.tipoItem}
-                        </div>
+                  {/* Coluna Dinâmica */}
+                  <div className="sm:w-48 shrink-0 flex flex-row sm:flex-col justify-between sm:justify-center items-center sm:items-end gap-2 border-t sm:border-t-0 sm:border-l pt-3 sm:pt-0 sm:pl-5 mt-2 sm:mt-0 bg-muted/5 sm:bg-transparent rounded sm:rounded-none px-3 sm:px-0">
+                    <div className="hidden sm:flex items-center text-[10px] text-muted-foreground mb-1">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      {currentStore?.nomeFantasia}
+                    </div>
 
-                        {/* COLUNA DINÂMICA: Muda conforme o Select do Topo */}
-                        <div className="col-span-2 md:col-span-1 mt-2 md:mt-0 p-2 bg-muted/20 rounded border border-dashed border-muted-foreground/20">
-                          {storeInfo ? (
-                            <div className="flex flex-col">
-                              <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                                Preço Local
-                              </span>
-                              <span className="font-bold text-green-600">
-                                R$ {storeInfo.price.toFixed(2)}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                Estoque: {storeInfo.stock}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-xs italic text-muted-foreground">
-                              Sem dados para esta loja
-                            </span>
-                          )}
-                        </div>
+                    <div className="text-left sm:text-right">
+                      <div className="text-[10px] uppercase text-muted-foreground font-semibold">
+                        Preço Venda
+                      </div>
+                      <div className="font-bold text-lg text-green-700 leading-none">
+                        {precoVenda ? (
+                          `R$ ${precoVenda.toFixed(2)}`
+                        ) : (
+                          <span className="text-muted-foreground text-sm">
+                            Não definido
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Ações */}
-                    <div className="flex sm:flex-col gap-2 justify-end sm:justify-start pt-2 sm:pt-0 border-t sm:border-t-0 mt-2 sm:mt-0">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(product)}
-                        className="h-8 px-2 justify-start"
+                    <div className="text-right">
+                      <div className="text-[10px] uppercase text-muted-foreground font-semibold">
+                        Estoque Atual
+                      </div>
+                      <div
+                        className={`font-bold text-sm flex items-center justify-end gap-1 ${estoque && estoque.atual <= estoque.minimo ? "text-red-600" : "text-foreground"}`}
                       >
-                        <Pencil className="h-4 w-4 mr-2" />
-                        <span className="sm:hidden">Editar Global</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2 justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        onClick={() => handleCost(product)}
-                      >
-                        <Calculator className="h-4 w-4 mr-2" />
-                        <span className="sm:hidden">Custos & Preço</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(product.id)}
-                        className="h-8 px-2 justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        <span className="sm:hidden">Excluir</span>
-                      </Button>
+                        {estoque && estoque.atual <= estoque.minimo && (
+                          <AlertTriangle className="h-3 w-3" />
+                        )}
+                        {estoque ? estoque.atual : "-"} {product.unidade}
+                      </div>
                     </div>
                   </div>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </Card>
+
+                  {/* Ações */}
+                  <div className="flex sm:flex-col gap-2 justify-end sm:justify-center items-center sm:border-l sm:pl-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      onClick={() => onEdit(product)}
+                      title="Editar Produto"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => {}}
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
