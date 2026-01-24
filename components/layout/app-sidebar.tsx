@@ -53,10 +53,9 @@ export function AppSidebar() {
     { title: "Usuários", url: "/usuarios", icon: Users },
   ];
 
-  // Subitens do menu Produtos (com Cadastro adicionado)
+  // Subitens do menu Produtos
   const productSubItems = [
     { title: "Listagem", url: "/produtos" },
-    { title: "Cadastro", url: "/produtos/cadastro" },
     { title: "Classificação", url: "/produtos/classificacao" },
   ];
 
