@@ -123,3 +123,8 @@ export function getUsuarioById(id: string) {
 export function getUsuariosByEmpresa(empresaId: string) {
   return usuarios.filter((u) => u.empresaId === empresaId);
 }
+
+// NOVO HELPER ADICIONADO PARA CORRIGIR O ERRO
+export function getUsuariosBySetor(setorId: string) {
+  return usuarios.filter((u) => u.setorId === setorId);
+}

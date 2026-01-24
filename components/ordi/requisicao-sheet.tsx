@@ -1,12 +1,9 @@
-// app/components/ordi/requisicao-sheet.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import {
-  X,
   Users,
   Calendar,
-  Package,
   Check,
   Loader2,
   ShoppingCart,
@@ -14,7 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox"; // RE-IMPORTANDO O CHECKBOX
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Sheet,
   SheetContent,
@@ -23,11 +20,12 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
+// CORREÇÃO DOS IMPORTS
 import {
   type Requisicao,
   type ItemRequisicao,
   type ItemTag,
-  getFuncionarioById,
+  getUsuarioById, // Era getFuncionarioById
   getSetorById,
 } from "@/lib/mock-data";
 import { useRequisicoesStore } from "@/lib/requisicoes-store";
@@ -204,7 +202,6 @@ export function RequisicaoSheet({
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {/* READICIONADO: Checkbox no cabeçalho */}
                       <Checkbox
                         checked={
                           selectedItems.length === itemsState.length &&
@@ -250,7 +247,8 @@ export function RequisicaoSheet({
               </div>
 
               {itemsState.map((item, index) => {
-                const itemFuncionario = getFuncionarioById(
+                // CORREÇÃO: getUsuarioById em vez de getFuncionarioById
+                const itemFuncionario = getUsuarioById(
                   item.funcionarioId || requisicao.funcionarioId,
                 );
 
@@ -262,7 +260,6 @@ export function RequisicaoSheet({
                     } hover:border-primary/50`}
                   >
                     <div className="flex gap-4">
-                      {/* AQUI NÃO TEM MAIS O CHECKBOX INDIVIDUAL */}
                       <div className="flex-1 flex flex-col gap-4">
                         <div className="flex justify-between items-start gap-4">
                           <div className="min-w-0">

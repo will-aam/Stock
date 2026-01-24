@@ -1,4 +1,3 @@
-// app/(app)/ordi/page.tsx
 "use client";
 
 import { useState, useMemo } from "react";
@@ -11,9 +10,7 @@ import {
   Settings,
   Trash2,
   Copy,
-  Send,
   Check,
-  Link as LinkIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -42,12 +39,13 @@ import { StatsCards } from "@/components/ordi/stats-cards";
 import { KanbanBoard } from "@/components/ordi/kanban-board";
 import { useRequisicoesStore } from "@/lib/requisicoes-store";
 import { TrashSheet } from "@/components/ordi/trash/trash-sheet";
+// CORREÇÃO DOS IMPORTS AQUI
 import {
   empresas,
   setores,
-  funcionarios,
+  usuarios, // Era funcionarios
   getSetoresByEmpresa,
-  getFuncionariosBySetor,
+  getUsuariosBySetor, // Era getFuncionariosBySetor
 } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 
@@ -59,17 +57,14 @@ export default function AdminRequisicoesPage() {
 
   const [empresaFilter, setEmpresaFilter] = useState<string>("todas");
   const [setorFilter, setSetorFilter] = useState<string>("todos");
-  const [funcionarioFilter, setFuncionarioFilter] = useState<string>("todos");
+  const [usuarioFilter, setUsuarioFilter] = useState<string>("todos"); // Era funcionarioFilter
   const [periodoFilter, setPeriodoFilter] = useState<PeriodoFilter>("todos");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  // const [showHelpModal, setShowHelpModal] = useState<boolean>(false); // Removido conforme solicitado
   const [isTrashOpen, setIsTrashOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
-  // Link de Exemplo (Estático)
   const SHARE_LINK = "http://localhost:3000/solicitar";
 
-  // --- Funções de Compartilhamento ---
   const handleCopyLink = () => {
     navigator.clipboard.writeText(SHARE_LINK);
     setIsCopied(true);
@@ -77,30 +72,22 @@ export default function AdminRequisicoesPage() {
       title: "Link copiado!",
       description: "O link de solicitação está na sua área de transferência.",
     });
-
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  const handleSendEmail = () => {
-    toast({
-      title: "E-mails enviados",
-      description:
-        "O link de acesso foi disparado para todos os funcionários ativos.",
-    });
-  };
-
-  // --- Lógica de Filtros (Mantida) ---
+  // --- Lógica de Filtros ---
   const setoresFiltrados = useMemo(() => {
     if (empresaFilter === "todas") return setores;
     return getSetoresByEmpresa(empresaFilter);
   }, [empresaFilter]);
 
-  const funcionariosFiltrados = useMemo(() => {
+  // CORREÇÃO: Usando usuarios e getUsuariosBySetor
+  const usuariosFiltrados = useMemo(() => {
     if (setorFilter === "todos") {
-      if (empresaFilter === "todas") return funcionarios;
-      return funcionarios.filter((f) => f.empresaId === empresaFilter);
+      if (empresaFilter === "todas") return usuarios;
+      return usuarios.filter((u) => u.empresaId === empresaFilter);
     }
-    return getFuncionariosBySetor(setorFilter);
+    return getUsuariosBySetor(setorFilter);
   }, [empresaFilter, setorFilter]);
 
   const requisicoesFiltradas = useMemo(() => {
@@ -112,8 +99,9 @@ export default function AdminRequisicoesPage() {
     if (setorFilter !== "todos") {
       filtered = filtered.filter((r) => r.setorId === setorFilter);
     }
-    if (funcionarioFilter !== "todos") {
-      filtered = filtered.filter((r) => r.funcionarioId === funcionarioFilter);
+    // CORREÇÃO: Usando usuarioFilter e funcionarioId (que é a prop na requisição)
+    if (usuarioFilter !== "todos") {
+      filtered = filtered.filter((r) => r.funcionarioId === usuarioFilter);
     }
     if (periodoFilter !== "todos") {
       const now = new Date();
@@ -162,7 +150,7 @@ export default function AdminRequisicoesPage() {
     requisicoes,
     empresaFilter,
     setorFilter,
-    funcionarioFilter,
+    usuarioFilter, // Era funcionarioFilter
     periodoFilter,
     searchQuery,
     setores,
@@ -171,18 +159,18 @@ export default function AdminRequisicoesPage() {
   const handleEmpresaChange = (value: string) => {
     setEmpresaFilter(value);
     setSetorFilter("todos");
-    setFuncionarioFilter("todos");
+    setUsuarioFilter("todos");
   };
 
   const handleSetorChange = (value: string) => {
     setSetorFilter(value);
-    setFuncionarioFilter("todos");
+    setUsuarioFilter("todos");
   };
 
   const limparFiltros = () => {
     setEmpresaFilter("todas");
     setSetorFilter("todos");
-    setFuncionarioFilter("todos");
+    setUsuarioFilter("todos");
     setPeriodoFilter("todos");
     setSearchQuery("");
   };
@@ -190,13 +178,12 @@ export default function AdminRequisicoesPage() {
   const hasActiveFilters =
     empresaFilter !== "todas" ||
     setorFilter !== "todos" ||
-    funcionarioFilter !== "todos" ||
+    usuarioFilter !== "todos" ||
     periodoFilter !== "todos" ||
     searchQuery !== "";
 
   return (
     <div className="h-full flex flex-col bg-background overflow-hidden">
-      {/* Header */}
       <header className="border-b border-border bg-card shrink-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -231,7 +218,6 @@ export default function AdminRequisicoesPage() {
                 </Tooltip>
               </div>
 
-              {/* LIXEIRA (Apenas Ícone) */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -248,7 +234,6 @@ export default function AdminRequisicoesPage() {
               </Tooltip>
             </TooltipProvider>
 
-            {/* CONFIGURAÇÕES */}
             <Link href="/ordi/configuracoes">
               <Button
                 variant="outline"
@@ -259,14 +244,11 @@ export default function AdminRequisicoesPage() {
                 Configurações
               </Button>
             </Link>
-
-            {/* Ajuda removida conforme solicitado */}
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6 flex-1 flex flex-col min-h-0">
-        {/* Container para Título, Busca e Stats (partes que NÃO devem rolar) */}
         <div className="shrink-0 flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -328,7 +310,7 @@ export default function AdminRequisicoesPage() {
                       <SelectItem value="todas">Todas as empresas</SelectItem>
                       {empresas.map((emp) => (
                         <SelectItem key={emp.id} value={emp.id}>
-                          {emp.nome}
+                          {emp.nomeFantasia}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -349,8 +331,8 @@ export default function AdminRequisicoesPage() {
                   </Select>
 
                   <Select
-                    value={funcionarioFilter}
-                    onValueChange={setFuncionarioFilter}
+                    value={usuarioFilter}
+                    onValueChange={setUsuarioFilter}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Funcionário" />
@@ -359,7 +341,8 @@ export default function AdminRequisicoesPage() {
                       <SelectItem value="todos">
                         Todos os funcionários
                       </SelectItem>
-                      {funcionariosFiltrados.map((func) => (
+                      {/* CORREÇÃO: Usando usuariosFiltrados */}
+                      {usuariosFiltrados.map((func) => (
                         <SelectItem key={func.id} value={func.id}>
                           {func.nome}
                         </SelectItem>
