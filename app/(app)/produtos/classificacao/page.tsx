@@ -52,14 +52,6 @@ export default function ClassificacaoPage() {
           </TabsContent>
 
           <TabsContent value="categorias" className="space-y-4">
-            <div className="bg-muted/30 p-4 rounded-lg border border-l-4 border-l-blue-500/50">
-              <h3 className="font-semibold flex items-center gap-2">
-                <FolderTree className="h-4 w-4" /> Árvore de Categorias
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Organize seus produtos em departamentos e famílias.
-              </p>
-            </div>
             <CategoriesManager />
           </TabsContent>
         </Tabs>
