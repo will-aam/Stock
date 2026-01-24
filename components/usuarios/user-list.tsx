@@ -101,7 +101,7 @@ export function UserList({ usuarios, onEdit, onCreate }: UserListProps) {
       );
     }
 
-    if (perms.countify) {
+    if (perms.countifly) {
       badges.push(
         <Badge
           key="countifly"

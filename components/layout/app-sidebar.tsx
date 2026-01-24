@@ -17,7 +17,7 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator"; // Importação adicionada
+import { Separator } from "@/components/ui/separator";
 import {
   Home,
   LogOut,
@@ -88,13 +88,15 @@ export function AppSidebar() {
 
   // --- SUB-MENUS ---
 
-  // Módulos (Novos Sistemas)
+  // Módulos (Novos Sistemas) - Reordenados com sistemas ativos primeiro
   const modulesItems = [
-    { title: "Stock", url: "/stock" }, // Principal?
-    { title: "Ordi", url: "/ordi" },
-    { title: "Val", url: "/val" },
-    { title: "Rikko", url: "/rikko" },
-    { title: "Countifly", url: "/countifly" },
+    // Sistemas ativos (acessíveis)
+    { title: "Ordi", url: "/ordi", disabled: false },
+    { title: "Val", url: "/val", disabled: false },
+    { title: "Rikko", url: "/rikko", disabled: false },
+    // Sistemas inativos (bloqueados)
+    { title: "Brutos", url: "#", disabled: true },
+    { title: "Countifly", url: "#", disabled: true },
   ];
 
   const salesItems = [
@@ -146,7 +148,7 @@ export function AppSidebar() {
   const renderCollapsible = (
     title: string,
     icon: any,
-    items: { title: string; url: string }[],
+    items: { title: string; url: string; disabled?: boolean }[],
   ) => (
     <Collapsible
       open={openItem === title}
@@ -165,14 +167,22 @@ export function AppSidebar() {
           <SidebarMenuSub>
             {items.map((subItem) => (
               <SidebarMenuSubItem key={subItem.title}>
-                <SidebarMenuSubButton
-                  asChild
-                  isActive={pathname === subItem.url}
-                >
-                  <Link href={subItem.url}>
+                {subItem.disabled ? (
+                  // ITEM DESATIVADO
+                  <SidebarMenuSubButton className="text-muted-foreground pointer-events-none cursor-not-allowed">
                     <span>{subItem.title}</span>
-                  </Link>
-                </SidebarMenuSubButton>
+                  </SidebarMenuSubButton>
+                ) : (
+                  // ITEM ATIVO
+                  <SidebarMenuSubButton
+                    asChild
+                    isActive={pathname === subItem.url}
+                  >
+                    <Link href={subItem.url}>
+                      <span>{subItem.title}</span>
+                    </Link>
+                  </SidebarMenuSubButton>
+                )}
               </SidebarMenuSubItem>
             ))}
           </SidebarMenuSub>
@@ -316,7 +326,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <Separator /> {/* Linha separadora adicionada aqui */}
+      <Separator />
       <SidebarFooter>
         <div className="p-2 group-data-[collapsible=icon]:p-0">
           <div className="flex items-center gap-2 rounded-lg border p-2 bg-card text-card-foreground group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:bg-transparent">

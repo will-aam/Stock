@@ -3,10 +3,10 @@
 export interface UserPermissions {
   stock: boolean; // Acesso básico ao sistema (Login)
   ordi: boolean; // Gestão de Uso e Consumo
-  countify: boolean; // Inventário/Coletor
+  countifly: boolean; // Inventário/Coletor
   val: boolean; // Assistente de Compras
   brutos: boolean; // Engenharia de Produto
-  rico: boolean; // Requisições Internas
+  rikko: boolean; // Requisições Internas
   admin: boolean; // Super admin (acessa configurações globais)
 }
 
@@ -48,10 +48,10 @@ export const usuarios: Usuario[] = [
     permissoes: {
       stock: true,
       ordi: true,
-      countify: true,
+      countifly: true,
       val: true,
       brutos: true,
-      rico: true,
+      rikko: true,
       admin: true,
     },
     telefone: "(79) 99999-9999",
@@ -69,10 +69,10 @@ export const usuarios: Usuario[] = [
     permissoes: {
       stock: true,
       ordi: true, // Pode aprovar pedidos
-      countify: false,
+      countifly: false,
       val: true, // Precisa ver compras
       brutos: false,
-      rico: true,
+      rikko: true,
       admin: false,
     },
   },
@@ -88,10 +88,10 @@ export const usuarios: Usuario[] = [
     permissoes: {
       stock: true,
       ordi: false,
-      countify: true, // Faz contagem de estoque
+      countifly: true, // Faz contagem de estoque
       val: false,
       brutos: false,
-      rico: false,
+      rikko: false,
       admin: false,
     },
   },
@@ -106,10 +106,10 @@ export const usuarios: Usuario[] = [
     permissoes: {
       stock: false,
       ordi: false,
-      countify: false,
+      countifly: false,
       val: false,
       brutos: false,
-      rico: false,
+      rikko: false,
       admin: false,
     },
   },

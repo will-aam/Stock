@@ -21,14 +21,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* CORREÇÃO: 
-            1. 'overflow-hidden' removido e substituído por 'overflow-y-auto'.
-               Isso permite que páginas longas (Empresas, Produtos) tenham rolagem.
-            2. Classes adicionadas para ocultar a barra de rolagem visualmente:
-               [&::-webkit-scrollbar]:hidden -> Chrome/Safari/Edge
-               [-ms-overflow-style:none] -> IE/Edge antigo
-               [scrollbar-width:none] -> Firefox
-        */}
         <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {children}
         </div>

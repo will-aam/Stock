@@ -54,10 +54,10 @@ interface UserFormSheetProps {
 const defaultPermissions: UserPermissions = {
   stock: true, // Core sempre ativo por padrão
   ordi: false,
-  countify: false,
+  countifly: false,
   val: false,
   brutos: false,
-  rico: false,
+  rikko: false,
   admin: false,
 };
 
@@ -127,8 +127,8 @@ export function UserFormSheet({
       desc: "Gestão de fluxo de pedidos de uso e consumo.",
     },
     {
-      id: "countify",
-      label: "Countify - App",
+      id: "countifly",
+      label: "Countifly - App",
       icon: ScanBarcode,
       desc: "Acesso ao coletor de dados e inventário.",
     },
@@ -145,8 +145,8 @@ export function UserFormSheet({
       desc: "Ficha técnica e composição de produtos.",
     },
     {
-      id: "rico",
-      label: "Rico - Requisições",
+      id: "rikko",
+      label: "Rikko - Requisições",
       icon: Truck,
       desc: "Solicitação interna de materiais.",
     },
@@ -514,9 +514,6 @@ export function UserFormSheet({
 
                   <div className="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50">
                     <div className="flex gap-2">
-                      <div className="p-1.5 bg-amber-100 dark:bg-amber-900/50 rounded-lg">
-                        <ShieldAlert className="h-4 w-4 text-amber-700 dark:text-amber-400" />
-                      </div>
                       <div className="space-y-0.5">
                         <p className="text-xs font-medium text-amber-800 dark:text-amber-300">
                           Dica de Segurança
