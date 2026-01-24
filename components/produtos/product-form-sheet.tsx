@@ -24,7 +24,6 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Save,
   Loader2,
@@ -36,10 +35,8 @@ import {
   Image as ImageIcon,
   Plus,
   Trash2,
-  AlertTriangle,
 } from "lucide-react";
 
-// Importando nossos mocks poderosos
 import { Produto } from "@/lib/mock/produtos/index";
 import { gruposTributarios } from "@/lib/mock/produtos/grupos-tributarios";
 import { categorias } from "@/lib/mock/produtos/categorias";
@@ -53,15 +50,14 @@ interface ProductFormSheetProps {
   onSave: (data: Partial<Produto>) => void;
 }
 
-// Estado vazio para novo produto
 const emptyProduct: Partial<Produto> = {
   ativo: true,
   controlaEstoque: true,
   nome: "",
-  codigoInterno: "", // Seria gerado pelo backend
+  codigoInterno: "",
   codigoBarras: "",
   codigosBarrasAdicionais: [],
-  tipoItem: "00", // Mercadoria para Revenda
+  tipoItem: "00",
   unidade: "UN",
   casasDecimais: 0,
   imagens: [],
@@ -71,8 +67,8 @@ const emptyProduct: Partial<Produto> = {
   pesoLiquido: 0,
   catalogo: { publicar: false, destaque: false, ordem: 99 },
   fornecedores: [],
-  estoque: [], // Será preenchido por loja depois
-  precos: [], // Será preenchido por loja depois
+  estoque: [],
+  precos: [],
 };
 
 export function ProductFormSheet({
@@ -85,11 +81,9 @@ export function ProductFormSheet({
   const [activeTab, setActiveTab] = useState("principal");
   const [formData, setFormData] = useState<Partial<Produto>>(emptyProduct);
 
-  // Estado temporário para inputs de adição (Array)
   const [tempBarcode, setTempBarcode] = useState("");
   const [tempImageUrl, setTempImageUrl] = useState("");
 
-  // Carregar dados ao abrir
   useEffect(() => {
     if (open) {
       if (initialData) {
@@ -102,14 +96,11 @@ export function ProductFormSheet({
   }, [open, initialData]);
 
   const handleSave = () => {
-    // Validação básica
     if (!formData.nome || !formData.codigoBarras) {
       alert("Por favor, preencha Nome e Código de Barras Principal.");
       return;
     }
-
     setIsLoading(true);
-    // Simula delay de rede
     setTimeout(() => {
       onSave(formData);
       setIsLoading(false);
@@ -121,7 +112,6 @@ export function ProductFormSheet({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // --- Lógica de Arrays (Imagens, Barras) ---
   const addBarcode = () => {
     if (!tempBarcode) return;
     setFormData((prev) => ({
@@ -162,10 +152,10 @@ export function ProductFormSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        className="w-full sm:max-w-[800px] p-0 flex flex-col bg-background border-l shadow-2xl"
+        className="w-full sm:max-w-[800px] p-0 flex flex-col bg-background border-l shadow-2xl h-full"
         side="right"
       >
-        {/* HEADER */}
+        {/* HEADER (Fixo) */}
         <SheetHeader className="p-5 border-b shrink-0 bg-muted/5">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -174,8 +164,7 @@ export function ProductFormSheet({
                 {initialData ? "Editar Produto" : "Novo Produto Global"}
               </SheetTitle>
               <SheetDescription className="text-xs">
-                Gerencie as informações mestras do item. Preços e Estoques são
-                geridos por loja.
+                Gerencie as informações mestras do item.
               </SheetDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -196,14 +185,15 @@ export function ProductFormSheet({
           </div>
         </SheetHeader>
 
-        {/* CONTEÚDO (Tabs) */}
+        {/* CONTEÚDO (Scrollável) */}
         <div className="flex-1 overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-950/20">
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
             className="flex-1 flex flex-col h-full"
           >
-            <div className="px-5 pt-4 bg-background border-b shadow-sm z-10">
+            {/* Abas Fixas no Topo */}
+            <div className="px-5 pt-4 bg-background border-b shadow-sm z-10 shrink-0">
               <TabsList className="grid w-full grid-cols-4 h-10 mb-2">
                 <TabsTrigger value="principal">Principal</TabsTrigger>
                 <TabsTrigger value="fiscal">Fiscal</TabsTrigger>
@@ -212,11 +202,12 @@ export function ProductFormSheet({
               </TabsList>
             </div>
 
-            <ScrollArea className="flex-1 p-6">
+            {/* Área de Scroll */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {" "}
               {/* --- ABA PRINCIPAL --- */}
-              <TabsContent value="principal" className="space-y-6 mt-0">
+              <TabsContent value="principal" className="space-y-6 mt-0 h-auto">
                 <div className="grid gap-5">
-                  {/* Identificação Básica */}
                   <div className="grid gap-2">
                     <Label className="text-foreground">Nome do Produto *</Label>
                     <Input
@@ -256,7 +247,6 @@ export function ProductFormSheet({
 
                   <Separator />
 
-                  {/* Classificação */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="col-span-2 md:col-span-2 space-y-2">
                       <Label>Categoria / Departamento</Label>
@@ -349,9 +339,8 @@ export function ProductFormSheet({
                   </div>
                 </div>
               </TabsContent>
-
               {/* --- ABA FISCAL --- */}
-              <TabsContent value="fiscal" className="space-y-6 mt-0">
+              <TabsContent value="fiscal" className="space-y-6 mt-0 h-auto">
                 <div className="bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-lg border border-blue-100 dark:border-blue-900 flex gap-3">
                   <Layers className="h-5 w-5 text-blue-600 mt-1 shrink-0" />
                   <div className="space-y-1">
@@ -360,8 +349,7 @@ export function ProductFormSheet({
                     </h4>
                     <p className="text-xs text-blue-700 dark:text-blue-300">
                       Ao selecionar um grupo, o sistema aplica automaticamente
-                      as regras de ICMS, PIS e COFINS. Preencha o NCM do item
-                      abaixo.
+                      as regras de ICMS, PIS e COFINS.
                     </p>
                   </div>
                 </div>
@@ -436,9 +424,8 @@ export function ProductFormSheet({
                   </div>
                 </div>
               </TabsContent>
-
               {/* --- ABA LOGÍSTICA --- */}
-              <TabsContent value="logistica" className="space-y-6 mt-0">
+              <TabsContent value="logistica" className="space-y-6 mt-0 h-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-muted/30 p-4 rounded-lg border space-y-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -518,9 +505,8 @@ export function ProductFormSheet({
                   </div>
                 </div>
               </TabsContent>
-
               {/* --- ABA EXTRAS --- */}
-              <TabsContent value="extras" className="space-y-8 mt-0">
+              <TabsContent value="extras" className="space-y-8 mt-0 h-auto">
                 {/* Imagens */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -625,11 +611,11 @@ export function ProductFormSheet({
                   </div>
                 </div>
               </TabsContent>
-            </ScrollArea>
+            </div>
           </Tabs>
         </div>
 
-        {/* FOOTER */}
+        {/* FOOTER (Fixo) */}
         <SheetFooter className="p-5 border-t bg-background shrink-0 flex flex-row justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
