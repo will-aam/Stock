@@ -1,10 +1,11 @@
-export interface UnidadeMedida {
+// Alterado de 'UnidadeMedida' para 'Unidade'
+export interface Unidade {
   sigla: string; // UN, KG, L
   descricao: string;
   casasDecimais: number; // Ex: UN = 0, KG = 3
 }
 
-export const unidades: UnidadeMedida[] = [
+export const unidades: Unidade[] = [
   { sigla: "UN", descricao: "Unidade", casasDecimais: 0 },
   { sigla: "CX", descricao: "Caixa", casasDecimais: 0 },
   { sigla: "KG", descricao: "Quilograma", casasDecimais: 3 },

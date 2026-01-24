@@ -18,9 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   Home,
-  ScanBarcode,
   ClipboardCheck,
-  Package,
   User,
   LogOut,
   Building2,
@@ -46,17 +44,20 @@ export function AppSidebar() {
     { title: "Ordi ", url: "/ordi", icon: ClipboardCheck },
   ];
 
-  // Itens simples de configuração (Meu Perfil, Empresas e Usuários)
+  // Itens simples de configuração
   const configItems = [
     { title: "Meu Perfil", url: "/perfil", icon: User },
     { title: "Empresas", url: "/empresas", icon: Building2 },
     { title: "Usuários", url: "/usuarios", icon: Users },
   ];
 
-  // Subitens do menu Produtos
+  // SUBITENS DE PRODUTOS (Atualizado com a nova estrutura)
   const productSubItems = [
-    { title: "Listagem", url: "/produtos" },
-    { title: "Classificação", url: "/produtos/classificacao" },
+    { title: "Listagem Geral", url: "/produtos" },
+    { title: "Classificação", url: "/produtos/classificacao" }, // Marcas, Categorias
+    { title: "Fiscal & Tributário", url: "/produtos/fiscal" }, // Grupos Trib, NCM, Origem
+    { title: "Unidades & Medidas", url: "/produtos/unidades" }, // UN, Pesos
+    // Futuro: { title: "Tabelas de Preço", url: "/produtos/tabelas-preco" },
   ];
 
   return (
@@ -110,7 +111,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Configurações</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {/* 1. ITENS SIMPLES (Meu Perfil, Empresas, Usuários) */}
+              {/* 1. ITENS SIMPLES */}
               {configItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
@@ -126,7 +127,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
 
-              {/* 2. ITEM COLAPSÁVEL (Produtos) */}
+              {/* 2. ITEM COLAPSÁVEL (Produtos Expandido) */}
               <Collapsible
                 asChild
                 defaultOpen={pathname.startsWith("/produtos")}
