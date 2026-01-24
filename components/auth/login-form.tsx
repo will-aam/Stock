@@ -37,7 +37,6 @@ export function LoginForm() {
           placeholder="seu@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          required
           className="mobile-optimized"
         />
       </div>
@@ -49,7 +48,6 @@ export function LoginForm() {
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          required
           className="mobile-optimized"
         />
       </div>

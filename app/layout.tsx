@@ -1,44 +1,23 @@
-// app/layout.tsx
-import type React from "react";
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { Toaster } from "@/components/ui/toaster";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Stock - Gestão de Lotes e Stockidades",
-  description:
-    "Sistema de gerenciamento de lotes e datas de Stockidade para varejo",
-  generator: "v0.app",
+  title: "Stock System",
+  description: "Sistema de Gestão de Estoque",
   icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
+    icon: "/icon.svg",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
-  themeColor: "#0a0a0a",
-  manifest: "/manifest.json",
+};
+
+// Nova forma de exportar viewport e themeColor no Next.js 14+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
@@ -47,11 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className={`font-sans antialiased`}>
+    <html lang="pt-br">
+      <body className={inter.className}>
         {children}
         <Toaster />
-        <Analytics />
       </body>
     </html>
   );
