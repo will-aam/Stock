@@ -4,17 +4,10 @@
 import { useState } from "react";
 import {
   Search,
-  Filter,
   Calendar,
-  Settings,
   Download,
   Upload,
-  MoreVertical,
-  CheckCircle2,
-  AlertCircle,
-  FileText,
   Tag as TagIcon,
-  Eye,
   RefreshCw,
   ChevronDown,
   Building2,
@@ -340,7 +333,7 @@ export default function EntradaNotasPage() {
             </h3>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-52 justify-between">
+                <Button variant="outline" className="w-52 h-10 justify-between">
                   <Calendar className="h-4 w-4 mr-2" />
                   <span>Selecionar período</span>
                   <ChevronDown className="h-4 w-4" />
@@ -444,7 +437,7 @@ export default function EntradaNotasPage() {
             </h3>
             <div className="flex gap-2 h-10">
               <Select value={searchType} onValueChange={setSearchType}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-32 h-10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -459,7 +452,7 @@ export default function EntradaNotasPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Digite sua busca..."
-                  className="pl-10 bg-background h-full"
+                  className="pl-10 bg-background h-10"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -467,7 +460,7 @@ export default function EntradaNotasPage() {
               {/* BOTÃO COLUNAS AO LADO DA BUSCA */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-full">
+                  <Button variant="outline" size="sm" className="h-10">
                     Colunas <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -578,9 +571,12 @@ export default function EntradaNotasPage() {
         {/* Barra de Ações - SEGUNDA LINHA */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="h-10">
+              Relatório
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="h-10">
                   <TagIcon className="h-4 w-4 mr-2" />
                   Etiquetas
                 </Button>
@@ -601,10 +597,7 @@ export default function EntradaNotasPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              Relatório
-            </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="h-10">
               <Download className="h-4 w-4 mr-2" />
               Download
             </Button>
@@ -613,155 +606,160 @@ export default function EntradaNotasPage() {
       </div>
 
       {/* --- TABELA DE NOTAS --- */}
-      {/* Tabela com rolagem horizontal e sem truncamento */}
-      <div className="flex-1 overflow-x-auto">
-        <table className="w-full min-w-[800px] text-sm text-left">
-          <thead className="bg-muted/50 text-muted-foreground sticky top-0 z-10 shadow-sm backdrop-blur-md">
-            <tr>
-              <th className="p-4 w-10">
-                <Checkbox
-                  checked={
-                    selectedNotas.length === notasFiltradas.length &&
-                    notasFiltradas.length > 0
-                  }
-                  onCheckedChange={handleSelectAll}
-                />
-              </th>
-              <th className="p-4 font-medium whitespace-nowrap">Emissão</th>
-              <th className="p-4 font-medium whitespace-nowrap">Etiquetas</th>
-              <th className="p-4 font-medium whitespace-nowrap">Chave</th>
-              <th className="p-4 font-medium whitespace-nowrap">Número</th>
-              <th className="p-4 font-medium text-right whitespace-nowrap">
-                Valor
-              </th>
-              <th className="p-4 font-medium whitespace-nowrap">CNPJ/CPF</th>
-              <th className="p-4 font-medium whitespace-nowrap">Nome</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {notasFiltradas.length === 0 ? (
+      {/* Tabela com borda externa e rolagem horizontal */}
+      <div className="flex-1 p-4 overflow-hidden">
+        <div className="border rounded-lg overflow-x-auto h-full">
+          <table className="w-full min-w-[800px] text-sm text-left border-collapse">
+            <thead className="bg-muted/50 text-muted-foreground sticky top-0 z-10 shadow-sm backdrop-blur-md border-b">
               <tr>
-                <td
-                  colSpan={8}
-                  className="p-10 text-center text-muted-foreground"
-                >
-                  Nenhuma nota encontrada neste período.
-                  <br />
-                  <span className="text-xs">
-                    Arraste um XML para importar manualmente.
-                  </span>
-                </td>
+                <th className="p-4 w-10 border-r">
+                  <Checkbox
+                    checked={
+                      selectedNotas.length === notasFiltradas.length &&
+                      notasFiltradas.length > 0
+                    }
+                    onCheckedChange={handleSelectAll}
+                  />
+                </th>
+                <th className="p-4 font-medium whitespace-nowrap border-r">
+                  Emissão
+                </th>
+                <th className="p-4 font-medium whitespace-nowrap border-r">
+                  Etiquetas
+                </th>
+                <th className="p-4 font-medium whitespace-nowrap border-r">
+                  Chave
+                </th>
+                <th className="p-4 font-medium whitespace-nowrap border-r">
+                  Número
+                </th>
+                <th className="p-4 font-medium text-right whitespace-nowrap border-r">
+                  Valor
+                </th>
+                <th className="p-4 font-medium whitespace-nowrap border-r">
+                  CNPJ/CPF
+                </th>
+                <th className="p-4 font-medium whitespace-nowrap">Nome</th>
               </tr>
-            ) : (
-              notasFiltradas.map((nota) => (
-                <tr
-                  key={nota.id}
-                  className="hover:bg-muted/30 group transition-colors"
-                >
-                  <td className="p-4">
-                    <Checkbox
-                      checked={selectedNotas.includes(nota.id)}
-                      onCheckedChange={() => toggleSelectNota(nota.id)}
-                    />
-                  </td>
-
-                  {/* EMISSÃO - APENAS DATA, SEM HORA */}
-                  <td className="p-4 text-muted-foreground whitespace-nowrap">
-                    {nota.dataEmissao.toLocaleDateString()}
-                  </td>
-
-                  {/* ETIQUETAS - SEM ÍCONE DE ADICIONAR */}
-                  <td className="p-4 whitespace-nowrap">
-                    <div className="flex flex-wrap gap-1">
-                      {nota.tags.map((tagId) => {
-                        const tag = tags.find((t) => t.id === tagId);
-                        if (!tag) return null;
-                        return (
-                          <Badge
-                            key={tag.id}
-                            variant="outline"
-                            style={{
-                              borderColor: tag.cor,
-                              color: tag.cor,
-                              backgroundColor: `${tag.cor}10`,
-                            }}
-                            className="text-[10px] h-5 px-1.5"
-                          >
-                            {tag.nome}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  </td>
-
-                  {/* CHAVE */}
-                  <td className="p-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2 group/key">
-                      <code
-                        className="bg-muted/50 px-2 py-1 rounded text-xs font-mono text-primary hover:bg-primary/10 hover:underline cursor-pointer transition-colors"
-                        onClick={() =>
-                          toast({ description: "Abrindo PDF da nota..." })
-                        }
-                        title="Clique para ver o PDF"
-                      >
-                        {nota.chave}
-                      </code>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 opacity-0 group-hover/key:opacity-100"
-                        onClick={() =>
-                          navigator.clipboard.writeText(nota.chave)
-                        }
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </td>
-
-                  {/* NÚMERO - APENAS NÚMERO, SEM SÉRIE */}
-                  <td className="p-4 whitespace-nowrap">Nº {nota.numero}</td>
-
-                  {/* VALOR */}
-                  <td className="p-4 text-right font-medium whitespace-nowrap">
-                    {formatCurrency(nota.valores.total)}
-                  </td>
-
-                  {/* CNPJ/CPF */}
-                  <td className="p-4 whitespace-nowrap font-mono text-xs">
-                    {nota.emitente.cnpj}
-                  </td>
-
-                  {/* NOME - SEM UF */}
-                  <td className="p-4 whitespace-nowrap">
-                    <div className="font-medium text-foreground">
-                      {nota.emitente.nome}
-                    </div>
+            </thead>
+            <tbody className="divide-y">
+              {notasFiltradas.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="p-10 text-center text-muted-foreground border"
+                  >
+                    Nenhuma nota encontrada neste período.
+                    <br />
+                    <span className="text-xs">
+                      Arraste um XML para importar manualmente.
+                    </span>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                notasFiltradas.map((nota) => (
+                  <tr
+                    key={nota.id}
+                    className="hover:bg-muted/30 group transition-colors border-b"
+                  >
+                    <td className="p-4 border-r">
+                      <Checkbox
+                        checked={selectedNotas.includes(nota.id)}
+                        onCheckedChange={() => toggleSelectNota(nota.id)}
+                      />
+                    </td>
 
-      {/* RODAPÉ */}
-      <div className="border-t p-4 bg-muted/20 flex justify-between items-center text-xs text-muted-foreground shrink-0">
-        <div>
-          Mostrando <strong>{notasFiltradas.length}</strong> de{" "}
-          <strong>{notas.length}</strong> notas
-        </div>
-        <div className="flex gap-4">
-          <span>
-            Total Selecionado:{" "}
-            <strong>
-              {formatCurrency(
-                notasFiltradas
-                  .filter((n) => selectedNotas.includes(n.id))
-                  .reduce((acc, n) => acc + n.valores.total, 0),
+                    {/* EMISSÃO - APENAS DATA, SEM HORA */}
+                    <td className="p-4 text-muted-foreground whitespace-nowrap border-r">
+                      {nota.dataEmissao.toLocaleDateString()}
+                    </td>
+
+                    {/* ETIQUETAS - SEM ÍCONE DE ADICIONAR */}
+                    <td className="p-4 whitespace-nowrap border-r">
+                      <div className="flex flex-wrap gap-1">
+                        {nota.tags.map((tagId) => {
+                          const tag = tags.find((t) => t.id === tagId);
+                          if (!tag) return null;
+                          return (
+                            <Badge
+                              key={tag.id}
+                              variant="outline"
+                              style={{
+                                borderColor: tag.cor,
+                                color: tag.cor,
+                                backgroundColor: `${tag.cor}10`,
+                              }}
+                              className="text-[10px] h-5 px-1.5"
+                            >
+                              {tag.nome}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </td>
+
+                    {/* CHAVE */}
+                    <td className="p-4 whitespace-nowrap border-r">
+                      <div className="flex items-center gap-2 group/key">
+                        <code
+                          className="bg-muted/50 px-2 py-1 rounded text-xs font-mono text-primary hover:bg-primary/10 hover:underline cursor-pointer transition-colors"
+                          onClick={() =>
+                            toast({ description: "Abrindo PDF da nota..." })
+                          }
+                          title="Clique para ver o PDF"
+                        >
+                          {nota.chave}
+                        </code>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover/key:opacity-100"
+                          onClick={() =>
+                            navigator.clipboard.writeText(nota.chave)
+                          }
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover/key:opacity-100"
+                          onClick={() =>
+                            toast({ description: "Baixando XML..." })
+                          }
+                          title="Baixar XML"
+                        >
+                          <Download className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </td>
+
+                    {/* NÚMERO - APENAS NÚMERO, SEM "Nº" */}
+                    <td className="p-4 whitespace-nowrap border-r">
+                      {nota.numero}
+                    </td>
+
+                    {/* VALOR */}
+                    <td className="p-4 text-right font-medium whitespace-nowrap border-r">
+                      {formatCurrency(nota.valores.total)}
+                    </td>
+
+                    {/* CNPJ/CPF - TEXTO NORMAL, SEM FONT-MONO */}
+                    <td className="p-4 whitespace-nowrap border-r text-xs">
+                      {nota.emitente.cnpj}
+                    </td>
+
+                    {/* NOME - SEM UF */}
+                    <td className="p-4 whitespace-nowrap">
+                      <div className="font-medium text-foreground">
+                        {nota.emitente.nome}
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
-            </strong>
-          </span>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
