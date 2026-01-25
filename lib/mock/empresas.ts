@@ -51,6 +51,8 @@ export interface Empresa {
     cscId?: string;
     emailEnvioXml?: string;
     series: FiscalSeries[];
+    // NOVO CAMPO: Validade do Certificado
+    certificadoValidade?: Date;
   };
 
   integracoes: {
@@ -95,6 +97,8 @@ export const empresas: Empresa[] = [
           ativo: true,
         },
       ],
+      // Cenário: OK (Vence em 2026)
+      certificadoValidade: new Date("2026-12-31"),
     },
     integracoes: {},
   },
@@ -125,6 +129,10 @@ export const empresas: Empresa[] = [
     },
     fiscal: {
       series: [],
+      // Cenário: AVISO (Vence em 15 dias a partir de hoje)
+      certificadoValidade: new Date(
+        new Date().setDate(new Date().getDate() + 15),
+      ),
     },
     integracoes: {},
   },
@@ -155,6 +163,10 @@ export const empresas: Empresa[] = [
     },
     fiscal: {
       series: [],
+      // Cenário: VENCIDO (Venceu mês passado)
+      certificadoValidade: new Date(
+        new Date().setMonth(new Date().getMonth() - 1),
+      ),
     },
     integracoes: {},
   },
