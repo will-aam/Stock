@@ -1,3 +1,4 @@
+// app/(app)/compras/entradas/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -59,11 +60,9 @@ const getCertificateStatus = (validade?: Date) => {
   const diffTime = validade.getTime() - hoje.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays < 0)
-    return { color: "bg-red-500", label: "Vencido", pulse: true };
-  if (diffDays <= 30)
-    return { color: "bg-yellow-500", label: "Vence em breve", pulse: false };
-  return { color: "bg-green-500", label: "Válido", pulse: false };
+  if (diffDays < 0) return { color: "bg-red-500", pulse: true };
+  if (diffDays <= 30) return { color: "bg-yellow-500", pulse: false };
+  return { color: "bg-green-500", pulse: false };
 };
 
 export default function EntradaNotasPage() {
@@ -148,26 +147,32 @@ export default function EntradaNotasPage() {
         </div>
       )}
 
-      {/* --- HEADER: SELEÇÃO DE EMPRESA (TABELA DROPDOWN) --- */}
-      <header className="border-b px-6 py-4 flex items-center justify-between bg-card shrink-0">
+      {/* --- HEADER: SELEÇÃO DE EMPRESA (TABELA ALINHADA) --- */}
+      <header className=" px-6 py-4 flex items-center justify-between bg-card shrink-0">
         <div className="flex items-center gap-4">
           <Select
             value={empresaSelecionada}
             onValueChange={setEmpresaSelecionada}
           >
-            <SelectTrigger className="w-auto min-w-[480px] h-14 pl-3 pr-4 text-left border rounded-lg shadow-sm bg-background hover:bg-accent/30 transition-all focus:ring-0 focus:ring-offset-0">
-              <div className="flex items-center w-full gap-4">
-                {/* Coluna 1: Espaço do Checkbox (para manter alinhamento) */}
-                <div className="w-5 flex justify-center">
-                  <Building2 className="h-5 w-5 text-primary" />
+            <SelectTrigger className="w-auto min-w-[350px] h-12 pl-2 pr-3 text-left">
+              <div className="flex items-center gap-3 w-full">
+                {/* Ícone Fixo Esquerdo (sem background) */}
+                <div className="shrink-0 flex items-center justify-center">
+                  {empresaSelecionada === "todas" ? (
+                    <Layers className="h-5 w-5 text-primary" />
+                  ) : (
+                    <Building2 className="h-5 w-5 text-primary" />
+                  )}
                 </div>
 
-                {/* Conteúdo do Trigger (Visualização Selecionada) */}
+                {/* CONTEÚDO DA LINHA SELECIONADA (GRID) */}
                 <SelectValue placeholder="Selecione a empresa">
                   {empresaSelecionada === "todas" ? (
-                    <span className="font-bold uppercase text-foreground text-sm tracking-tight">
-                      VISÃO GERAL - TODAS AS EMPRESAS
-                    </span>
+                    <div className="flex items-center h-full w-full">
+                      <span className="font-bold uppercase text-foreground text-sm tracking-tight">
+                        VISÃO GERAL - TODAS AS EMPRESAS
+                      </span>
+                    </div>
                   ) : (
                     (() => {
                       const emp = empresas.find(
@@ -178,43 +183,40 @@ export default function EntradaNotasPage() {
                       );
 
                       return (
-                        <>
-                          {/* Coluna 2: Nome da Empresa */}
-                          <span className="flex-1 font-bold uppercase text-foreground text-sm truncate">
+                        <div className="flex items-center w-full gap-2">
+                          {" "}
+                          {/* Coluna 1: Nome */}
+                          <div
+                            className="col-span-5 truncate font-bold uppercase text-foreground text-sm"
+                            title={emp?.nomeFantasia}
+                          >
                             {emp?.nomeFantasia}
-                          </span>
-                          {/* Coluna 3: CNPJ */}
-                          <span className="w-32 text-muted-foreground font-mono font-medium text-sm text-center truncate">
-                            {emp?.cnpj}
-                          </span>
-                          {/* Coluna 4: Certificado */}
-                          <div className="w-20 flex items-center justify-end gap-2">
-                            <span
-                              className={`text-xs font-mono font-medium ${status.pulse ? "text-red-600" : "text-muted-foreground"}`}
-                            >
-                              {emp?.fiscal.certificadoValidade
-                                ? emp.fiscal.certificadoValidade.toLocaleDateString(
-                                    "pt-BR",
-                                    {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      year: "2-digit",
-                                    },
-                                  )
-                                : "-"}
+                          </div>
+                          {/* Coluna 2: CNPJ */}
+                          <div className="col-span-4 flex items-center border-l order/50 pl-4 h-5">
+                            <span className="truncate text-muted-foreground font-mono font-medium text-sm">
+                              {emp?.cnpj}
                             </span>
-                            <div className="relative flex items-center justify-center w-2.5 h-2.5 shrink-0">
-                              {status.pulse && (
+                          </div>
+                          {/* Coluna 3: Status (Apenas Bolinha Visual no Trigger) */}
+                          <div className="col-span-3 flex justify-end items-center pr-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-muted-foreground uppercase hidden xl:inline-block">
+                                {status.label}
+                              </span>
+                              <div className="relative flex items-center justify-center w-2.5 h-2.5">
+                                {status.pulse && (
+                                  <span
+                                    className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${status.color}`}
+                                  ></span>
+                                )}
                                 <span
-                                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${status.color}`}
+                                  className={`relative inline-flex rounded-full h-2.5 w-2.5 ${status.color}`}
                                 ></span>
-                              )}
-                              <span
-                                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${status.color}`}
-                              ></span>
+                              </div>
                             </div>
                           </div>
-                        </>
+                        </div>
                       );
                     })()
                   )}
@@ -222,49 +224,31 @@ export default function EntradaNotasPage() {
               </div>
             </SelectTrigger>
 
-            <SelectContent className="min-w-[480px] p-0" align="start">
-              {/* Cabeçalho da "Tabela" */}
-              <div className="flex items-center gap-4 px-4 py-2 text-[10px] font-semibold text-muted-foreground bg-muted/30 select-none">
-                <div className="w-5 flex justify-center">
-                  {" "}
-                  {/* Checkbox */}{" "}
-                </div>
-                <div className="flex-1">EMPRESA</div>
-                <div className="w-32 text-center">CNPJ</div>
-                <div className="w-20 text-center">CERTIFICADO</div>
-              </div>
-
-              {/* Opção TODAS */}
+            {/* --- CONTEÚDO DO DROPDOWN (LISTA ABERTA) --- */}
+            <SelectContent className="min-w-[650px] p-0" align="start">
+              {/* OPÇÃO 1: TODAS */}
               <SelectItem
                 value="todas"
-                className="pl-4 py-3 cursor-pointer focus:bg-accent data-[state=checked]:bg-accent [&>span]:hidden"
+                className="pl-3 py-3 cursor-pointer  last:border-0 focus:bg-accent data-[state=checked]:bg-accent [&>span:first-child]:hidden"
               >
-                <div className="flex items-center w-full gap-4">
-                  <div className="w-5 flex justify-center">
-                    <Checkbox
-                      checked={empresaSelecionada === "todas"}
-                      onCheckedChange={(checked) =>
-                        setEmpresaSelecionada(
-                          checked ? "todas" : empresas[0]?.id || "",
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="flex-1 flex items-center gap-2">
+                <div className="flex items-center gap-3 w-full">
+                  {/* Ícone Alinhado (sem background) */}
+                  <div className="shrink-0 flex items-center justify-center w-5">
                     <Layers className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-bold uppercase text-foreground text-sm">
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-4 w-full items-center">
+                    <div className="col-span-5 font-bold uppercase text-foreground text-sm">
                       TODAS
-                    </span>
+                    </div>
+                    <div className="col-span-7 text-xs text-muted-foreground">
+                      Visualizar visão geral consolidadada
+                    </div>
                   </div>
-                  <div className="w-32 text-center text-xs text-muted-foreground">
-                    Todas as filiais
-                  </div>
-                  <div className="w-20"></div>{" "}
-                  {/* Espaço vazio para alinhar a coluna certificado */}
                 </div>
               </SelectItem>
 
-              {/* Lista de Empresas */}
+              {/* LISTA DE EMPRESAS */}
               {empresas.map((e) => {
                 const status = getCertificateStatus(
                   e.fiscal.certificadoValidade,
@@ -274,52 +258,48 @@ export default function EntradaNotasPage() {
                   <SelectItem
                     key={e.id}
                     value={e.id}
-                    className="pl-4 py-3 cursor-pointer focus:bg-accent data-[state=checked]:bg-accent [&>span]:hidden"
+                    className="pl-3 py-3 cursor-pointer  last:border-0 focus:bg-accent data-[state=checked]:bg-accent [&>span:first-child]:hidden"
                   >
-                    <div className="flex items-center w-full gap-4">
-                      {/* Coluna 1: Checkbox */}
-                      <div className="w-5 flex justify-center">
-                        <Checkbox
-                          checked={empresaSelecionada === e.id}
-                          onCheckedChange={() => setEmpresaSelecionada(e.id)}
-                        />
+                    <div className="flex items-center gap-3 w-full">
+                      {/* Ícone da Empresa (sem background) */}
+                      <div className="shrink-0 flex items-center justify-center w-5">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
                       </div>
 
-                      {/* Coluna 2: Nome */}
-                      <div className="flex-1 truncate font-bold uppercase text-foreground text-sm">
-                        {e.nomeFantasia}
-                      </div>
-
-                      {/* Coluna 3: CNPJ */}
-                      <div className="w-32 truncate text-muted-foreground font-mono text-sm text-center">
-                        {e.cnpj}
-                      </div>
-
-                      {/* Coluna 4: Certificado (Data + Bolinha) */}
-                      <div className="w-20 flex items-center justify-center gap-2">
-                        <span
-                          className={`text-xs font-mono font-medium ${status.pulse ? "text-red-600" : "text-muted-foreground"}`}
+                      {/* Grid de Dados */}
+                      <div className="grid grid-cols-12 gap-4 w-full items-center">
+                        {/* Coluna 1 */}
+                        <div
+                          className="col-span-5 truncate font-bold uppercase text-foreground text-sm"
+                          title={e.nomeFantasia}
                         >
-                          {e.fiscal.certificadoValidade
-                            ? e.fiscal.certificadoValidade.toLocaleDateString(
-                                "pt-BR",
-                                {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "2-digit",
-                                },
-                              )
-                            : "-"}
-                        </span>
-                        <div className="relative flex items-center justify-center w-2.5 h-2.5 shrink-0">
-                          {status.pulse && (
-                            <span
-                              className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${status.color}`}
-                            ></span>
-                          )}
+                          {e.nomeFantasia}
+                        </div>
+
+                        {/* Coluna 2 */}
+                        <div className="col-span-4 truncate text-muted-foreground font-mono text-sm border-l order/50 pl-4">
+                          {e.cnpj}
+                        </div>
+
+                        {/* Coluna 3 */}
+                        <div className="col-span-3 flex items-center justify-end gap-3">
                           <span
-                            className={`relative inline-flex rounded-full h-2.5 w-2.5 ${status.color}`}
-                          ></span>
+                            className={`text-xs font-mono font-medium ${status.pulse ? "text-white" : "text-foreground"}`}
+                          >
+                            {e.fiscal.certificadoValidade
+                              ? e.fiscal.certificadoValidade.toLocaleDateString()
+                              : "-"}
+                          </span>
+                          <div className="relative flex items-center justify-center w-2.5 h-2.5 shrink-0">
+                            {status.pulse && (
+                              <span
+                                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${status.color}`}
+                              ></span>
+                            )}
+                            <span
+                              className={`relative inline-flex rounded-full h-2.5 w-2.5 ${status.color}`}
+                            ></span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -330,12 +310,8 @@ export default function EntradaNotasPage() {
           </Select>
         </div>
 
-        {/* Botões de Ação (sem alterações) */}
+        {/* BOTÕES LATERAIS */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="h-9">
-            <Settings className="h-4 w-4 mr-2 text-muted-foreground" />
-            Certificado
-          </Button>
           <Button
             size="sm"
             className="h-9 bg-blue-600 hover:bg-blue-700 text-white border-0"
