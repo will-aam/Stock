@@ -20,6 +20,7 @@ import {
   Building2,
   Copy,
   Layers,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +81,12 @@ export default function EntradaNotasPage() {
   // Estado inicial pode continuar como "todas"
   const [empresaSelecionada, setEmpresaSelecionada] = useState("todas");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Estados para a nova toolbar
+  const [dataInicial, setDataInicial] = useState("");
+  const [dataFinal, setDataFinal] = useState("");
+  const [searchType, setSearchType] = useState("chave");
+
   const notasFiltradas = notas.filter((n) => {
     let matchEmpresa = false;
 
@@ -322,108 +329,293 @@ export default function EntradaNotasPage() {
         </div>
       </header>
 
-      {/* --- TOOLBAR DE FILTROS --- */}
+      {/* --- TOOLBAR DE FILTROS E PESQUISA --- */}
       <div className="px-6 py-4 border-b space-y-4 shrink-0 bg-muted/10">
-        {/* Linha 1: Busca e Datas */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar por Chave, Número, Emitente ou Valor..."
-              className="pl-10 bg-background"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        {/* PRIMEIRA LINHA: PERÍODO E BUSCA COM COLUNAS */}
+        <div className="flex gap-4">
+          {/* Seção de Período - LARGURA FIXA MENOR */}
+          <div className="shrink-0">
+            <h3 className="text-sm font-medium text-foreground mb-2">
+              Período
+            </h3>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-52 justify-between">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <span>Selecionar período</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              {/* Conteúdo do dropdown ajustado com botões alinhados aos lados */}
+              <DropdownMenuContent
+                className="w-52 p-3 max-h-96 overflow-y-auto"
+                align="start"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                <style jsx>{`
+                  :global(.w-52)::-webkit-scrollbar {
+                    display: none;
+                  }
+                `}</style>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 gap-2">
+                    <div>
+                      <label className="text-xs font-medium">
+                        Data inicial
+                      </label>
+                      <Input
+                        type="date"
+                        className="mt-1 h-8 text-xs"
+                        value={dataInicial}
+                        onChange={(e) => setDataInicial(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Data final</label>
+                      <Input
+                        type="date"
+                        className="mt-1 h-8 text-xs"
+                        value={dataFinal}
+                        onChange={(e) => setDataFinal(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium">Datas rápidas</p>
+                    <div className="grid grid-cols-1 gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                      >
+                        Últimos 30 dias
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                      >
+                        Últimos 60 dias
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                      >
+                        Últimos 90 dias
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                      >
+                        Este mês
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* BOTÕES ALINHADOS AOS LADOS */}
+                  <div className="flex justify-between pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        setDataInicial("");
+                        setDataFinal("");
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button size="sm" className="h-7 text-xs">
+                      Confirmar
+                    </Button>
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          <div className="flex items-center gap-2 bg-background p-1 rounded-md border">
-            <Button variant="ghost" size="sm" className="text-xs">
-              Hoje
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs">
-              7 dias
-            </Button>
-            <Button variant="secondary" size="sm" className="text-xs shadow-sm">
-              30 dias
-            </Button>
-            <div className="w-px h-4 bg-border mx-1" />
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </Button>
+          {/* Seção de Busca - PREENCHE TODO O ESPAÇO RESTANTE */}
+          <div className="flex-1">
+            <h3 className="text-sm font-medium text-foreground mb-2">
+              Buscar por
+            </h3>
+            <div className="flex gap-2 h-10">
+              <Select value={searchType} onValueChange={setSearchType}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="chave">Chave</SelectItem>
+                  <SelectItem value="numero">Número</SelectItem>
+                  <SelectItem value="emitente">Emitente</SelectItem>
+                  <SelectItem value="valor">Valor</SelectItem>
+                  <SelectItem value="serie">Série</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Digite sua busca..."
+                  className="pl-10 bg-background h-full"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              {/* BOTÃO COLUNAS AO LADO DA BUSCA */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-full">
+                    Colunas <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                {/* Dropdown com UMA COLUNA APENAS */}
+                <DropdownMenuContent
+                  className="w-56 p-2 max-h-64 overflow-y-auto"
+                  align="end"
+                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                >
+                  <style jsx>{`
+                    :global(.w-56)::-webkit-scrollbar {
+                      display: none;
+                    }
+                  `}</style>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Emissão Data/Hora
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Etiquetas
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Chave
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Emissão
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Número
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Série
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Tipo
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Valor
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Manifestação
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    CFOPs
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Origem
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Monitorado em
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Autorizada em
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground py-1">
+                    Emitente
+                  </DropdownMenuLabel>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    CNPJ/CPF
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Nome
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    IE
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    UF
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground py-1">
+                    Destinatário
+                  </DropdownMenuLabel>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    CNPJ/CPF
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Nome
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    IE
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    UF
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground py-1">
+                    Transportador
+                  </DropdownMenuLabel>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    CNPJ/CPF
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Nome
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    IE
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    UF
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked className="py-1">
+                    Status
+                  </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 
-        {/* Linha 2: Ações em Massa e Colunas */}
-        <div className="flex items-center justify-between">
+        {/* Barra de Ações - SEGUNDA LINHA */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={selectedNotas.length === 0}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Baixar XML/PDF
-            </Button>
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={selectedNotas.length === 0}
-                >
+                <Button variant="outline" size="sm">
                   <TagIcon className="h-4 w-4 mr-2" />
-                  Etiquetar
+                  Etiquetas
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>Aplicar Etiqueta</DropdownMenuLabel>
+              <DropdownMenuContent align="start">
+                <DropdownMenuLabel>Gerenciar etiquetas</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {tags.map((tag) => (
-                  <DropdownMenuItem key={tag.id} className="gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: tag.cor }}
-                    />
-                    {tag.nome}
-                  </DropdownMenuItem>
-                ))}
+                <DropdownMenuItem>
+                  <TagIcon className="h-4 w-4 mr-2" />
+                  Modificar etiquetas
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Criar nova etiqueta
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {selectedNotas.length > 0 && (
-              <span className="text-sm text-muted-foreground ml-2">
-                {selectedNotas.length} selecionadas
-              </span>
-            )}
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                Colunas <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem checked>
-                Emissão
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem checked>
-                Etiquetas
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem checked>Chave</DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem checked>
-                Emitente
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem checked>Valor</DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm">
+              Relatório
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* --- TABELA DE NOTAS --- */}
-      <div className="flex-1 overflow-auto">
-        <table className="w-full text-sm text-left">
+      {/* Tabela com rolagem horizontal e sem truncamento */}
+      <div className="flex-1 overflow-x-auto">
+        <table className="w-full min-w-[800px] text-sm text-left">
           <thead className="bg-muted/50 text-muted-foreground sticky top-0 z-10 shadow-sm backdrop-blur-md">
             <tr>
               <th className="p-4 w-10">
@@ -435,13 +627,15 @@ export default function EntradaNotasPage() {
                   onCheckedChange={handleSelectAll}
                 />
               </th>
-              <th className="p-4 font-medium">Status</th>
-              <th className="p-4 font-medium">Emissão</th>
-              <th className="p-4 font-medium">Emitente</th>
-              <th className="p-4 font-medium">Chave de Acesso</th>
-              <th className="p-4 font-medium text-right">Valor Total</th>
-              <th className="p-4 font-medium text-center">Etiquetas</th>
-              <th className="p-4 font-medium text-right">Ações</th>
+              <th className="p-4 font-medium whitespace-nowrap">Emissão</th>
+              <th className="p-4 font-medium whitespace-nowrap">Etiquetas</th>
+              <th className="p-4 font-medium whitespace-nowrap">Chave</th>
+              <th className="p-4 font-medium whitespace-nowrap">Número</th>
+              <th className="p-4 font-medium text-right whitespace-nowrap">
+                Valor
+              </th>
+              <th className="p-4 font-medium whitespace-nowrap">CNPJ/CPF</th>
+              <th className="p-4 font-medium whitespace-nowrap">Nome</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -471,86 +665,14 @@ export default function EntradaNotasPage() {
                     />
                   </td>
 
-                  {/* STATUS & MANIFESTAÇÃO */}
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <div title="Status Sefaz">
-                        {nota.statusSefaz === "autorizada" ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <AlertCircle className="h-5 w-5 text-red-500" />
-                        )}
-                      </div>
-
-                      <div
-                        className={`
-                          w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border cursor-pointer
-                          ${nota.manifestacao === "ciencia" ? "bg-yellow-100 text-yellow-700 border-yellow-300" : ""}
-                          ${nota.manifestacao === "confirmada" ? "bg-green-100 text-green-700 border-green-300" : ""}
-                          ${nota.manifestacao === "sem_manifestacao" ? "bg-gray-100 text-gray-500 border-gray-300" : ""}
-                        `}
-                        title={`Manifestação: ${nota.manifestacao}`}
-                      >
-                        {nota.manifestacao === "ciencia" && "Ci"}
-                        {nota.manifestacao === "confirmada" && "Co"}
-                        {nota.manifestacao === "sem_manifestacao" && "?"}
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="p-4 text-muted-foreground">
+                  {/* EMISSÃO - APENAS DATA, SEM HORA */}
+                  <td className="p-4 text-muted-foreground whitespace-nowrap">
                     {nota.dataEmissao.toLocaleDateString()}
-                    <div className="text-xs">
-                      {nota.dataEmissao.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </div>
                   </td>
 
-                  <td className="p-4">
-                    <div className="font-medium text-foreground">
-                      {nota.emitente.nome}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {nota.emitente.cnpj} - {nota.emitente.uf}
-                    </div>
-                  </td>
-
-                  <td className="p-4">
-                    <div className="flex items-center gap-2 group/key">
-                      <code
-                        className="bg-muted/50 px-2 py-1 rounded text-xs font-mono text-primary hover:bg-primary/10 hover:underline cursor-pointer transition-colors"
-                        onClick={() =>
-                          toast({ description: "Abrindo PDF da nota..." })
-                        }
-                        title="Clique para ver o PDF"
-                      >
-                        {nota.chave.replace(/(\d{4})/g, "$1 ").substring(0, 25)}
-                        ...
-                      </code>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 opacity-0 group-hover/key:opacity-100"
-                        onClick={() =>
-                          navigator.clipboard.writeText(nota.chave)
-                        }
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Nº {nota.numero} • Série {nota.serie}
-                    </div>
-                  </td>
-
-                  <td className="p-4 text-right font-medium">
-                    {formatCurrency(nota.valores.total)}
-                  </td>
-
-                  <td className="p-4 text-center">
-                    <div className="flex flex-wrap justify-center gap-1">
+                  {/* ETIQUETAS - SEM ÍCONE DE ADICIONAR */}
+                  <td className="p-4 whitespace-nowrap">
+                    <div className="flex flex-wrap gap-1">
                       {nota.tags.map((tagId) => {
                         const tag = tags.find((t) => t.id === tagId);
                         if (!tag) return null;
@@ -569,35 +691,52 @@ export default function EntradaNotasPage() {
                           </Badge>
                         );
                       })}
+                    </div>
+                  </td>
+
+                  {/* CHAVE */}
+                  <td className="p-4 whitespace-nowrap">
+                    <div className="flex items-center gap-2 group/key">
+                      <code
+                        className="bg-muted/50 px-2 py-1 rounded text-xs font-mono text-primary hover:bg-primary/10 hover:underline cursor-pointer transition-colors"
+                        onClick={() =>
+                          toast({ description: "Abrindo PDF da nota..." })
+                        }
+                        title="Clique para ver o PDF"
+                      >
+                        {nota.chave}
+                      </code>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-5 w-5 rounded-full"
+                        className="h-6 w-6 opacity-0 group-hover/key:opacity-100"
+                        onClick={() =>
+                          navigator.clipboard.writeText(nota.chave)
+                        }
                       >
-                        <TagIcon className="h-3 w-3 text-muted-foreground" />
+                        <Copy className="h-3 w-3" />
                       </Button>
                     </div>
                   </td>
 
-                  <td className="p-4 text-right">
-                    {nota.statusSistema === "pendente" ? (
-                      <Button
-                        size="sm"
-                        className="h-8 gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                      >
-                        <FileText className="h-3.5 w-3.5" />
-                        Escriturar
-                      </Button>
-                    ) : nota.statusSistema === "importada" ? (
-                      <Badge
-                        variant="secondary"
-                        className="bg-green-100 text-green-800 hover:bg-green-100"
-                      >
-                        <CheckCircle2 className="h-3 w-3 mr-1" /> Importada
-                      </Badge>
-                    ) : (
-                      <Badge variant="destructive">Erro</Badge>
-                    )}
+                  {/* NÚMERO - APENAS NÚMERO, SEM SÉRIE */}
+                  <td className="p-4 whitespace-nowrap">Nº {nota.numero}</td>
+
+                  {/* VALOR */}
+                  <td className="p-4 text-right font-medium whitespace-nowrap">
+                    {formatCurrency(nota.valores.total)}
+                  </td>
+
+                  {/* CNPJ/CPF */}
+                  <td className="p-4 whitespace-nowrap font-mono text-xs">
+                    {nota.emitente.cnpj}
+                  </td>
+
+                  {/* NOME - SEM UF */}
+                  <td className="p-4 whitespace-nowrap">
+                    <div className="font-medium text-foreground">
+                      {nota.emitente.nome}
+                    </div>
                   </td>
                 </tr>
               ))
