@@ -302,3 +302,38 @@ input[type="number"] {
     @apply bg-background text-foreground;
   }
 }
+
+/* ... (Mantenha o conteúdo existente do arquivo) ... */
+
+@layer utilities {
+  /* === Scrollbar Personalizada Global === */
+
+  /* Webkit (Chrome, Edge, Safari) */
+  ::-webkit-scrollbar {
+    width: 8px; /* Largura vertical */
+    height: 8px; /* Altura horizontal */
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent; /* Fundo invisível */
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20; /* Cor da barra (cinza suave) */
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40; /* Cor ao passar o mouse (mais escuro) */
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin; /* Fina */
+    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+  }
+}

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Search,
   Calendar,
@@ -605,9 +606,9 @@ export default function EntradaNotasPage() {
         </div>
       </div>
 
-      {/* --- TABELA DE NOTAS --- */}
-      {/* Tabela com borda externa e rolagem horizontal */}
-      <div className="flex-1 p-4 overflow-hidden">
+      {/* --- TABELA DE NOTAS COM SCROLL AREA --- */}
+      {/* Substituímos a div nativa pelo ScrollArea para melhor controle da rolagem */}
+      <ScrollArea className="flex-1 p-4" type="hover">
         <div className="border rounded-lg overflow-x-auto h-full">
           <table className="w-full min-w-[800px] text-sm text-left border-collapse">
             <thead className="bg-muted/50 text-muted-foreground sticky top-0 z-10 shadow-sm backdrop-blur-md border-b">
@@ -761,7 +762,11 @@ export default function EntradaNotasPage() {
             </tbody>
           </table>
         </div>
-      </div>
+
+        {/* Barras de Rolagem Personalizadas */}
+        <ScrollBar orientation="horizontal" />
+        <ScrollBar orientation="vertical" />
+      </ScrollArea>
     </div>
   );
 }
