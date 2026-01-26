@@ -1,25 +1,27 @@
-// app/(app)/ordi/[id]/page.tsx
 "use client";
 
-import { use, useState } from "react";
-import Link from "next/link";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Package,
   ArrowLeft,
-  User,
+  Calendar,
+  Clock,
   Building2,
   Users,
-  Clock,
+  MapPin,
+  MessageSquare,
+  Paperclip,
+  CheckCircle2,
+  XCircle,
+  MoreVertical,
   Printer,
-  MessageCircle,
-  Mail,
-  ChevronDown,
+  Share2,
   FileText,
-  AlertTriangle,
 } from "lucide-react";
-// import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +33,7 @@ import {
   type StatusRequisicao,
   statusLabels,
   statusColors,
-  getFuncionarioById,
+  getUsuarioById, // CORRIGIDO: Era getFuncionarioById
   getSetorById,
   getEmpresaById,
 } from "@/lib/mock-data";
@@ -41,258 +43,228 @@ export default function RequisicaoDetalhesPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
+  const resolvedParams = use(params);
   const router = useRouter();
-  const { requisicoes, updateStatus } = useRequisicoesStore();
-  const [showToast, setShowToast] = useState<string | null>(null);
+  const { requisicoes } = useRequisicoesStore();
 
-  const requisicao = requisicoes.find((r) => r.id === id);
+  // Encontrar a requisição pelo ID da URL
+  const requisicao = requisicoes.find((r) => r.id === resolvedParams.id);
 
   if (!requisicao) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="bg-card border border-border rounded-xl p-8 text-center max-w-md">
-          <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-card-foreground mb-2">
-            Requisição não encontrada
-          </h1>
-          <p className="text-muted-foreground mb-4">
-            A requisição que você procura não existe ou foi removida.
-          </p>
-          <Link href="/admin/requisicoes">
-            <Button>Voltar para o Painel</Button>
-          </Link>
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-4">
+        <div className="bg-muted p-4 rounded-full">
+          <FileText className="h-8 w-8 text-muted-foreground" />
         </div>
+        <div>
+          <h2 className="text-xl font-semibold">Requisição não encontrada</h2>
+          <p className="text-muted-foreground">
+            A requisição que você está procurando não existe ou foi removida.
+          </p>
+        </div>
+        <Button onClick={() => router.push("/ordi")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar para Lista
+        </Button>
       </div>
     );
   }
 
-  const funcionario = getFuncionarioById(requisicao.funcionarioId);
+  // Buscar dados relacionados usando os helpers corrigidos
+  const solicitante = getUsuarioById(requisicao.funcionarioId); // CORRIGIDO
   const setor = getSetorById(requisicao.setorId);
   const empresa = getEmpresaById(requisicao.empresaId);
 
-  const handleStatusChange = (newStatus: StatusRequisicao) => {
-    updateStatus(requisicao.id, newStatus);
-    setShowToast(`Status alterado para "${statusLabels[newStatus]}"`);
-    setTimeout(() => setShowToast(null), 3000);
-  };
-
-  const handleAction = (action: string) => {
-    setShowToast(`Ação "${action}" executada (simulação)`);
-    setTimeout(() => setShowToast(null), 3000);
-  };
-
-  const allStatuses: StatusRequisicao[] = [
-    "nova",
-    "em_atendimento",
-    "concluida",
-    "negada",
-  ];
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Toast */}
-      {showToast && (
-        <div className="fixed top-4 right-4 z-50 bg-primary text-primary-foreground px-4 py-3 rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2">
-          {showToast}
-        </div>
-      )}
-
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline text-sm">Voltar</span>
-            </button>
-            <div className="h-6 w-px bg-border" />
-            <Link href="/" className="flex items-center gap-2">
-              <Package className="h-6 w-6 text-primary" />
-              <span className="font-bold text-foreground">Stock</span>
-            </Link>
+    <div className="flex flex-col h-full bg-muted/10">
+      {/* Header da Página */}
+      <header className="sticky top-0 z-10 bg-background border-b px-6 py-4 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold">
+                Requisição #{requisicao.id.toUpperCase()}
+              </h1>
+              <Badge
+                className={`${statusColors[requisicao.status]} text-white border-0`}
+              >
+                {statusLabels[requisicao.status]}
+              </Badge>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              Criada em {new Date(requisicao.dataCriacao).toLocaleDateString()}{" "}
+              às{" "}
+              {new Date(requisicao.dataCriacao).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm">
+            <Printer className="mr-2 h-4 w-4" />
+            Imprimir
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <Share2 className="mr-2 h-4 w-4" /> Compartilhar
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive">
+                <XCircle className="mr-2 h-4 w-4" /> Cancelar Requisição
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
-        {/* Cabeçalho da requisição */}
-        <div className="bg-card border border-border rounded-xl p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <FileText className="h-6 w-6 text-primary" />
-                <h1 className="text-2xl font-bold text-card-foreground">
-                  Requisição #{requisicao.id.toUpperCase()}
-                </h1>
-              </div>
-              <p className="text-muted-foreground">
-                Criada em{" "}
-                {new Date(requisicao.dataCriacao).toLocaleString("pt-BR")}
-              </p>
-            </div>
-            <span
-              className={`px-4 py-2 rounded-full border text-sm font-medium ${
-                statusColors[requisicao.status]
-              }`}
-            >
-              {statusLabels[requisicao.status]}
-            </span>
-          </div>
-
-          {/* Informações do solicitante */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-muted/30 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <User className="h-4 w-4" />
-                <span className="text-xs">Funcionário</span>
-              </div>
-              <p className="font-medium text-card-foreground">
-                {funcionario?.nome}
-              </p>
-              <p className="text-xs text-muted-foreground font-mono">
-                {funcionario?.cpf}
-              </p>
-            </div>
-            <div className="bg-muted/30 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Building2 className="h-4 w-4" />
-                <span className="text-xs">Empresa</span>
-              </div>
-              <p className="font-medium text-card-foreground">
-                {empresa?.nome}
-              </p>
-            </div>
-            <div className="bg-muted/30 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Users className="h-4 w-4" />
-                <span className="text-xs">Setor</span>
-              </div>
-              <p className="font-medium text-card-foreground">{setor?.nome}</p>
-            </div>
-            <div className="bg-muted/30 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Clock className="h-4 w-4" />
-                <span className="text-xs">Última Atualização</span>
-              </div>
-              <p className="font-medium text-card-foreground">
-                {new Date(requisicao.dataAtualizacao).toLocaleString("pt-BR")}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Itens da requisição */}
-        <div className="bg-card border border-border rounded-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-card-foreground mb-4 flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" />
-            Itens Solicitados ({requisicao.itens.length})
-          </h2>
-          <div className="space-y-3">
-            {requisicao.itens.map((item, index) => (
-              <div
-                key={index}
-                className="bg-muted/30 border border-border rounded-lg p-4 flex items-start justify-between"
-              >
-                <div>
-                  <p className="font-medium text-card-foreground">
-                    {item.nome}
-                  </p>
-                  {item.observacoes && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {item.observacoes}
-                    </p>
-                  )}
+      {/* Conteúdo Principal */}
+      <div className="flex-1 overflow-auto p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+          {/* Coluna Esquerda: Itens e Observações */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  Itens Solicitados
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  {requisicao.itens.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="bg-primary/10 text-primary font-bold w-8 h-8 rounded flex items-center justify-center text-xs shrink-0">
+                          {item.quantidade}x
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{item.nome}</p>
+                          {item.observacao && (
+                            <p className="text-xs text-muted-foreground mt-0.5 italic">
+                              "{item.observacao}"
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {item.tag && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] uppercase"
+                        >
+                          {item.tag}
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <span className="bg-primary/10 text-primary text-sm font-semibold px-3 py-1 rounded-full">
-                  {item.quantidade}x
-                </span>
-              </div>
-            ))}
+              </CardContent>
+            </Card>
+
+            {requisicao.observacoesGerais && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-primary" />
+                    Observações Gerais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md italic">
+                    "{requisicao.observacoesGerais}"
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Coluna Direita: Informações Contextuais */}
+          <div className="space-y-6">
+            {/* Card do Solicitante */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  Solicitante
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+                    {solicitante?.nome.charAt(0) || "U"}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">
+                      {solicitante?.nome || "Usuário Desconhecido"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {solicitante?.cargo || "Cargo não informado"}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Building2 className="h-3.5 w-3.5" />
+                    <span className="truncate">
+                      {empresa?.nomeFantasia || "Empresa não encontrada"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5" />
+                    <span>{setor?.nome || "Setor não informado"}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Timeline / Histórico (Simulado) */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  Histórico
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="relative pl-4 border-l-2 border-muted space-y-6">
+                  {/* Evento Atual */}
+                  <div className="relative">
+                    <div className="absolute -left-[21px] bg-primary h-3 w-3 rounded-full border-2 border-background" />
+                    <p className="text-xs font-semibold">
+                      {statusLabels[requisicao.status]}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Atualizado recentemente
+                    </p>
+                  </div>
+
+                  {/* Evento Passado: Criação */}
+                  <div className="relative">
+                    <div className="absolute -left-[21px] bg-muted-foreground h-3 w-3 rounded-full border-2 border-background" />
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Requisição Criada
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {new Date(requisicao.dataCriacao).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-
-        {/* Observações gerais */}
-        {requisicao.observacoesGerais && (
-          <div className="bg-card border border-border rounded-xl p-6 mb-6">
-            <h2 className="text-lg font-semibold text-card-foreground mb-3 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
-              Observações
-            </h2>
-            <p className="text-muted-foreground bg-muted/30 rounded-lg p-4">
-              {requisicao.observacoesGerais}
-            </p>
-          </div>
-        )}
-
-        {/* Ações */}
-        <div className="bg-card border border-border rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-card-foreground mb-4">
-            Ações
-          </h2>
-          <div className="flex flex-wrap gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="default">
-                  Alterar Status
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                {allStatuses.map((status) => (
-                  <DropdownMenuItem
-                    key={status}
-                    onClick={() => handleStatusChange(status)}
-                    disabled={status === requisicao.status}
-                  >
-                    <span
-                      className={`w-2 h-2 rounded-full mr-2 ${
-                        status === "nova"
-                          ? "bg-blue-500"
-                          : status === "em_atendimento"
-                          ? "bg-yellow-500"
-                          : status === "concluida"
-                          ? "bg-primary"
-                          : "bg-red-500"
-                      }`}
-                    />
-                    {statusLabels[status]}
-                    {status === requisicao.status && " (atual)"}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Button variant="outline" onClick={() => handleAction("Imprimir")}>
-              <Printer className="h-4 w-4 mr-2" />
-              Imprimir
-            </Button>
-
-            <Button variant="outline" onClick={() => handleAction("WhatsApp")}>
-              <MessageCircle className="h-4 w-4 mr-2" />
-              WhatsApp
-            </Button>
-
-            <Button variant="outline" onClick={() => handleAction("E-mail")}>
-              <Mail className="h-4 w-4 mr-2" />
-              E-mail
-            </Button>
-          </div>
-        </div>
-
-        {/* Link para voltar */}
-        <div className="mt-6 text-center">
-          <Link href="/admin/requisicoes">
-            <Button variant="ghost">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar para o Painel
-            </Button>
-          </Link>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
