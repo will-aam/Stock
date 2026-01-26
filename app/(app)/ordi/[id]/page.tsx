@@ -33,7 +33,7 @@ import {
   type StatusRequisicao,
   statusLabels,
   statusColors,
-  getUsuarioById, // CORRIGIDO: Era getFuncionarioById
+  getUsuarioById,
   getSetorById,
   getEmpresaById,
 } from "@/lib/mock-data";
@@ -70,8 +70,8 @@ export default function RequisicaoDetalhesPage({
     );
   }
 
-  // Buscar dados relacionados usando os helpers corrigidos
-  const solicitante = getUsuarioById(requisicao.funcionarioId); // CORRIGIDO
+  // Buscar dados relacionados
+  const solicitante = getUsuarioById(requisicao.funcionarioId);
   const setor = getSetorById(requisicao.setorId);
   const empresa = getEmpresaById(requisicao.empresaId);
 
@@ -153,9 +153,10 @@ export default function RequisicaoDetalhesPage({
                         </div>
                         <div>
                           <p className="font-medium text-sm">{item.nome}</p>
-                          {item.observacao && (
+                          {/* CORREÇÃO AQUI: observacoes em vez de observacao */}
+                          {item.observacoes && (
                             <p className="text-xs text-muted-foreground mt-0.5 italic">
-                              "{item.observacao}"
+                              "{item.observacoes}"
                             </p>
                           )}
                         </div>
