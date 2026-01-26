@@ -8,7 +8,6 @@ import {
   Calendar,
   Download,
   Upload,
-  Tag as TagIcon,
   RefreshCw,
   ChevronDown,
   Building2,
@@ -128,7 +127,7 @@ export default function EntradaNotasPage() {
 
   return (
     <div
-      className="flex flex-col h-[calc(100vh-60px)] bg-background relative"
+      className="flex flex-col h-[calc(100vh-60px)] bg-transparent relative"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -136,7 +135,7 @@ export default function EntradaNotasPage() {
       {/* OVERLAY DE DRAG & DROP */}
       {isDragging && (
         <div className="absolute inset-0 z-50 bg-primary/10 backdrop-blur-sm border-2 border-dashed border-primary flex items-center justify-center">
-          <div className="bg-background p-8 rounded-xl shadow-xl flex flex-col items-center animate-bounce">
+          <div className="bg-background p-8 rounded-xl  flex flex-col items-center animate-bounce">
             <Upload className="h-16 w-16 text-primary mb-4" />
             <h2 className="text-2xl font-bold text-primary">
               Solte os XMLs aqui
@@ -149,7 +148,7 @@ export default function EntradaNotasPage() {
       )}
 
       {/* --- HEADER: SELEÇÃO DE EMPRESA (TABELA ALINHADA) --- */}
-      <header className=" px-6 py-4 flex items-center justify-between bg-card shrink-0">
+      <header className=" px-6 py-4 flex items-center justify-between bg-transparent shrink-0">
         <div className="flex items-center gap-4">
           <Select
             value={empresaSelecionada}
@@ -324,7 +323,7 @@ export default function EntradaNotasPage() {
       </header>
 
       {/* --- TOOLBAR DE FILTROS E PESQUISA --- */}
-      <div className="px-6 py-4 border-b space-y-4 shrink-0 bg-muted/10">
+      <div className="px-6 py-4 border-b space-y-4 shrink-0 bg-transparent">
         {/* PRIMEIRA LINHA: PERÍODO E BUSCA COM COLUNAS */}
         <div className="flex gap-4">
           {/* Seção de Período - LARGURA FIXA MENOR */}
@@ -431,41 +430,53 @@ export default function EntradaNotasPage() {
             </DropdownMenu>
           </div>
 
-          {/* Seção de Busca - PREENCHE TODO O ESPAÇO RESTANTE */}
+          {/* Seção de Busca - Select + Input (grupo) + Colunas separado */}
           <div className="flex-1">
             <h3 className="text-sm font-medium text-foreground mb-2">
               Buscar por
             </h3>
-            <div className="flex gap-2 h-10">
-              <Select value={searchType} onValueChange={setSearchType}>
-                <SelectTrigger className="w-32 h-10">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="chave">Chave</SelectItem>
-                  <SelectItem value="numero">Número</SelectItem>
-                  <SelectItem value="emitente">Emitente</SelectItem>
-                  <SelectItem value="valor">Valor</SelectItem>
-                  <SelectItem value="serie">Série</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Digite sua busca..."
-                  className="pl-10 bg-background h-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+
+            <div className="flex items-center gap-3 h-10">
+              {/* GROUP: Select + Input */}
+              <div
+                className="flex flex-1 h-10 items-stretch border bg-transparent overflow-hidden rounded-md
+           focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+              >
+                <Select value={searchType} onValueChange={setSearchType}>
+                  <SelectTrigger
+                    className="h-full w-36 rounded-none border-0 bg-transparent px-3 py-0! shadow-none outline-none
+  focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="chave">Chave</SelectItem>
+                    <SelectItem value="numero">Número</SelectItem>
+                    <SelectItem value="emitente">Emitente</SelectItem>
+                    <SelectItem value="valor">Valor</SelectItem>
+                    <SelectItem value="serie">Série</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="relative flex-1">
+                  <Input
+                    placeholder="Exemplo: 35210412345678000123550010000012341000012345"
+                    className="h-10 rounded-none border-0 pl-3 bg-transparent
+                               focus-visible:ring-0 focus-visible:ring-offset-0"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
-              {/* BOTÃO COLUNAS AO LADO DA BUSCA */}
+
+              {/* BOTÃO COLUNAS SEPARADO */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-10">
+                  <Button variant="outline" className="h-10">
                     Colunas <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                {/* Dropdown com UMA COLUNA APENAS */}
+
                 <DropdownMenuContent
                   className="w-56 p-2 max-h-64 overflow-y-auto"
                   align="end"
@@ -570,7 +581,7 @@ export default function EntradaNotasPage() {
         </div>
 
         {/* Barra de Ações - SEGUNDA LINHA */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-end gap-4">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-10">
               Relatório
@@ -578,26 +589,19 @@ export default function EntradaNotasPage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-10">
-                  <TagIcon className="h-4 w-4 mr-2" />
                   Etiquetas
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuLabel>Gerenciar etiquetas</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <TagIcon className="h-4 w-4 mr-2" />
-                  Modificar etiquetas
-                </DropdownMenuItem>
+                <DropdownMenuItem>Modificar etiquetas</DropdownMenuItem>
                 <DropdownMenuItem>
                   <Plus className="h-4 w-4 mr-2" />
                   Criar nova etiqueta
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-
-          <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-10">
               <Download className="h-4 w-4 mr-2" />
               Download
@@ -609,9 +613,9 @@ export default function EntradaNotasPage() {
       {/* --- TABELA DE NOTAS COM SCROLL AREA --- */}
       {/* Substituímos a div nativa pelo ScrollArea para melhor controle da rolagem */}
       <ScrollArea className="flex-1 p-4" type="hover">
-        <div className="border rounded-lg overflow-x-auto h-full">
+        <div className="border rounded-sm overflow-x-auto h-full">
           <table className="w-full min-w-[800px] text-sm text-left border-collapse">
-            <thead className="bg-muted/50 text-muted-foreground sticky top-0 z-10 shadow-sm backdrop-blur-md border-b">
+            <thead className="bg-muted/50 text-muted-foreground sticky top-0 z-10  backdrop-blur-md border-b">
               <tr>
                 <th className="p-4 w-10 border-r">
                   <Checkbox
