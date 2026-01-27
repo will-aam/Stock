@@ -171,7 +171,7 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
                     )}
                   </div>
 
-                  {/* CONTEÚDO: aqui sim vai o padding reduzido */}
+                  {/* CONTEÚDO */}
                   <div className="flex-1 px-4 py-2 flex items-center">
                     <div className="flex flex-col sm:flex-row gap-4 w-full">
                       {/* Informações Principais */}
@@ -180,12 +180,6 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
                           <h3 className="font-semibold text-sm truncate pr-2 text-foreground/90">
                             {product.nome}
                           </h3>
-                          {/* Preço no Topo (Mobile) */}
-                          <div className="sm:hidden font-bold text-blue-700 text-sm">
-                            {precoVenda
-                              ? `R$ ${precoVenda.toFixed(2)}`
-                              : "R$ --"}
-                          </div>
                         </div>
 
                         <div className="flex gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
@@ -200,35 +194,37 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
                         </div>
                       </div>
 
-                      {/* Coluna Dinâmica */}
-                      <div className="sm:w-40 shrink-0 hidden sm:flex justify-between items-center">
-                        <div className="text-right">
-                          <div className="text-[10px] uppercase text-muted-foreground font-semibold">
-                            Preço Venda
-                          </div>
-                          <div className="font-bold text-blue-700">
-                            {precoVenda ? (
-                              `R$ ${precoVenda.toFixed(2)}`
-                            ) : (
-                              <span className="text-muted-foreground text-xs">
-                                Não definido
-                              </span>
-                            )}
-                          </div>
+                      {/* PREÇO E ESTOQUE MINIMALISTA */}
+                      <div className="flex items-center gap-4 sm:gap-6 text-xs">
+                        {/* Preço */}
+                        <div className="flex flex-col items-center sm:items-end">
+                          <span className="text-muted-foreground font-medium uppercase tracking-wide">
+                            Preço
+                          </span>
+                          <span className="font-semibold text-sm text-foreground">
+                            {precoVenda ? `R$ ${precoVenda.toFixed(2)}` : "--"}
+                          </span>
                         </div>
 
-                        <div className="text-right ml-4">
-                          <div className="text-[10px] uppercase text-muted-foreground font-semibold">
+                        {/* Estoque */}
+                        <div className="flex flex-col items-center sm:items-end">
+                          <span className="text-muted-foreground font-medium uppercase tracking-wide">
                             Estoque
-                          </div>
-                          <div
-                            className={`font-bold text-sm flex items-center justify-end gap-1 ${estoque && estoque.atual <= estoque.minimo ? "text-red-600" : "text-foreground"}`}
+                          </span>
+                          <span
+                            className={`font-semibold text-sm flex items-center gap-1 ${
+                              estoque && estoque.atual <= estoque.minimo
+                                ? "text-red-600"
+                                : "text-foreground"
+                            }`}
                           >
                             {estoque && estoque.atual <= estoque.minimo && (
                               <AlertTriangle className="h-3 w-3" />
                             )}
-                            {estoque ? estoque.atual : "-"} {product.unidade}
-                          </div>
+                            {estoque
+                              ? `${estoque.atual} ${product.unidade}`
+                              : "--"}
+                          </span>
                         </div>
                       </div>
 
