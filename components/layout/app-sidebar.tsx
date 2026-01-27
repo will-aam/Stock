@@ -107,9 +107,9 @@ export function AppSidebar() {
   ];
 
   const purchaseItems = [
-    { title: "Entrada de Notas (XML)", url: "/compras/entrada" },
-    { title: "Manifesto Destinatário", url: "/compras/manifesto" },
-    { title: "Pedidos de Compra", url: "/compras/pedidos" },
+    { title: "Entrada de Notas", url: "/compras/entradas" },
+    { title: "Manifesto Destinatário", url: "#" },
+    { title: "Pedidos de Compra", url: "#" },
   ];
 
   const inventoryItems = [
