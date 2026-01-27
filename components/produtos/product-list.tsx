@@ -11,7 +11,6 @@ import {
   Search,
   Package,
   Store,
-  MapPin,
   Barcode,
   Layers,
   AlertTriangle,
@@ -70,8 +69,8 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
 
   return (
     <div className="space-y-6">
-      {/* 1. SELETOR DE CONTEXTO */}
-      <div className="bg-muted/30 p-4 rounded-lg border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* 1. SELETOR DE CONTEXTO COM BARRA DE PESQUISA INTEGRADA */}
+      <div className="bg-muted/30 p-4 rounded-sm border  flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
           <h3 className="text-sm font-medium flex items-center gap-2">
             <Store className="h-4 w-4 text-primary" />
@@ -81,44 +80,43 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
             Visualizando preços e estoques da unidade selecionada.
           </p>
         </div>
-        <div className="w-full sm:w-[300px]">
-          <Select
-            value={selectedEmpresaId}
-            onValueChange={setSelectedEmpresaId}
-          >
-            <SelectTrigger className="bg-background h-9">
-              <SelectValue placeholder="Selecione a Loja" />
-            </SelectTrigger>
-            <SelectContent>
-              {empresas.map((emp) => (
-                <SelectItem key={emp.id} value={emp.id}>
-                  {emp.nomeFantasia}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+        <div className="w-full lg:w-auto flex flex-col sm:flex-row gap-3 items-stretch">
+          {/* Select loja */}
+          <div className="w-full sm:w-[280px]">
+            <Select
+              value={selectedEmpresaId}
+              onValueChange={setSelectedEmpresaId}
+            >
+              <SelectTrigger className="bg-background h-10">
+                <SelectValue placeholder="Selecione a Loja" />
+              </SelectTrigger>
+              <SelectContent>
+                {empresas.map((emp) => (
+                  <SelectItem key={emp.id} value={emp.id}>
+                    {emp.nomeFantasia}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Search */}
+          <div className="relative w-full sm:w-[360px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome, EAN, referência..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-10 bg-background"
+            />
+          </div>
         </div>
       </div>
 
-      {/* 2. BARRA DE AÇÕES */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome, EAN, referência..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-10"
-          />
-        </div>
-        <Button onClick={onCreate} className="w-full sm:w-auto h-10">
-          <Package className="w-4 h-4 mr-2" /> Novo Produto
-        </Button>
-      </div>
-
-      {/* 3. LISTAGEM */}
+      {/* 2. LISTAGEM */}
       {filteredProducts.length === 0 ? (
-        <div className="text-center py-16 bg-muted/10 rounded-lg border border-dashed">
+        <div className="text-center py-16 bg-muted/10 rounded-sm border border-dashed">
           <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
           <p className="text-muted-foreground">
             {searchTerm
@@ -127,7 +125,7 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-2">
           {filteredProducts.map((product) => {
             const { precoVenda, estoque } = getDadosLoja(product);
             const grupoTributario = product.grupoTributarioId
@@ -142,141 +140,120 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
             return (
               <Card
                 key={product.id}
-                className="p-4 hover:border-primary/40 transition-all duration-200 group"
+                className="p-0 py-0 gap-0 overflow-hidden hover:border-primary/40 transition-all duration-200 group sm:h-20"
               >
-                <div className="flex flex-col sm:flex-row gap-5">
-                  {/* Imagem */}
-                  <div className="shrink-0 relative">
+                <div className="flex flex-col sm:flex-row h-full">
+                  <div className="relative shrink-0 w-full sm:w-20 h-20 sm:h-full">
                     {mainImage ? (
-                      <img
-                        src={mainImage}
-                        alt={product.nome}
-                        className="h-24 w-24 object-cover rounded-md border bg-white"
-                      />
+                      <div className="h-full w-full flex items-center justify-center">
+                        <img
+                          src={mainImage}
+                          alt={product.nome}
+                          className="
+     max-w-full 
+      object-cover
+    "
+                        />
+                      </div>
                     ) : (
-                      <div className="h-24 w-24 bg-muted rounded-md flex items-center justify-center border">
-                        <Package className="h-8 w-8 text-muted-foreground/30" />
+                      <div className="h-full w-full bg-muted flex items-center justify-center border-r">
+                        <Package className="h-6 w-6 text-muted-foreground/40" />
                       </div>
                     )}
+
                     {!product.ativo && (
                       <Badge
                         variant="destructive"
-                        className="absolute -top-2 -left-2 text-[10px] px-1.5 h-5"
+                        className="absolute top-1 left-1 text-[9px] px-1 h-4"
                       >
                         Inativo
                       </Badge>
                     )}
                   </div>
 
-                  {/* Informações Principais */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                    <div>
-                      <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-bold text-base truncate pr-2 text-foreground/90">
-                          {product.nome}
-                        </h3>
-                        {/* Preço no Topo (Mobile) */}
-                        <div className="sm:hidden font-bold text-green-700">
-                          {precoVenda ? `R$ ${precoVenda.toFixed(2)}` : "R$ --"}
+                  {/* CONTEÚDO: aqui sim vai o padding reduzido */}
+                  <div className="flex-1 px-4 py-2 flex items-center">
+                    <div className="flex flex-col sm:flex-row gap-4 w-full">
+                      {/* Informações Principais */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-semibold text-sm truncate pr-2 text-foreground/90">
+                            {product.nome}
+                          </h3>
+                          {/* Preço no Topo (Mobile) */}
+                          <div className="sm:hidden font-bold text-blue-700 text-sm">
+                            {precoVenda
+                              ? `R$ ${precoVenda.toFixed(2)}`
+                              : "R$ --"}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
+                          <span className="flex items-center gap-1">
+                            <Barcode className="h-3 w-3" />{" "}
+                            {product.codigoBarras}
+                          </span>
+
+                          <span className="flex items-center gap-1">
+                            SKU: {product.codigoInterno}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mb-2">
-                        <span className="flex items-center gap-1 bg-muted/50 px-1.5 rounded">
-                          <Barcode className="h-3 w-3" /> {product.codigoBarras}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          Ref: {product.referencia || "-"}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          SKU: {product.codigoInterno}
-                        </span>
-                      </div>
+                      {/* Coluna Dinâmica */}
+                      <div className="sm:w-40 shrink-0 hidden sm:flex justify-between items-center">
+                        <div className="text-right">
+                          <div className="text-[10px] uppercase text-muted-foreground font-semibold">
+                            Preço Venda
+                          </div>
+                          <div className="font-bold text-blue-700">
+                            {precoVenda ? (
+                              `R$ ${precoVenda.toFixed(2)}`
+                            ) : (
+                              <span className="text-muted-foreground text-xs">
+                                Não definido
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
-                      {product.descricaoAuxiliar && (
-                        <p className="text-xs text-muted-foreground/80 truncate mb-2">
-                          {product.descricaoAuxiliar}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] h-5 font-normal"
-                        >
-                          {product.unidade}
-                        </Badge>
-                        {grupoTributario && (
-                          <Badge
-                            variant="secondary"
-                            className="text-[10px] h-5 font-normal bg-blue-50 text-blue-700 hover:bg-blue-100"
+                        <div className="text-right ml-4">
+                          <div className="text-[10px] uppercase text-muted-foreground font-semibold">
+                            Estoque
+                          </div>
+                          <div
+                            className={`font-bold text-sm flex items-center justify-end gap-1 ${estoque && estoque.atual <= estoque.minimo ? "text-red-600" : "text-foreground"}`}
                           >
-                            <Layers className="h-3 w-3 mr-1" />
-                            {/* CORREÇÃO: Usando .descricao em vez de .nome */}
-                            {grupoTributario.descricao.split("-")[0].trim()}
-                          </Badge>
-                        )}
+                            {estoque && estoque.atual <= estoque.minimo && (
+                              <AlertTriangle className="h-3 w-3" />
+                            )}
+                            {estoque ? estoque.atual : "-"} {product.unidade}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Ações */}
+                      <div className="flex gap-1 items-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-primary"
+                          onClick={() => onEdit(product)}
+                          title="Editar Produto"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => {}}
+                          title="Excluir"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Coluna Dinâmica */}
-                  <div className="sm:w-48 shrink-0 flex flex-row sm:flex-col justify-between sm:justify-center items-center sm:items-end gap-2 border-t sm:border-t-0 sm:border-l pt-3 sm:pt-0 sm:pl-5 mt-2 sm:mt-0 bg-muted/5 sm:bg-transparent rounded sm:rounded-none px-3 sm:px-0">
-                    <div className="hidden sm:flex items-center text-[10px] text-muted-foreground mb-1">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      {currentStore?.nomeFantasia}
-                    </div>
-
-                    <div className="text-left sm:text-right">
-                      <div className="text-[10px] uppercase text-muted-foreground font-semibold">
-                        Preço Venda
-                      </div>
-                      <div className="font-bold text-lg text-green-700 leading-none">
-                        {precoVenda ? (
-                          `R$ ${precoVenda.toFixed(2)}`
-                        ) : (
-                          <span className="text-muted-foreground text-sm">
-                            Não definido
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <div className="text-[10px] uppercase text-muted-foreground font-semibold">
-                        Estoque Atual
-                      </div>
-                      <div
-                        className={`font-bold text-sm flex items-center justify-end gap-1 ${estoque && estoque.atual <= estoque.minimo ? "text-red-600" : "text-foreground"}`}
-                      >
-                        {estoque && estoque.atual <= estoque.minimo && (
-                          <AlertTriangle className="h-3 w-3" />
-                        )}
-                        {estoque ? estoque.atual : "-"} {product.unidade}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Ações */}
-                  <div className="flex sm:flex-col gap-2 justify-end sm:justify-center items-center sm:border-l sm:pl-4">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-primary"
-                      onClick={() => onEdit(product)}
-                      title="Editar Produto"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => {}}
-                      title="Excluir"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
               </Card>

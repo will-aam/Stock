@@ -203,7 +203,8 @@ export const produtos: Produto[] = [
     tipoControle: "serie",
 
     imagens: [
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&q=80&w=1000",
+      // URL ATUALIZADA: Imagem de Teclado (mais adequada para produto de informática)
+      "https://images.tcdn.com.br/img/img_prod/406359/teclado_usb_padrao_abnt2_107_teclas_13_teclas_multimidia_preto_monocron_mn8260_4733_1_91c7b7d66c7bf8fc9cf4861af1c4f151_20220707113241.jpg",
     ],
     catalogo: { publicar: true, destaque: true, ordem: 1 },
 
@@ -274,7 +275,8 @@ export const produtos: Produto[] = [
     marcaId: "m-ambev",
     tipoControle: "lote",
     imagens: [
-      "https://images.unsplash.com/photo-1605218427306-633ba88c5283?auto=format&fit=crop&q=80&w=1000",
+      // URL ATUALIZADA: Imagem de Café (mais adequada para produto de bebida)
+      "https://dfxe7ekqtze9q.cloudfront.net/produtos/produtos/90101.jpg",
     ],
     catalogo: { publicar: true, destaque: false, ordem: 2 },
 
@@ -335,5 +337,5 @@ export const produtos: Produto[] = [
 ];
 
 export function getProdutoById(id: string) {
-  return produtos.find((p) => p.id === id);
+  return produtos.find((p) => p.id === p.id);
 }
