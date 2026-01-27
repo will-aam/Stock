@@ -108,7 +108,7 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
               placeholder="Buscar por nome, EAN, referência..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-10 bg-background"
+              className="pl-10 h-10 bg-background dark:bg-background"
             />
           </div>
         </div>
