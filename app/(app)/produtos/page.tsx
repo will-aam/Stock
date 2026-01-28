@@ -1,4 +1,3 @@
-// app/(app)/produtos/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -7,8 +6,7 @@ import { ProductList } from "@/components/produtos/product-list";
 import { ProductFormSheet } from "@/components/produtos/product-form-sheet";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-// Importa o tipo e o mock inicial
+import { Plus, CheckCircle2 } from "lucide-react";
 import { produtos as initialProdutos, Produto } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,32 +16,117 @@ import { useWizardStore } from "@/components/produtos/wizard/use-wizard-store";
 
 export default function ProdutosPage() {
   const { toast } = useToast();
-  // Estado local dos produtos (simulando banco de dados)
+
+  // Estado local dos produtos
   const [produtos, setProdutos] = useState<Produto[]>(initialProdutos);
 
   // --- CONTROLE DO WIZARD (Zustand) ---
-  const { setOpen: openWizard, reset: resetWizard } = useWizardStore();
+  const { setOpen: openWizard, reset: resetWizard, setOpen } = useWizardStore();
 
-  // --- CONTROLE DO FORMULÁRIO ANTIGO (Apenas para Edição) ---
+  // --- CONTROLE DO FORMULÁRIO ANTIGO (Edição) ---
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Produto | null>(null);
 
-  // Abrir para CRIAR (Usa o Novo Wizard)
+  // 1. Abrir para CRIAR (Wizard)
   const handleCreate = () => {
-    resetWizard(); // Limpa o wizard para começar do zero
-    openWizard(true); // Abre via Zustand
+    resetWizard();
+    openWizard(true);
   };
 
-  // Abrir para EDITAR (Mantém o Form Antigo por enquanto)
+  // 2. Abrir para EDITAR (Formulário Completo)
   const handleEdit = (produto: Produto) => {
     setEditingProduct(produto);
     setIsEditSheetOpen(true);
   };
 
-  // Salvar (Simulação de Backend para o Form de Edição)
+  // 3. Salvar do Wizard (Criação Rápida)
+  const handleWizardSave = (wizardData: any) => {
+    // Aqui fazemos a "Mágica": Converter os dados simples do Wizard
+    // para a estrutura complexa do Produto (com arrays de lojas, etc)
+
+    const newProduct: any = {
+      id: `prod-${Date.now()}`, // ID único temporário
+      ativo: true,
+      nome: wizardData.nome,
+      unidade: wizardData.unidade,
+      codigoBarras: wizardData.codigoBarras,
+      codigoInterno: wizardData.codigoInterno,
+
+      // Categorização
+      categoriaId: wizardData.categoriaId,
+      marcaId: wizardData.marcaId,
+
+      // Fiscal
+      ncm: wizardData.ncm,
+      cest: wizardData.cest,
+      origem: wizardData.origem || 0,
+      grupoTributarioId: wizardData.grupoTributarioId,
+
+      // Flags Logísticas
+      controlaEstoque: wizardData.controlaEstoqueEscolhaUsuario ?? true,
+      tipoItem: wizardData.role === "insumo" ? "01" : "00", // Exemplo de lógica automática
+
+      // Mapeamento de Preço (Cria tabela para a Matriz/Empresa 1)
+      precos: wizardData.precoVenda
+        ? [
+            {
+              empresaId: "emp-1", // Assumindo Matriz
+              precoCusto: 0,
+              tabelas: [
+                { id: "tab-1", nome: "Varejo", valor: wizardData.precoVenda },
+              ],
+            },
+          ]
+        : [],
+
+      // Mapeamento de Estoque (Cria registro para a Matriz)
+      estoque:
+        wizardData.controlaEstoqueEscolhaUsuario !== false
+          ? [
+              {
+                empresaId: "emp-1",
+                atual: 0, // Começa zerado
+                minimo: wizardData.estoqueMinimo || 0,
+                localizacao: wizardData.localizacao,
+              },
+            ]
+          : [],
+
+      imagens: [],
+      fornecedores: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Adiciona ao topo da lista
+    setProdutos((prev) => [newProduct, ...prev]);
+
+    // Toast Customizado e Bonito
+    toast({
+      description: (
+        <div className="flex items-center gap-3">
+          <div className="bg-green-100 text-green-600 p-2 rounded-full">
+            <CheckCircle2 className="h-4 w-4" />
+          </div>
+          <div className="space-y-0.5">
+            <p className="font-semibold text-sm">Produto Cadastrado!</p>
+            <p className="text-xs text-muted-foreground">
+              {wizardData.nome} já está disponível para vendas.
+            </p>
+          </div>
+        </div>
+      ),
+      className: "border-l-4 border-l-green-500", // Borda lateral verde para destaque
+      duration: 5000,
+    });
+
+    // Fecha o Wizard
+    setOpen(false);
+  };
+
+  // 4. Salvar da Edição (Formulário Antigo)
   const handleSaveEdit = (data: Partial<Produto>) => {
     if (editingProduct) {
-      // ATUALIZAR
       setProdutos((prev) =>
         prev.map((p) =>
           p.id === editingProduct.id ? ({ ...p, ...data } as Produto) : p,
@@ -96,7 +179,8 @@ export default function ProdutosPage() {
         />
 
         {/* 2. Novo Wizard (Apenas para Criação) */}
-        <ProductWizardSheet />
+        {/* Passamos a função onSave aqui! */}
+        <ProductWizardSheet onSave={handleWizardSave} />
       </main>
     </div>
   );

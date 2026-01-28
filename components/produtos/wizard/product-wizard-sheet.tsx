@@ -1,3 +1,4 @@
+// components/produtos/wizard/product-wizard-sheet.tsx
 "use client";
 
 import {
@@ -21,31 +22,27 @@ import { StepStockDetails } from "./steps/step-stock-details";
 import { StepComposition } from "./steps/step-composition";
 import { StepFiscal } from "./steps/step-fiscal";
 
-export function ProductWizardSheet() {
-  const {
-    isOpen,
-    setOpen,
-    currentStep,
-    nextStep,
-    prevStep,
-    data, // Podemos usar isso para validar se o passo atual está preenchido
-  } = useWizardStore();
+// Nova interface para aceitar a função de salvar
+interface ProductWizardSheetProps {
+  onSave?: (data: any) => void;
+}
 
-  // Títulos amigáveis para mostrar no topo de cada etapa
+export function ProductWizardSheet({ onSave }: ProductWizardSheetProps) {
+  const { isOpen, setOpen, currentStep, nextStep, prevStep, data } =
+    useWizardStore();
+
   const stepTitles = [
-    "Definição do Produto", // 0: papel
-    "Controle de Estoque", // 1: controle_estoque
-    "Origem do Item", // 2: origem
-    "Dados Essenciais", // 3: dados_basicos
-    "Gestão de Estoque", // 4: detalhes_estoque
-    "Ficha Técnica", // 5: composicao
-    "Configuração Fiscal", // 6: fiscal
+    "Definição do Produto",
+    "Controle de Estoque",
+    "Origem do Item",
+    "Dados Essenciais",
+    "Gestão de Estoque",
+    "Ficha Técnica",
+    "Configuração Fiscal",
   ];
 
-  // Cálculo simples da porcentagem de progresso
   const progress = ((currentStep + 1) / STEP_ORDER.length) * 100;
 
-  // Função para renderizar o componente correto baseado no passo atual
   const renderStepContent = () => {
     const stepName = STEP_ORDER[currentStep];
 
@@ -69,14 +66,10 @@ export function ProductWizardSheet() {
     }
   };
 
-  // Validação simples para desabilitar o botão "Próximo"
   const isNextDisabled = () => {
     const stepName = STEP_ORDER[currentStep];
-
     if (stepName === "papel" && !data.role) return true;
-    // Adicione outras validações aqui conforme necessário (ex: nome obrigatório)
     if (stepName === "dados_basicos" && !data.nome) return true;
-
     return false;
   };
 
@@ -106,7 +99,6 @@ export function ProductWizardSheet() {
             </Button>
           </div>
 
-          {/* Stepper Visual */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <span>
@@ -125,8 +117,9 @@ export function ProductWizardSheet() {
           </div>
         </SheetHeader>
 
-        {/* --- CORPO --- */}
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30 dark:bg-slate-950/10">
+        {/* --- CORPO (SCROLLBAR VISÍVEL AGORA) --- */}
+        {/* Removemos as classes que escondiam o scrollbar */}
+        <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30 dark:bg-slate-950/10  [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {renderStepContent()}
           </div>
@@ -134,7 +127,6 @@ export function ProductWizardSheet() {
 
         {/* --- FOOTER --- */}
         <SheetFooter className="px-6 py-4 border-t bg-background shrink-0 flex-row gap-3 sm:justify-between sm:space-x-0">
-          {/* Botão Voltar */}
           <Button
             variant="outline"
             onClick={prevStep}
@@ -144,16 +136,14 @@ export function ProductWizardSheet() {
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
 
-          {/* Botão Próximo ou Salvar */}
           {currentStep === STEP_ORDER.length - 1 ? (
             <Button
               className="flex-1 sm:flex-none w-full sm:w-[180px] gap-2 bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all"
               onClick={() => {
-                alert("Produto salvo com sucesso! (Lógica de backend aqui)");
-                setOpen(false);
+                if (onSave) onSave(data); // Chama a função real passada pelo pai
               }}
             >
-              <Save className="h-4 w-4" /> Salvar Produto
+              <Save className="h-4 w-4" /> Concluir Cadastro
             </Button>
           ) : (
             <Button

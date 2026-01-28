@@ -3,14 +3,7 @@
 import { useWizardStore } from "../use-wizard-store";
 import { ProductRole } from "../types";
 import { cn } from "@/lib/utils";
-import {
-  ShoppingBag,
-  Archive,
-  Hammer,
-  Factory,
-  Briefcase,
-  CheckCircle2,
-} from "lucide-react";
+import { ShoppingBag, Archive, Hammer, Factory } from "lucide-react";
 
 interface RoleOption {
   id: ProductRole;
@@ -52,24 +45,13 @@ const options: RoleOption[] = [
     color:
       "text-purple-600 border-purple-600/20 bg-purple-50 dark:bg-purple-900/20",
   },
-  {
-    id: "servico",
-    title: "Serviço",
-    description: "Mão de obra, entrega ou consultoria (sem estoque físico).",
-    icon: Briefcase,
-    color:
-      "text-emerald-600 border-emerald-600/20 bg-emerald-50 dark:bg-emerald-900/20",
-  },
 ];
 
 export function StepRole() {
-  const { data, setRole, nextStep } = useWizardStore();
+  const { data, setRole } = useWizardStore();
 
   const handleSelect = (role: ProductRole) => {
     setRole(role);
-    // Opcional: Avançar automaticamente ao clicar (UX ágil),
-    // mas pode confundir se o usuário quiser ler.
-    // Vamos manter seleção manual por enquanto.
   };
 
   return (
@@ -79,8 +61,7 @@ export function StepRole() {
           Qual é o papel deste item?
         </h2>
         <p className="text-muted-foreground text-sm max-w-md mx-auto">
-          Essa escolha define automaticamente as regras de estoque e tributação
-          iniciais.
+          Essa escolha define as configurações iniciais do produto.
         </p>
       </div>
 
@@ -95,8 +76,9 @@ export function StepRole() {
               onClick={() => handleSelect(option.id)}
               className={cn(
                 "relative flex items-start gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer hover:shadow-md",
+                // Apenas altera a borda e o fundo para indicar seleção, sem o ícone de check
                 isSelected
-                  ? `border-primary bg-primary/5 shadow-sm`
+                  ? `border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20`
                   : "border-muted bg-card hover:border-muted-foreground/30",
               )}
             >
@@ -114,13 +96,6 @@ export function StepRole() {
                   {option.description}
                 </p>
               </div>
-
-              {/* Check de Seleção */}
-              {isSelected && (
-                <div className="absolute top-4 right-4 text-primary animate-in zoom-in spin-in-12 duration-300">
-                  <CheckCircle2 className="h-5 w-5 fill-primary text-primary-foreground" />
-                </div>
-              )}
             </div>
           );
         })}
