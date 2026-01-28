@@ -3,7 +3,7 @@
 import { useWizardStore } from "../use-wizard-store";
 import { ProductRole } from "../types";
 import { cn } from "@/lib/utils";
-import { ShoppingBag, Archive, Hammer, Factory } from "lucide-react";
+import { ShoppingBag, Archive, Hammer, Factory, Egg } from "lucide-react";
 
 interface RoleOption {
   id: ProductRole;
@@ -33,7 +33,7 @@ const options: RoleOption[] = [
     id: "insumo",
     title: "Matéria-Prima / Insumo",
     description: "Uso na produção de outros produtos (não vendo diretamente).",
-    icon: Hammer,
+    icon: Egg,
     color:
       "text-amber-600 border-amber-600/20 bg-amber-50 dark:bg-amber-900/20",
   },
