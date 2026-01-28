@@ -1,3 +1,4 @@
+// app/(app)/produtos/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -11,29 +12,36 @@ import { Plus } from "lucide-react";
 import { produtos as initialProdutos, Produto } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 
+// --- NOVOS IMPORTS DO WIZARD ---
+import { ProductWizardSheet } from "@/components/produtos/wizard/product-wizard-sheet";
+import { useWizardStore } from "@/components/produtos/wizard/use-wizard-store";
+
 export default function ProdutosPage() {
   const { toast } = useToast();
   // Estado local dos produtos (simulando banco de dados)
   const [produtos, setProdutos] = useState<Produto[]>(initialProdutos);
 
-  // Controle do Sheet (Formulário)
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  // --- CONTROLE DO WIZARD (Zustand) ---
+  const { setOpen: openWizard, reset: resetWizard } = useWizardStore();
+
+  // --- CONTROLE DO FORMULÁRIO ANTIGO (Apenas para Edição) ---
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Produto | null>(null);
 
-  // Abrir para CRIAR
+  // Abrir para CRIAR (Usa o Novo Wizard)
   const handleCreate = () => {
-    setEditingProduct(null); // Limpa seleção
-    setIsSheetOpen(true);
+    resetWizard(); // Limpa o wizard para começar do zero
+    openWizard(true); // Abre via Zustand
   };
 
-  // Abrir para EDITAR
+  // Abrir para EDITAR (Mantém o Form Antigo por enquanto)
   const handleEdit = (produto: Produto) => {
     setEditingProduct(produto);
-    setIsSheetOpen(true);
+    setIsEditSheetOpen(true);
   };
 
-  // Salvar (Simulação de Backend)
-  const handleSave = (data: Partial<Produto>) => {
+  // Salvar (Simulação de Backend para o Form de Edição)
+  const handleSaveEdit = (data: Partial<Produto>) => {
     if (editingProduct) {
       // ATUALIZAR
       setProdutos((prev) =>
@@ -42,24 +50,8 @@ export default function ProdutosPage() {
         ),
       );
       toast({ description: "Produto atualizado com sucesso!" });
-    } else {
-      // CRIAR NOVO
-      const newProduct = {
-        ...data,
-        id: `prod-${Date.now()}`, // ID temporário
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        precos: [],
-        estoque: [],
-        imagens: data.imagens || [],
-        codigosBarrasAdicionais: data.codigosBarrasAdicionais || [],
-        fornecedores: [],
-      } as Produto;
-
-      setProdutos((prev) => [newProduct, ...prev]); // Adiciona no topo
-      toast({ description: "Produto criado com sucesso!" });
     }
-    setIsSheetOpen(false);
+    setIsEditSheetOpen(false);
   };
 
   return (
@@ -79,7 +71,7 @@ export default function ProdutosPage() {
               itens.
             </p>
           </div>
-          {/* Apenas o botão de Novo Produto, sem o de Configurações */}
+
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Novo Produto
@@ -95,13 +87,16 @@ export default function ProdutosPage() {
           onCreate={handleCreate}
         />
 
-        {/* Formulário (Sheet) */}
+        {/* 1. Formulário Antigo (Apenas para Edição) */}
         <ProductFormSheet
-          open={isSheetOpen}
-          onOpenChange={setIsSheetOpen}
+          open={isEditSheetOpen}
+          onOpenChange={setIsEditSheetOpen}
           initialData={editingProduct}
-          onSave={handleSave}
+          onSave={handleSaveEdit}
         />
+
+        {/* 2. Novo Wizard (Apenas para Criação) */}
+        <ProductWizardSheet />
       </main>
     </div>
   );
