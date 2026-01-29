@@ -1,11 +1,9 @@
-// components/produtos/wizard/types.ts
-
 export type ProductRole =
   | "revenda"
   | "uso_interno"
   | "insumo"
-  | "produto_proprio"
-  | "servico";
+  | "produto_proprio";
+// "servico" removido conforme solicitado
 
 export type WizardStep =
   | "papel"
@@ -18,24 +16,24 @@ export type WizardStep =
 
 export interface WizardState {
   // Controle do Wizard
-  currentStep: number; // Índice do passo atual (0, 1, 2...)
+  currentStep: number;
   isOpen: boolean;
 
-  // Flags de Lógica (Calculados baseados nas escolhas)
+  // Flags de Lógica (Calculados/Derivados)
   flags: {
     geraEstoque: boolean;
     vendaHabilitada: boolean;
-    producaoHabilitada: boolean; // É usado na produção?
-    permiteComposicao: boolean; // Tem receita/insumos?
-    permiteEntradaNF: boolean; // Compra de fornecedor?
+    producaoHabilitada: boolean;
+    permiteComposicao: boolean;
+    permiteEntradaNF: boolean; // Se false, oculta opções de compra
     requerLocalEstoque: boolean;
   };
 
-  // Dados do Produto sendo construído
+  // Dados do Produto
   data: {
     role: ProductRole | null;
-    controlaEstoqueEscolhaUsuario?: boolean; // A escolha explícita do passo 2
-    origemCompra?: boolean; // True = Compra, False = Produção Interna
+    controlaEstoqueEscolhaUsuario?: boolean; // Decisão explícita (Sim/Não)
+    origemCompra?: boolean; // true = Comprado, false = Produzido
 
     // Dados Essenciais
     nome: string;
@@ -46,13 +44,19 @@ export interface WizardState {
     codigoInterno?: string;
     codigoBarras?: string;
 
-    // Dados Estoque
+    // Opções de Venda (Novos)
+    apareceNoCupom?: boolean;
+
+    // Dados Estoque (Novos)
     estoqueMinimo?: number;
-    localizacao?: string;
+    localizacao?: string; // Equivalente a depósito padrão
+    controlaLote?: boolean;
+    controlaValidade?: boolean;
 
     // Preço
     precoVenda?: number;
-    // --- CAMPOS FISCAIS (ADICIONADOS AGORA) ---
+
+    // Fiscal
     grupoTributarioId?: string;
     ncm?: string;
     cest?: string;

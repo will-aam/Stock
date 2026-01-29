@@ -42,11 +42,13 @@ export default function ProdutosPage() {
   // 3. Salvar do Wizard (Criação Rápida)
   const handleWizardSave = (wizardData: any) => {
     // Aqui fazemos a "Mágica": Converter os dados simples do Wizard
-    // para a estrutura complexa do Produto (com arrays de lojas, etc)
+    // para a estrutura complexa do Produto
 
     const newProduct: any = {
       id: `prod-${Date.now()}`, // ID único temporário
       ativo: true,
+
+      // Dados Básicos
       nome: wizardData.nome,
       unidade: wizardData.unidade,
       codigoBarras: wizardData.codigoBarras,
@@ -54,6 +56,7 @@ export default function ProdutosPage() {
 
       // Categorização
       categoriaId: wizardData.categoriaId,
+      subcategoriaId: wizardData.subcategoriaId,
       marcaId: wizardData.marcaId,
 
       // Fiscal
@@ -62,9 +65,20 @@ export default function ProdutosPage() {
       origem: wizardData.origem || 0,
       grupoTributarioId: wizardData.grupoTributarioId,
 
-      // Flags Logísticas
+      // Flags Logísticas e de Venda
       controlaEstoque: wizardData.controlaEstoqueEscolhaUsuario ?? true,
-      tipoItem: wizardData.role === "insumo" ? "01" : "00", // Exemplo de lógica automática
+      tipoItem: wizardData.role === "insumo" ? "01" : "00",
+
+      // Novos campos de validação/regra
+      controlaLote: wizardData.controlaLote,
+      controlaValidade: wizardData.controlaValidade,
+
+      // Mapeando "Aparece no Cupom" para o catálogo
+      catalogo: {
+        publicar: wizardData.apareceNoCupom ?? false,
+        destaque: false,
+        ordem: 99,
+      },
 
       // Mapeamento de Preço (Cria tabela para a Matriz/Empresa 1)
       precos: wizardData.precoVenda
@@ -87,6 +101,7 @@ export default function ProdutosPage() {
                 empresaId: "emp-1",
                 atual: 0, // Começa zerado
                 minimo: wizardData.estoqueMinimo || 0,
+                maximo: 0,
                 localizacao: wizardData.localizacao,
               },
             ]
@@ -179,7 +194,6 @@ export default function ProdutosPage() {
         />
 
         {/* 2. Novo Wizard (Apenas para Criação) */}
-        {/* Passamos a função onSave aqui! */}
         <ProductWizardSheet onSave={handleWizardSave} />
       </main>
     </div>
