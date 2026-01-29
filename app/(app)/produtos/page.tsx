@@ -6,13 +6,16 @@ import { ProductList } from "@/components/produtos/product-list";
 import { ProductFormSheet } from "@/components/produtos/product-form-sheet";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Plus, CheckCircle2 } from "lucide-react";
+import { Plus, CheckCircle2, Upload } from "lucide-react";
 import { produtos as initialProdutos, Produto } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 
 // --- NOVOS IMPORTS DO WIZARD ---
 import { ProductWizardSheet } from "@/components/produtos/wizard/product-wizard-sheet";
 import { useWizardStore } from "@/components/produtos/wizard/use-wizard-store";
+
+// --- NOVO IMPORT DA IMPORTAÇÃO XML ---
+import { ProductImportSheet } from "@/components/produtos/import/product-import-sheet";
 
 export default function ProdutosPage() {
   const { toast } = useToast();
@@ -23,8 +26,10 @@ export default function ProdutosPage() {
   // --- CONTROLE DO WIZARD (Zustand) ---
   const { setOpen: openWizard, reset: resetWizard, setOpen } = useWizardStore();
 
-  // --- CONTROLE DO FORMULÁRIO ANTIGO (Edição) ---
+  // --- CONTROLE DOS SHEETS LOCAIS ---
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isImportSheetOpen, setIsImportSheetOpen] = useState(false); // Novo estado
+
   const [editingProduct, setEditingProduct] = useState<Produto | null>(null);
 
   // 1. Abrir para CRIAR (Wizard)
@@ -41,50 +46,33 @@ export default function ProdutosPage() {
 
   // 3. Salvar do Wizard (Criação Rápida)
   const handleWizardSave = (wizardData: any) => {
-    // Aqui fazemos a "Mágica": Converter os dados simples do Wizard
-    // para a estrutura complexa do Produto
-
     const newProduct: any = {
-      id: `prod-${Date.now()}`, // ID único temporário
+      id: `prod-${Date.now()}`,
       ativo: true,
-
-      // Dados Básicos
       nome: wizardData.nome,
       unidade: wizardData.unidade,
       codigoBarras: wizardData.codigoBarras,
       codigoInterno: wizardData.codigoInterno,
-
-      // Categorização
       categoriaId: wizardData.categoriaId,
       subcategoriaId: wizardData.subcategoriaId,
       marcaId: wizardData.marcaId,
-
-      // Fiscal
       ncm: wizardData.ncm,
       cest: wizardData.cest,
       origem: wizardData.origem || 0,
       grupoTributarioId: wizardData.grupoTributarioId,
-
-      // Flags Logísticas e de Venda
       controlaEstoque: wizardData.controlaEstoqueEscolhaUsuario ?? true,
       tipoItem: wizardData.role === "insumo" ? "01" : "00",
-
-      // Novos campos de validação/regra
       controlaLote: wizardData.controlaLote,
       controlaValidade: wizardData.controlaValidade,
-
-      // Mapeando "Aparece no Cupom" para o catálogo
       catalogo: {
         publicar: wizardData.apareceNoCupom ?? false,
         destaque: false,
         ordem: 99,
       },
-
-      // Mapeamento de Preço (Cria tabela para a Matriz/Empresa 1)
       precos: wizardData.precoVenda
         ? [
             {
-              empresaId: "emp-1", // Assumindo Matriz
+              empresaId: "emp-1",
               precoCusto: 0,
               tabelas: [
                 { id: "tab-1", nome: "Varejo", valor: wizardData.precoVenda },
@@ -92,31 +80,26 @@ export default function ProdutosPage() {
             },
           ]
         : [],
-
-      // Mapeamento de Estoque (Cria registro para a Matriz)
       estoque:
         wizardData.controlaEstoqueEscolhaUsuario !== false
           ? [
               {
                 empresaId: "emp-1",
-                atual: 0, // Começa zerado
+                atual: 0,
                 minimo: wizardData.estoqueMinimo || 0,
                 maximo: 0,
                 localizacao: wizardData.localizacao,
               },
             ]
           : [],
-
       imagens: [],
       fornecedores: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    // Adiciona ao topo da lista
     setProdutos((prev) => [newProduct, ...prev]);
 
-    // Toast Customizado e Bonito
     toast({
       description: (
         <div className="flex items-center gap-3">
@@ -131,15 +114,67 @@ export default function ProdutosPage() {
           </div>
         </div>
       ),
-      className: "border-l-4 border-l-green-500", // Borda lateral verde para destaque
+      className: "border-l-4 border-l-green-500",
       duration: 5000,
     });
 
-    // Fecha o Wizard
     setOpen(false);
   };
 
-  // 4. Salvar da Edição (Formulário Antigo)
+  // 4. Salvar da Importação XML (Em Massa)
+  const handleImportXML = (importedProducts: any[]) => {
+    // Adiciona metadados do sistema aos produtos crus do XML
+    const finalProducts = importedProducts.map((p, index) => ({
+      ...p,
+      id: `xml-${Date.now()}-${index}`, // ID Provisório
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      // Garante arrays vazios para não quebrar a UI
+      imagens: [],
+      codigosBarrasAdicionais: [],
+      precos: p.precoVenda
+        ? [
+            {
+              empresaId: "emp-1",
+              precoCusto: p.custoUltimaCompra,
+              tabelas: [{ id: "tab-1", nome: "Varejo", valor: p.precoVenda }],
+            },
+          ]
+        : [],
+      estoque: p.controlaEstoque
+        ? [
+            {
+              empresaId: "emp-1",
+              atual: 0, // Nota: Importação de cadastro não deve somar estoque automaticamente por segurança
+              minimo: p.estoqueMinimo,
+            },
+          ]
+        : [],
+    }));
+
+    setProdutos((prev) => [...finalProducts, ...prev]);
+
+    toast({
+      description: (
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-100 text-blue-600 p-2 rounded-full">
+            <Upload className="h-4 w-4" />
+          </div>
+          <div className="space-y-0.5">
+            <p className="font-semibold text-sm">Importação Concluída!</p>
+            <p className="text-xs text-muted-foreground">
+              {importedProducts.length} produtos foram adicionados ao catálogo.
+            </p>
+          </div>
+        </div>
+      ),
+      className: "border-l-4 border-l-blue-500",
+      duration: 5000,
+    });
+  };
+
+  // 5. Salvar da Edição (Formulário Antigo)
   const handleSaveEdit = (data: Partial<Produto>) => {
     if (editingProduct) {
       setProdutos((prev) =>
@@ -170,10 +205,23 @@ export default function ProdutosPage() {
             </p>
           </div>
 
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Produto
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            {/* Botão Importar XML */}
+            <Button
+              variant="outline"
+              onClick={() => setIsImportSheetOpen(true)}
+              className="flex-1 sm:flex-none"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Importar XML
+            </Button>
+
+            {/* Botão Novo Produto */}
+            <Button onClick={handleCreate} className="flex-1 sm:flex-none">
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Produto
+            </Button>
+          </div>
         </div>
 
         <Separator />
@@ -185,7 +233,7 @@ export default function ProdutosPage() {
           onCreate={handleCreate}
         />
 
-        {/* 1. Formulário Antigo (Apenas para Edição) */}
+        {/* 1. Formulário Antigo (Edição) */}
         <ProductFormSheet
           open={isEditSheetOpen}
           onOpenChange={setIsEditSheetOpen}
@@ -193,8 +241,15 @@ export default function ProdutosPage() {
           onSave={handleSaveEdit}
         />
 
-        {/* 2. Novo Wizard (Apenas para Criação) */}
+        {/* 2. Novo Wizard (Criação Manual) */}
         <ProductWizardSheet onSave={handleWizardSave} />
+
+        {/* 3. Sheet de Importação XML (Criação em Massa) */}
+        <ProductImportSheet
+          open={isImportSheetOpen}
+          onOpenChange={setIsImportSheetOpen}
+          onImport={handleImportXML}
+        />
       </main>
     </div>
   );
