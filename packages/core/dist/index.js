@@ -103,6 +103,12 @@ var ProductSchema = import_zod.z.object({
   price_cost: import_zod.z.number().min(0).optional(),
   price_sell: import_zod.z.number().min(0).optional()
 });
+var Step1Schema = ProductSchema.pick({
+  name: true,
+  gtin: true,
+  ncm: true,
+  unit: true
+});
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   PERMISSIONS,

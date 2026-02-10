@@ -28,3 +28,12 @@ export const ProductSchema = z.object({
 });
 
 export type ProductFormValues = z.infer<typeof ProductSchema>;
+// Cria um schema só com os campos desta tela
+const Step1Schema = ProductSchema.pick({
+  name: true,
+  gtin: true,
+  ncm: true,
+  unit: true,
+});
+
+type Step1Values = z.infer<typeof Step1Schema>;

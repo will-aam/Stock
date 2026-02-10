@@ -1,3 +1,4 @@
+// apps/erp-web/components/produtos/wizard/steps/step-basic-data.tsx
 "use client";
 
 import { useState } from "react";
@@ -8,6 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Barcode, ChevronsUpDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// core
+// import {
+//   ProductSchema,
+//   ProductFormValues,
+//   formatGTIN,
+//   formatNCM,
+// } from "@will-aam/core";
 
 // Mocks
 import { unidades } from "@/lib/mock/produtos/unidades";

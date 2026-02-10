@@ -68,6 +68,12 @@ var ProductSchema = z.object({
   price_cost: z.number().min(0).optional(),
   price_sell: z.number().min(0).optional()
 });
+var Step1Schema = ProductSchema.pick({
+  name: true,
+  gtin: true,
+  ncm: true,
+  unit: true
+});
 export {
   PERMISSIONS,
   ProductSchema,
