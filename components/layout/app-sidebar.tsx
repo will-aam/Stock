@@ -32,11 +32,10 @@ import {
   BarChart3,
   Globe,
   Settings,
-  Grid,
   Contact,
-  Layers,
-  Puzzle,
   Blocks,
+  // IMPORTANTE: Adicionei este ícone
+  CalendarClock,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -50,10 +49,8 @@ import {
 
 export function AppSidebar() {
   const pathname = usePathname();
-  // Estado para controlar qual menu está aberto (Accordion Logic)
   const [openItem, setOpenItem] = React.useState<string | null>(null);
 
-  // Sincroniza o menu aberto com a URL atual ao carregar ou navegar
   React.useEffect(() => {
     if (
       pathname.startsWith("/ordi") ||
@@ -68,7 +65,10 @@ export function AppSidebar() {
       setOpenItem("Vendas");
     } else if (pathname.startsWith("/compras")) {
       setOpenItem("Compras & Entrada");
-    } else if (pathname.startsWith("/estoque")) {
+    } else if (
+      pathname.startsWith("/estoque") ||
+      pathname.startsWith("/validade")
+    ) {
       setOpenItem("Estoque");
     } else if (pathname.startsWith("/produtos")) {
       setOpenItem("Produtos");
@@ -81,20 +81,16 @@ export function AppSidebar() {
     }
   }, [pathname]);
 
-  // Função para gerenciar a abertura exclusiva (abre um, fecha os outros)
   const handleOpenChange = (title: string, isOpen: boolean) => {
     setOpenItem(isOpen ? title : null);
   };
 
   // --- SUB-MENUS ---
 
-  // Módulos (Novos Sistemas) - Reordenados com sistemas ativos primeiro
   const modulesItems = [
-    // Sistemas ativos (acessíveis)
     { title: "Ordi", url: "/ordi", disabled: false },
     { title: "Val", url: "/val", disabled: false },
     { title: "Rikko", url: "/rikko", disabled: false },
-    // Sistemas inativos (bloqueados)
     { title: "Brutos", url: "#", disabled: true },
     { title: "Countifly", url: "#", disabled: true },
   ];
@@ -144,7 +140,6 @@ export function AppSidebar() {
     { title: "Backup & Dados", url: "/configuracoes/dados" },
   ];
 
-  // Helper para renderizar Menus Colapsáveis Controlados
   const renderCollapsible = (
     title: string,
     icon: any,
@@ -168,12 +163,10 @@ export function AppSidebar() {
             {items.map((subItem) => (
               <SidebarMenuSubItem key={subItem.title}>
                 {subItem.disabled ? (
-                  // ITEM DESATIVADO
                   <SidebarMenuSubButton className="text-muted-foreground pointer-events-none cursor-not-allowed">
                     <span>{subItem.title}</span>
                   </SidebarMenuSubButton>
                 ) : (
-                  // ITEM ATIVO
                   <SidebarMenuSubButton
                     asChild
                     isActive={pathname === subItem.url}
@@ -200,14 +193,12 @@ export function AppSidebar() {
           </span>
         </div>
       </SidebarHeader>
-      {/* Scroll Oculto */}
       <SidebarContent className="[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {/* 1. VISÃO GERAL */}
         <SidebarGroup>
           <SidebarGroupLabel>Visão Geral</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {/* Dashboard Direto */}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
@@ -220,8 +211,6 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-
-              {/* Módulos (Acordeão) */}
               {renderCollapsible("Módulos", <Blocks />, modulesItems)}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -240,6 +229,17 @@ export function AppSidebar() {
               )}
               {renderCollapsible("Estoque", <Package />, inventoryItems)}
               {renderCollapsible("Vendas", <ShoppingBag />, salesItems)}
+
+              {/* ITEM: Gestão de Validade (Com Ícone) */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Gestão de Validade">
+                  <Link href="/estoque/validade">
+                    {/* Ícone CalendarClock adicionado aqui */}
+                    <CalendarClock />
+                    <span>Gestão de Validade</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -280,7 +280,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* 4. RELATÓRIOS (Separado) */}
+        {/* 4. RELATÓRIOS */}
         <SidebarGroup>
           <SidebarGroupLabel>Análises</SidebarGroupLabel>
           <SidebarGroupContent>
