@@ -1,27 +1,40 @@
 {
-  "name": "@erp/core",
+  "name": "@will-aam/core",
   "version": "0.0.1",
+  "description": "Core domain logic for ERP Ecosystem",
+  "private": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     }
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/will-aam/Stock.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "zod": "^3.25.76"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/node": "^22.19.1",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "@types/node": "^20.14.0",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5"
   }
 }
