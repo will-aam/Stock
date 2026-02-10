@@ -1,5 +1,6 @@
+// app/layout.tsx
 import type React from "react";
-import { MobileNav } from "@/components/layout/mobile-nav";
+// import { MobileNav } from "@/components/layout/mobile-nav";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
@@ -27,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </SidebarInset>
 
       {/* Navegação Inferior (Apenas Mobile) */}
-      <MobileNav />
+      {/* <MobileNav /> */}
     </SidebarProvider>
   );
 }
