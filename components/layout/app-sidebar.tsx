@@ -189,7 +189,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-2">
           <span className="font-semibold group-data-[collapsible=icon]:hidden">
-            Stock System (HUB)
+            Stock System
           </span>
         </div>
       </SidebarHeader>

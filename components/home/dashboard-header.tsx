@@ -14,7 +14,7 @@ export function DashboardHeader() {
           </div>
           <div>
             <h1 className="text-lg font-semibold">Stock</h1>
-            <p className="text-xs text-muted-foreground">Gestão de Lotes</p>
+            {/* <p className="text-xs text-muted-foreground">Gestão de Lotes</p> */}
           </div>
         </div>
 
