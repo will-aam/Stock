@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DashboardHeader } from "@/components/home/dashboard-header";
 import {
   ProdutoFiscal,
   HistoricoCompra,
@@ -223,10 +222,6 @@ export default function CustoPage() {
 
   return (
     <div className="min-h-screen pb-20 md:pb-0">
-      <div className="md:hidden">
-        <DashboardHeader />
-      </div>
-
       <main className="container mx-auto max-w-6xl space-y-6 p-4">
         {/* Cabeçalho */}
         <div className="flex flex-col gap-4">

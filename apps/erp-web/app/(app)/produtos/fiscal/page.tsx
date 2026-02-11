@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardHeader } from "@/components/home/dashboard-header";
 import { TaxGroupsManager } from "@/components/fiscal/tax-groups-manager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -29,10 +28,6 @@ const tiposItem = [
 export default function FiscalPage() {
   return (
     <div className="min-h-screen pb-20 md:pb-0 bg-background">
-      <div className="md:hidden">
-        <DashboardHeader />
-      </div>
-
       <main className="container mx-auto max-w-6xl space-y-6 p-4 md:py-8">
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">

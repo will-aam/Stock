@@ -1,7 +1,6 @@
 // app/(app)/ordi/configuracoes/page.tsx
 "use client";
 
-import { DashboardHeader } from "@/components/home/dashboard-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomationRules } from "@/components/ordi/config/automation-rules";
 import { AllowedItems } from "@/components/ordi/config/allowed-items";
@@ -18,10 +17,6 @@ export default function OrdiConfigPage() {
     // 3. Adicionado 'overflow-y-auto' para permitir rolagem interna.
     // 4. Adicionadas classes para ocultar a barra de rolagem.
     <div className="h-full bg-background pb-20 md:pb-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-      <div className="md:hidden">
-        <DashboardHeader />
-      </div>
-
       <main className="container mx-auto max-w-5xl space-y-8 p-4">
         {/* Cabeçalho com botão de voltar */}
         <div className="flex flex-col gap-2">

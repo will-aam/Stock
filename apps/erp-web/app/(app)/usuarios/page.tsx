@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { DashboardHeader } from "@/components/home/dashboard-header";
 import { UserList } from "@/components/usuarios/user-list";
 import { UserFormSheet } from "@/components/usuarios/user-form-sheet";
 import { Separator } from "@/components/ui/separator";
@@ -58,10 +57,6 @@ export default function UsuariosPage() {
 
   return (
     <div className="min-h-screen pb-20 md:pb-0 flex flex-col">
-      <div className="md:hidden">
-        <DashboardHeader />
-      </div>
-
       <main className="container mx-auto max-w-6xl space-y-8 p-4 flex-1">
         <div className="space-y-0.5">
           <h2 className="text-2xl font-bold tracking-tight">
