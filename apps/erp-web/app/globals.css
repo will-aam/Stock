@@ -41,8 +41,15 @@
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  /* --- AQUI ESTÁ A MUDANÇA DA FONTE --- */
+  /* Removemos Geist e colocamos a variável que o Next.js injeta no layout.tsx */
+  --font-sans:
+    var(--font-sans), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --font-mono:
+    "Geist Mono", "Geist Mono Fallback"; /* Mantive sua mono original ou pode mudar pra Courier se preferir */
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -79,6 +86,27 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Animações (importantes para Shadcn) */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
 }
 
 @layer base {
@@ -92,14 +120,12 @@
 
 /* --- Otimizações para Dispositivos Móveis e Leitores de Código de Barras --- */
 @media (max-width: 768px) {
-  /* Classe para otimizar a exibição em dispositivos móveis, evitando o zoom automático */
   .mobile-optimized {
-    font-size: 16px !important; /* Evita zoom automático no iOS ao focar em inputs */
+    font-size: 16px !important;
     -webkit-appearance: none;
     border-radius: 0;
   }
 
-  /* Garante que inputs comuns tenham um tamanho de fonte legível em mobile */
   input[type="number"],
   input[type="text"],
   input[type="email"],
@@ -109,7 +135,6 @@
     border-radius: 0.375rem;
   }
 
-  /* Estilos para campos de input de código de barras, melhorando a legibilidade e feedback visual */
   .barcode-input {
     font-family: "Courier New", monospace;
     letter-spacing: 1px;
@@ -282,10 +307,6 @@ input[type="number"] {
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
   /* Adicione esta parte para ocultar a scrollbar globalmente */
   html,
   body {
@@ -297,13 +318,7 @@ input[type="number"] {
   body::-webkit-scrollbar {
     display: none; /* Chrome, Safari e Opera */
   }
-
-  body {
-    @apply bg-background text-foreground;
-  }
 }
-
-/* ... (Mantenha o conteúdo existente do arquivo) ... */
 
 @layer utilities {
   /* === Scrollbar Personalizada Global === */

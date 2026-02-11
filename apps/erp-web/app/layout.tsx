@@ -1,10 +1,16 @@
-// app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Public_Sans } from "next/font/google"; // Mudamos para Public Sans
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
-const inter = Inter({ subsets: ["latin"] });
+// Configuração da nova fonte
+const publicSans = Public_Sans({
+  subsets: ["latin"],
+  // Carregamos pesos variados para garantir boa hierarquia no ERP
+  weight: ["300", "400", "500", "600", "700"],
+  // Definimos uma variável CSS para usar no Tailwind
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "Stock System",
@@ -14,7 +20,6 @@ export const metadata: Metadata = {
   },
 };
 
-// Nova forma de exportar viewport e themeColor no Next.js 14+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -28,7 +33,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className={inter.className}>
+      {/* Adicionamos a variável da fonte e 'antialiased' para suavizar */}
+      <body className={`${publicSans.variable} font-sans antialiased`}>
         {children}
         <Toaster />
       </body>
