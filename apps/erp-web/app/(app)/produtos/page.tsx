@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { DashboardHeader } from "@/components/home/dashboard-header";
 import { ProductList } from "@/components/produtos/product-list";
 import { ProductFormSheet } from "@/components/produtos/product-form-sheet";
 import { Separator } from "@/components/ui/separator";
@@ -189,8 +188,6 @@ export default function ProdutosPage() {
 
   return (
     <div className="min-h-screen pb-20 md:pb-0 bg-background">
-      <DashboardHeader />
-
       <main className="container mx-auto max-w-6xl space-y-6 p-4 md:py-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">

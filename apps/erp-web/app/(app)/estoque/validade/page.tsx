@@ -13,7 +13,6 @@ import {
   Archive,
   Megaphone,
 } from "lucide-react";
-import { DashboardHeader } from "@/components/home/dashboard-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -81,10 +80,6 @@ export default function GestaoValidadePage() {
 
   return (
     <div className="min-h-screen pb-20 md:pb-0 bg-background">
-      <div className="md:hidden">
-        <DashboardHeader />
-      </div>
-
       <main className="container mx-auto max-w-7xl space-y-6 p-4 md:py-8">
         {/* Cabeçalho */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
