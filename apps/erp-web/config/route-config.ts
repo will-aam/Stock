@@ -56,6 +56,18 @@ export const routeConfig: Record<string, RouteMetadata> = {
     title: "Configurações do Sistema",
     subtitle: "Personalize as configurações do sistema Ordi.",
   },
+  "/auditoria": {
+    title: "Auditoria",
+    subtitle: "Auditoria de processos e controle de qualidade.",
+  },
+  "/perfil": {
+    title: "Meu Perfil",
+    subtitle: "Gerencie suas informações pessoais e preferências de conta.",
+  },
+  "/inventario": {
+    title: "Inventário",
+    subtitle: "Gestão de inventário e contagem de estoque.",
+  },
 };
 
 // Fallback para rotas não mapeadas

@@ -1,4 +1,3 @@
-import { DashboardHeader } from "@/components/home/dashboard-header";
 import {
   PersonalDataForm,
   SecurityForm,
@@ -8,12 +7,6 @@ import { Separator } from "@/components/ui/separator";
 export default function PerfilPage() {
   return (
     <div className="min-h-screen pb-20 md:pb-0">
-      {/* O DashboardHeader é opcional aqui, pois no Desktop já temos o Sidebar, 
-          mas no mobile ele é útil. Podemos ocultá-lo no desktop via CSS se preferir. */}
-      <div className="md:hidden">
-        <DashboardHeader />
-      </div>
-
       <main className="container mx-auto max-w-4xl space-y-8 p-4">
         <div className="space-y-0.5">
           <h2 className="text-2xl font-bold tracking-tight">Meu Perfil</h2>
