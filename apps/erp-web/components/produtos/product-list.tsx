@@ -246,7 +246,8 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-muted/50 p-0"
+              className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-muted
+ p-0"
               onClick={() => onEdit(row.original)}
             >
               <Pencil className="h-3.5 w-3.5" />
@@ -334,51 +335,55 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
           </p>
         </div>
       ) : (
-        <div className="border rounded-md overflow-hidden bg-background h-[350px] flex flex-col shadow-sm">
-          <div className="flex-1 overflow-auto">
-            <Table className="border-separate border-spacing-0">
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id} className="hover:bg-muted/50">
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        className="sticky top-0 z-20 border-b shadow-sm text-[11px] font-bold text-muted-foreground uppercase h-9 px-3 border-r last:border-r-0 bg-muted/50 whitespace-nowrap"
-                        style={{ width: header.getSize() }}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    className="hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors border-b border-border/60 last:border-0 h-9"
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="p-1 px-3 text-xs border-r border-border/40 last:border-r-0 align-middle"
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+        <div className="border rounded-md bg-background max-h-[350px] overflow-auto shadow-sm">
+          <Table className="border-separate border-spacing-0">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow
+                  key={headerGroup.id}
+                  className="bg-muted
+ hover:bg-muted
+"
+                >
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className="sticky top-0 z-30 bg-muted
+ border-b shadow-sm
+             text-[11px] font-bold text-muted-foreground uppercase
+             h-9 px-3 border-r last:border-r-0 whitespace-nowrap"
+                      style={{ width: header.getSize() }}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} className="border-b last:border-0 h-9">
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className="p-1 px-3 text-xs border-r last:border-r-0 align-middle"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>
