@@ -230,13 +230,13 @@ export function AppSidebar() {
               {renderCollapsible("Estoque", <Package />, inventoryItems)}
               {renderCollapsible("Vendas", <ShoppingBag />, salesItems)}
 
-              {/* ITEM: Gestão de Validade (Com Ícone) */}
+              {/* ITEM: Controle de Validade (Com Ícone) */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Gestão de Validade">
+                <SidebarMenuButton asChild tooltip="Controle de Validade">
                   <Link href="/estoque/validade">
                     {/* Ícone CalendarClock adicionado aqui */}
                     <CalendarClock />
-                    <span>Gestão de Validade</span>
+                    <span>Controle de Validade</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

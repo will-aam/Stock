@@ -126,23 +126,6 @@ export function ProductFormSheet({
                 Gerencie as informações mestras, fiscais e logística do item.
               </SheetDescription>
             </div>
-
-            {/* Switch Ativo/Inativo */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                Status:
-              </span>
-              <Switch
-                checked={formData.ativo}
-                onCheckedChange={(v) => updateField("ativo", v)}
-              />
-              <Badge
-                variant={formData.ativo ? "default" : "destructive"}
-                className="text-[10px] w-14 justify-center"
-              >
-                {formData.ativo ? "ATIVO" : "INATIVO"}
-              </Badge>
-            </div>
           </div>
         </SheetHeader>
 

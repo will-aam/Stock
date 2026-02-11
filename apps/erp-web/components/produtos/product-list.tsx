@@ -1,7 +1,7 @@
 // apps/erp-web/components/produtos/product-list.tsx
 "use client";
+import { useEffect, useMemo, useState } from "react";
 
-import { useState, useMemo } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -14,10 +14,10 @@ import {
 } from "@tanstack/react-table";
 
 // Componentes UI (Shadcn)
-import { Card } from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -34,6 +34,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 // Ícones
 import {
   Pencil,
@@ -41,7 +48,6 @@ import {
   Search,
   Package,
   Store,
-  Barcode,
   AlertTriangle,
   ArrowUpDown,
   ArrowUp,
@@ -51,7 +57,6 @@ import {
 // Tipos e Mocks
 import { Produto } from "@/lib/mock/produtos/index";
 import { empresas } from "@/lib/mock/empresas";
-import { getGrupoTributarioById } from "@/lib/mock/produtos/grupos-tributarios";
 
 interface ProductListProps {
   produtos: Produto[];
@@ -72,6 +77,12 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
     empresas[0]?.id || "",
   );
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  const [ativoById, setAtivoById] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setAtivoById(Object.fromEntries(produtos.map((p) => [p.id, p.ativo])));
+  }, [produtos]);
 
   // --- LÓGICA DE DADOS (MANTIDA) ---
   const filteredProducts = useMemo(() => {
@@ -106,7 +117,7 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
 
   const currentStore = empresas.find((s) => s.id === selectedEmpresaId);
 
-  // --- DEFINIÇÃO DAS COLUNAS (ESTILO EXCEL DENSO) ---
+  // --- DEFINIÇÃO DAS COLUNAS ---
   const columns = useMemo<ColumnDef<ProductRowData>[]>(
     () => [
       {
@@ -241,33 +252,71 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
       {
         id: "acoes",
         header: "Ações",
-        cell: ({ row }: CellContext<ProductRowData, unknown>) => (
-          <div className="flex items-center justify-end gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-muted
- p-0"
-              onClick={() => onEdit(row.original)}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 p-0"
-              onClick={() => {
-                /* Lógica de exclusão */
-              }}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        ),
-        size: 80,
+        cell: ({ row }: CellContext<ProductRowData, unknown>) => {
+          const isAtivo = !!ativoById[row.original.id];
+
+          return (
+            <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center gap-0.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 bg-transparent hover:bg-transparent!
+focus:bg-transparent!
+active:bg-transparent!
+focus-visible:ring-0!
+focus-visible:ring-offset-0!
+ text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => onEdit(row.original)}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 bg-transparent hover:bg-transparent! focus:bg-transparent! active:bg-transparent! focus-visible:ring-0! focus-visible:ring-offset-0! text-muted-foreground hover:text-destructive transition-colors"
+                  onClick={() => {}}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              {/* Separador Visual */}
+              <div className="h-5 w-px bg-border mx-1" />
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center">
+                    <Switch
+                      checked={isAtivo}
+                      onCheckedChange={(checked) => {
+                        setAtivoById((prev) => ({
+                          ...prev,
+                          [row.original.id]: checked,
+                        }));
+                        console.log(
+                          `Produto ${row.original.id} status: ${checked}`,
+                        );
+                      }}
+                      className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30"
+                      aria-label={
+                        isAtivo ? "Desativar produto" : "Ativar produto"
+                      }
+                    />
+                  </div>
+                </TooltipTrigger>
+
+                <TooltipContent side="top">
+                  {isAtivo ? "Desativar produto" : "Ativar produto"}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          );
+        },
+        size: 130,
       },
     ],
-    [onEdit],
+    [onEdit, ativoById],
   );
 
   const table = useReactTable({
@@ -280,112 +329,109 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
   });
 
   return (
-    <div className="space-y-6">
-      {/* 1. CABEÇALHO DE FILTROS (MANTIDO ORIGINAL) */}
-      <div className="bg-muted/30 p-4 rounded-sm border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h3 className="text-sm font-medium flex items-center gap-2">
-            <Store className="h-4 w-4 text-primary" />
-            Contexto Operacional
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Visualizando preços e estoques da unidade selecionada.
-          </p>
+    <TooltipProvider delayDuration={150}>
+      <div className="space-y-6">
+        {/* 1. CABEÇALHO DE FILTROS (MANTIDO ORIGINAL) */}
+        <div className="bg-muted/30 p-4 rounded-sm border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h3 className="text-sm font-medium flex items-center gap-2">
+              <Store className="h-4 w-4 text-primary" />
+              Contexto Operacional
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Visualizando preços e estoques da unidade selecionada.
+            </p>
+          </div>
+
+          <div className="w-full lg:w-auto flex flex-col sm:flex-row gap-3 items-stretch">
+            <div className="w-full sm:w-[280px]">
+              <Select
+                value={selectedEmpresaId}
+                onValueChange={setSelectedEmpresaId}
+              >
+                <SelectTrigger className="bg-background h-10">
+                  <SelectValue placeholder="Selecione a Loja" />
+                </SelectTrigger>
+                <SelectContent>
+                  {empresas.map((emp) => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      {emp.nomeFantasia}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative w-full sm:w-[360px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome, EAN, referência..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-10 bg-background dark:bg-background"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="w-full lg:w-auto flex flex-col sm:flex-row gap-3 items-stretch">
-          <div className="w-full sm:w-[280px]">
-            <Select
-              value={selectedEmpresaId}
-              onValueChange={setSelectedEmpresaId}
-            >
-              <SelectTrigger className="bg-background h-10">
-                <SelectValue placeholder="Selecione a Loja" />
-              </SelectTrigger>
-              <SelectContent>
-                {empresas.map((emp) => (
-                  <SelectItem key={emp.id} value={emp.id}>
-                    {emp.nomeFantasia}
-                  </SelectItem>
+        {/* 2. LISTAGEM EM TABELA */}
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-16 bg-muted/10 rounded-sm border border-dashed">
+            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <p className="text-muted-foreground">
+              {searchTerm
+                ? "Nenhum produto encontrado para sua busca."
+                : "Nenhum produto cadastrado ainda."}
+            </p>
+          </div>
+        ) : (
+          <div className="border rounded-md bg-background max-h-[350px] overflow-auto shadow-sm">
+            <Table className="border-separate border-spacing-0">
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow
+                    key={headerGroup.id}
+                    className="bg-muted hover:bg-muted"
+                  >
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className="sticky top-0 z-30 bg-muted border-b shadow-sm text-[11px] font-bold text-muted-foreground uppercase h-9 px-3 border-r last:border-r-0 whitespace-nowrap"
+                        style={{ width: header.getSize() }}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
+              </TableHeader>
 
-          <div className="relative w-full sm:w-[360px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nome, EAN, referência..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-10 bg-background dark:bg-background"
-            />
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} className="border-b last:border-0 h-9">
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="p-1 px-3 text-xs border-r last:border-r-0 align-middle"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-        </div>
+        )}
       </div>
-
-      {/* 2. LISTAGEM EM TABELA */}
-      {filteredProducts.length === 0 ? (
-        <div className="text-center py-16 bg-muted/10 rounded-sm border border-dashed">
-          <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-          <p className="text-muted-foreground">
-            {searchTerm
-              ? "Nenhum produto encontrado para sua busca."
-              : "Nenhum produto cadastrado ainda."}
-          </p>
-        </div>
-      ) : (
-        <div className="border rounded-md bg-background max-h-[350px] overflow-auto shadow-sm">
-          <Table className="border-separate border-spacing-0">
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow
-                  key={headerGroup.id}
-                  className="bg-muted
- hover:bg-muted
-"
-                >
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="sticky top-0 z-30 bg-muted
- border-b shadow-sm
-             text-[11px] font-bold text-muted-foreground uppercase
-             h-9 px-3 border-r last:border-r-0 whitespace-nowrap"
-                      style={{ width: header.getSize() }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-b last:border-0 h-9">
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="p-1 px-3 text-xs border-r last:border-r-0 align-middle"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-    </div>
+    </TooltipProvider>
   );
 }

@@ -1,7 +1,7 @@
 // components/home/dashboard-header.tsx
 "use client";
 
-import { Bell, Settings } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function DashboardHeader() {

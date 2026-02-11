@@ -189,17 +189,13 @@ export default function ProdutosPage() {
 
   return (
     <div className="min-h-screen pb-20 md:pb-0 bg-background">
-      <div className="md:hidden">
-        <DashboardHeader />
-      </div>
+      <DashboardHeader />
 
       <main className="container mx-auto max-w-6xl space-y-6 p-4 md:py-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-2xl font-bold tracking-tight">
-              Catálogo de Produtos
-            </h2>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-lg font-semibold">Catálogo de Produtos</h1>
+            <p className="text-xs text-muted-foreground">
               Gerencie o cadastro mestre, regras fiscais e identificação dos
               itens.
             </p>

@@ -91,7 +91,7 @@ export default function GestaoValidadePage() {
           <div className="space-y-1">
             <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
               <Calendar className="h-6 w-6 text-primary" />
-              Gestão de Validade (FEFO)
+              Controle de Validade (FEFO)
             </h2>
             <p className="text-sm text-muted-foreground">
               Monitore lotes vencidos e próximos do vencimento para evitar
