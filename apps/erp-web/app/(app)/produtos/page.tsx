@@ -1,3 +1,4 @@
+// app/erp-web/app/(app)/produtos/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -189,41 +190,12 @@ export default function ProdutosPage() {
   return (
     <div className="min-h-screen pb-20 md:pb-0 bg-background">
       <main className="container mx-auto max-w-6xl space-y-6 p-4 md:py-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-lg font-semibold">Catálogo de Produtos</h1>
-            <p className="text-xs text-muted-foreground">
-              Gerencie o cadastro mestre, regras fiscais e identificação dos
-              itens.
-            </p>
-          </div>
-
-          <div className="flex gap-2 w-full sm:w-auto">
-            {/* Botão Importar XML */}
-            <Button
-              variant="outline"
-              onClick={() => setIsImportSheetOpen(true)}
-              className="flex-1 sm:flex-none"
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              Importar XML
-            </Button>
-
-            {/* Botão Novo Produto */}
-            <Button onClick={handleCreate} className="flex-1 sm:flex-none">
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Produto
-            </Button>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Lista de Produtos */}
+        {/* Lista de Produtos (Agora com a Toolbar Integrada) */}
         <ProductList
           produtos={produtos}
           onEdit={handleEdit}
           onCreate={handleCreate}
+          onImport={() => setIsImportSheetOpen(true)}
         />
 
         {/* 1. Formulário Antigo (Edição) */}

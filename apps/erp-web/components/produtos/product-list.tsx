@@ -14,7 +14,6 @@ import {
 } from "@tanstack/react-table";
 
 // Componentes UI (Shadcn)
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -27,13 +26,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -47,11 +43,15 @@ import {
   Trash2,
   Search,
   Package,
-  Store,
   AlertTriangle,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Plus,
+  Upload,
+  ChevronLeft,
+  ChevronRight,
+  Check,
 } from "lucide-react";
 
 // Tipos e Mocks
@@ -62,6 +62,7 @@ interface ProductListProps {
   produtos: Produto[];
   onEdit: (produto: Produto) => void;
   onCreate: () => void;
+  onImport?: () => void;
 }
 
 // Tipo auxiliar para tipagem correta
@@ -71,12 +72,21 @@ type ProductRowData = Produto & {
   displayEstoqueMinimo: number;
 };
 
-export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
+export function ProductList({
+  produtos,
+  onEdit,
+  onCreate,
+  onImport,
+}: ProductListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEmpresaId, setSelectedEmpresaId] = useState<string>(
     empresas[0]?.id || "",
   );
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  // Estado para o Popover de "Ver todas"
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [popoverSearch, setPopoverSearch] = useState("");
 
   const [ativoById, setAtivoById] = useState<Record<string, boolean>>({});
 
@@ -115,7 +125,36 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
     });
   }, [filteredProducts, selectedEmpresaId]);
 
-  const currentStore = empresas.find((s) => s.id === selectedEmpresaId);
+  // --- LÓGICA DO COMPANY SWITCHER ---
+  const currentEmpresa = empresas.find((e) => e.id === selectedEmpresaId);
+  const currentEmpresaIndex = empresas.findIndex(
+    (e) => e.id === selectedEmpresaId,
+  );
+
+  const filteredEmpresas = popoverSearch
+    ? empresas.filter((e) =>
+        e.nomeFantasia.toLowerCase().includes(popoverSearch.toLowerCase()),
+      )
+    : empresas;
+
+  const handleNextEmpresa = () => {
+    if (empresas.length === 0) return;
+    const nextIndex = (currentEmpresaIndex + 1) % empresas.length;
+    setSelectedEmpresaId(empresas[nextIndex].id);
+  };
+
+  const handlePrevEmpresa = () => {
+    if (empresas.length === 0) return;
+    const prevIndex =
+      (currentEmpresaIndex - 1 + empresas.length) % empresas.length;
+    setSelectedEmpresaId(empresas[prevIndex].id);
+  };
+
+  const handleSelectEmpresa = (id: string) => {
+    setSelectedEmpresaId(id);
+    setIsPopoverOpen(false);
+    setPopoverSearch("");
+  };
 
   // --- DEFINIÇÃO DAS COLUNAS ---
   const columns = useMemo<ColumnDef<ProductRowData>[]>(
@@ -144,7 +183,7 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
           </div>
         ),
         cell: ({ row }: CellContext<ProductRowData, unknown>) => (
-          <span className="text-xs  text-foreground">
+          <span className="text-xs text-foreground">
             {row.getValue("codigoInterno")}
           </span>
         ),
@@ -154,7 +193,7 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
         accessorKey: "codigoBarras",
         header: "Cód. Barras",
         cell: ({ row }: CellContext<ProductRowData, unknown>) => (
-          <span className="text-xs  text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {row.getValue("codigoBarras")}
           </span>
         ),
@@ -261,12 +300,7 @@ export function ProductList({ produtos, onEdit, onCreate }: ProductListProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 w-7 p-0 bg-transparent hover:bg-transparent!
-focus:bg-transparent!
-active:bg-transparent!
-focus-visible:ring-0!
-focus-visible:ring-offset-0!
- text-muted-foreground hover:text-primary transition-colors"
+                  className="h-7 w-7 p-0 bg-transparent hover:bg-transparent! focus:bg-transparent! active:bg-transparent! focus-visible:ring-0! focus-visible:ring-offset-0! text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => onEdit(row.original)}
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -281,7 +315,6 @@ focus-visible:ring-offset-0!
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              {/* Separador Visual */}
               <div className="h-5 w-px bg-border mx-1" />
 
               <Tooltip>
@@ -294,18 +327,11 @@ focus-visible:ring-offset-0!
                           ...prev,
                           [row.original.id]: checked,
                         }));
-                        console.log(
-                          `Produto ${row.original.id} status: ${checked}`,
-                        );
                       }}
                       className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30"
-                      aria-label={
-                        isAtivo ? "Desativar produto" : "Ativar produto"
-                      }
                     />
                   </div>
                 </TooltipTrigger>
-
                 <TooltipContent side="top">
                   {isAtivo ? "Desativar produto" : "Ativar produto"}
                 </TooltipContent>
@@ -331,45 +357,111 @@ focus-visible:ring-offset-0!
   return (
     <TooltipProvider delayDuration={150}>
       <div className="space-y-6">
-        {/* 1. CABEÇALHO DE FILTROS (MANTIDO ORIGINAL) */}
-        <div className="bg-muted/30 p-4 rounded-sm border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <h3 className="text-sm font-medium flex items-center gap-2">
-              <Store className="h-4 w-4 text-primary" />
-              Contexto Operacional
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Visualizando preços e estoques da unidade selecionada.
-            </p>
+        {/* 1. TOOLBAR UNIFICADA (DUAS LINHAS) */}
+        <div className="flex flex-col gap-3">
+          {/* LINHA 1: COMPANY SWITCHER CUSTOMIZADO */}
+          <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/30 w-[340px] shrink-0">
+            {" "}
+            {/* Botão Anterior */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+              onClick={handlePrevEmpresa}
+              disabled={empresas.length <= 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            {/* Chip da Empresa Atual */}
+            <div className="flex-1 min-w-0 flex items-center justify-center">
+              <div className="flex items-center gap-2 px-3 py-1.5 ">
+                <span className="text-sm font-semibold truncate block">
+                  {currentEmpresa?.nomeFantasia || "Selecione..."}
+                </span>
+              </div>
+            </div>
+            {/* Botão Próximo */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+              onClick={handleNextEmpresa}
+              disabled={empresas.length <= 1}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            {/* Separador Vertical */}
+            <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
+            {/* Botão Ver Todas com Popover */}
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs shrink-0"
+                >
+                  Ver todas
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <div className="p-2 border-b">
+                  <Input
+                    placeholder="Buscar empresa..."
+                    value={popoverSearch}
+                    onChange={(e) => setPopoverSearch(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                <div className="max-h-[280px] overflow-auto p-1">
+                  {filteredEmpresas.length === 0 ? (
+                    <div className="text-center text-sm text-muted-foreground py-4">
+                      Nenhuma empresa encontrada.
+                    </div>
+                  ) : (
+                    filteredEmpresas.map((empresa) => (
+                      <div
+                        key={empresa.id}
+                        className={`flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer hover:bg-muted transition-colors ${empresa.id === selectedEmpresaId ? "bg-muted/70" : ""}`}
+                        onClick={() => handleSelectEmpresa(empresa.id)}
+                      >
+                        <span className="flex-1 text-sm truncate font-medium">
+                          {empresa.nomeFantasia}
+                        </span>
+                        {empresa.id === selectedEmpresaId && (
+                          <Check className="h-4 w-4 text-primary shrink-0" />
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
-          <div className="w-full lg:w-auto flex flex-col sm:flex-row gap-3 items-stretch">
-            <div className="w-full sm:w-[280px]">
-              <Select
-                value={selectedEmpresaId}
-                onValueChange={setSelectedEmpresaId}
-              >
-                <SelectTrigger className="bg-background h-10">
-                  <SelectValue placeholder="Selecione a Loja" />
-                </SelectTrigger>
-                <SelectContent>
-                  {empresas.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.nomeFantasia}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="relative w-full sm:w-[360px]">
+          {/* LINHA 2: BUSCA + AÇÕES */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Busca */}
+            <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome, EAN, referência..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-10 bg-background dark:bg-background"
+                className="pl-10 h-10 bg-background w-full"
               />
+            </div>
+
+            {/* Ações */}
+            <div className="flex items-center gap-2 shrink-0 justify-end">
+              <Button variant="outline" onClick={() => onImport?.()}>
+                <Upload className="mr-2 h-4 w-4" />
+                Importar XML
+              </Button>
+
+              <Button onClick={onCreate}>
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Produto
+              </Button>
             </div>
           </div>
         </div>
@@ -385,7 +477,7 @@ focus-visible:ring-offset-0!
             </p>
           </div>
         ) : (
-          <div className="border rounded-md bg-background max-h-[350px] overflow-auto shadow-sm">
+          <div className="border rounded-md bg-background max-h-[400px] overflow-auto shadow-sm">
             <Table className="border-separate border-spacing-0">
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
