@@ -53,7 +53,6 @@ export function AppSidebar() {
 
   React.useEffect(() => {
     if (
-      pathname.startsWith("/ordi") ||
       pathname.startsWith("/modulos") ||
       pathname.startsWith("/stock") ||
       pathname.startsWith("/val") ||
@@ -88,7 +87,6 @@ export function AppSidebar() {
   // --- SUB-MENUS ---
 
   const modulesItems = [
-    { title: "Ordi", url: "/ordi", disabled: false },
     { title: "Val", url: "/val", disabled: false },
     { title: "Rikko", url: "/rikko", disabled: false },
     { title: "Brutos", url: "#", disabled: true },

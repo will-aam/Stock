@@ -6,27 +6,33 @@ export interface RouteMetadata {
 export const routeConfig: Record<string, RouteMetadata> = {
   "/produtos": {
     title: "Catálogo de Produtos",
-    subtitle: "Gerencie o cadastro mestre, regras fiscais e identificação dos itens.",
+    subtitle:
+      "Gerencie o cadastro mestre, regras fiscais e identificação dos itens.",
   },
   "/produtos/classificacao": {
     title: "Classificação & Atributos",
-    subtitle: "Gerencie as tabelas auxiliares (Marcas, Categorias) que organizam seu catálogo.",
+    subtitle:
+      "Gerencie as tabelas auxiliares (Marcas, Categorias) que organizam seu catálogo.",
   },
   "/produtos/fiscal": {
     title: "Gestão Fiscal & Tributária",
-    subtitle: "Configure as regras de impostos (ICMS, PIS, COFINS) e tabelas padronizadas do SPED.",
+    subtitle:
+      "Configure as regras de impostos (ICMS, PIS, COFINS) e tabelas padronizadas do SPED.",
   },
   "/produtos/unidades": {
     title: "Unidades & Medidas",
-    subtitle: "Defina as unidades de medida padrão para controle de estoque e conversões (KG, UN, LT).",
+    subtitle:
+      "Defina as unidades de medida padrão para controle de estoque e conversões (KG, UN, LT).",
   },
   "/estoque": {
     title: "Gestão de Estoque",
-    subtitle: "Controle de saldos, movimentações e rastreabilidade por lote e validade.",
+    subtitle:
+      "Controle de saldos, movimentações e rastreabilidade por lote e validade.",
   },
   "/estoque/validade": {
     title: "Controle de Validade",
-    subtitle: "Monitore produtos próximos ao vencimento e gerencie o estoque por validade.",
+    subtitle:
+      "Monitore produtos próximos ao vencimento e gerencie o estoque por validade.",
   },
   "/compras": {
     title: "Gestão de Compras",
@@ -47,14 +53,6 @@ export const routeConfig: Record<string, RouteMetadata> = {
   "/entrada": {
     title: "Entrada de Mercadorias",
     subtitle: "Registre e controle as notas fiscais de entrada.",
-  },
-  "/ordi": {
-    title: "Ordi Configurações",
-    subtitle: "Configurações do sistema Ordi.",
-  },
-  "/ordi/configuracoes": {
-    title: "Configurações do Sistema",
-    subtitle: "Personalize as configurações do sistema Ordi.",
   },
   "/auditoria": {
     title: "Auditoria",
