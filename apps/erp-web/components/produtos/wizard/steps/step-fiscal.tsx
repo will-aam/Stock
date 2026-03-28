@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Layers, ChevronsUpDown, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@stock/ui";
 
 // Mocks
 import { gruposTributarios } from "@/lib/mock/produtos/grupos-tributarios";

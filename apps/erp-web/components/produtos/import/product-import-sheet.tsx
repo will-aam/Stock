@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, FileText, Loader2, PackagePlus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@stock/ui";
 
 // Importamos a lógica que criámos
 import { parseNFeXML, NFeData, NFeItem } from "@/lib/nfe-parser";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useWizardStore } from "../use-wizard-store";
-import { cn } from "@/lib/utils";
+import { cn } from "@stock/ui";
 import { Boxes, Ghost, CheckCircle2 } from "lucide-react";
 
 export function StepStockControl() {

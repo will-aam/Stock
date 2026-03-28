@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Barcode, ChevronsUpDown, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@stock/ui";
 
 // core
 // import {

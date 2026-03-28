@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Save, X, PackagePlus } from "lucide-react";
 import { useWizardStore, STEP_ORDER } from "./use-wizard-store";
-import { cn } from "@/lib/utils";
+import { cn } from "@stock/ui";
 
 // --- IMPORTAÇÃO DAS ETAPAS ---
 import { StepRole } from "./steps/step-role";

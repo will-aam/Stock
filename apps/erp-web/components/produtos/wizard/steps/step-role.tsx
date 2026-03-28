@@ -2,7 +2,7 @@
 
 import { useWizardStore } from "../use-wizard-store";
 import { ProductRole } from "../types";
-import { cn } from "@/lib/utils";
+import { cn } from "@stock/ui";
 import { ShoppingBag, Archive, Hammer, Factory, Egg } from "lucide-react";
 
 interface RoleOption {

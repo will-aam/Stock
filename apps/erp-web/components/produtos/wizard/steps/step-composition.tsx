@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, ChefHat, Scale } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@stock/ui";
 
 // Mock de insumos para simular a busca
 const insumosDisponiveis = [

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, ScanBarcode, ClipboardCheck, Package } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@stock/ui";
 
 export function MobileNav() {
   const pathname = usePathname();
